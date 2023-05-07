@@ -57,6 +57,7 @@ fun LottieScreen(
                 lottieResId = listPagerItem[page].lottieResId,
                 text = listPagerItem[page].text,
                 backgroundColor = listPagerItem[page].color,
+                isPlaying = pagerState.currentPage == page
             )
         }
         BoardingNavigation(
@@ -133,13 +134,15 @@ fun LottieContent(
     modifier: Modifier = Modifier,
     lottieResId: Int,
     text: String,
-    backgroundColor: Color
+    backgroundColor: Color,
+    isPlaying: Boolean
 ){
     val composition by rememberLottieComposition(
         spec = LottieCompositionSpec.RawRes(lottieResId)
     )
     val progress by animateLottieCompositionAsState(
         composition = composition,
+        isPlaying = isPlaying,
         iterations = LottieConstants.IterateForever
     )
     Column(modifier = modifier
