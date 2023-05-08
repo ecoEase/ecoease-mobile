@@ -11,7 +11,16 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.bangkit.ecoease.data.Screen
+import com.bangkit.ecoease.ui.screen.CameraScreen
 import com.bangkit.ecoease.ui.screen.LottieScreen
+import com.bangkit.ecoease.ui.screen.TempScreen
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
 
 class MainActivity : ComponentActivity() {
@@ -23,12 +32,35 @@ class MainActivity : ComponentActivity() {
         )
         setContent {
             EcoEaseTheme {
+                val navController: NavHostController = rememberNavController()
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    LottieScreen()
+                    NavHost(
+                        navController = navController,
+                        startDestination = Screen.Temp.route
+                    ){
+                        composable(Screen.Home.route){
+                            LottieScreen()
+                        }
+                        composable(
+                            route = Screen.Temp.route,
+                            arguments = listOf(navArgument("path"){type = NavType.StringType})
+                        ){
+                            val filePath = it.arguments?.getString("path") ?: ""
+                            TempScreen(
+                                navController = navController,
+                                filePath = filePath
+                            )
+                        }
+                        composable(Screen.Camera.route){
+                            CameraScreen(
+                                navController = navController
+                            )
+                        }
+                    }
                 }
             }
         }

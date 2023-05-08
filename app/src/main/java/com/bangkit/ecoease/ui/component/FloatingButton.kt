@@ -31,7 +31,7 @@ fun FloatingButton(
             .size(48.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colors.primary)
-            .clickable { onClick }
+            .clickable { onClick() }
     ) {
         Icon(
             imageVector = icon,
