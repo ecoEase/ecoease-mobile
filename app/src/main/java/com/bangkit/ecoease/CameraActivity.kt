@@ -34,6 +34,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModelProvider
 import com.bangkit.ecoease.config.ViewModelFactory
 import com.bangkit.ecoease.data.viewmodel.CameraViewModel
+import com.bangkit.ecoease.di.Injection
 import com.bangkit.ecoease.helper.createImageCaptureUseCase
 import com.bangkit.ecoease.helper.getOutputDirectory
 import com.bangkit.ecoease.helper.takePhoto
@@ -53,15 +54,14 @@ class CameraActivity : AppCompatActivity() {
         val CAMERA_X_RESULT = 200
     }
 
-    private val cameraViewModel: CameraViewModel = ViewModelFactory().create(CameraViewModel::class.java)
     private lateinit var cameraExecutor: ExecutorService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+//        val cameraViewModel: CameraViewModel = ViewModelFactory(Injection.provideInjection(this)).create(CameraViewModel::class.java)
 
         setContent {
             EcoEaseTheme {
-
                 cameraExecutor = Executors.newSingleThreadExecutor()
                 // A surface container using the 'background' color from the theme
                 Surface(
@@ -73,7 +73,7 @@ class CameraActivity : AppCompatActivity() {
                         onSavedImage = { imageUri ->
                             val intent = Intent()
                             intent.putExtra("picture", imageUri.toString())
-                            cameraViewModel.setImageUri(imageUri)
+//                            cameraViewModel.setImageUri(imageUri)
                             setResult(CAMERA_X_RESULT, intent)
                             finish()
                         }

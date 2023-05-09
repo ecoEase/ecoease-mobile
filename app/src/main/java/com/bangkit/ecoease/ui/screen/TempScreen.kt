@@ -10,6 +10,7 @@ import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import com.airbnb.lottie.compose.*
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.ObjectDetection
 import com.bangkit.ecoease.data.Screen
@@ -40,7 +42,9 @@ import com.bangkit.ecoease.helper.getImageUriFromBitmap
 import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.FloatingButton
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.withContext
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.image.TensorImage
 import java.net.URLEncoder
@@ -76,16 +80,22 @@ fun TempScreen(
     navController: NavHostController,
     filePath: String,
     imageUriState: StateFlow<UiState<Uri>>,
+    onLoadingImageState: () -> Unit,
     openCamera: () -> Unit
 ){
     val context = LocalContext.current
-    var imageUri: Uri? by rememberSaveable {
+    var predictedImgUri: Uri? by rememberSaveable {
         mutableStateOf(null)
     }
+    var loadingPrediction by remember{ mutableStateOf(false) }
 
     Scaffold(
         floatingActionButton = {
-            FloatingButton(description = "open camera", icon = Icons.Default.CameraAlt, onClick = {
+            FloatingButton(
+
+                description = "open camera",
+                icon = Icons.Default.CameraAlt,
+                onClick = {
 //                navController.navigate(Screen.Camera.route)
                 openCamera()
             })
@@ -99,26 +109,33 @@ fun TempScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            imageUriState.collectAsState().value.let { uiState ->
+            imageUriState.collectAsState(initial = UiState.Loading).value.let { uiState ->
                 when(uiState){
                     is UiState.Success -> {
-                        Log.d("TAG", "TempScreen: ${uiState.data}")
-                        imageUri = getImageUriPrediction(context, uiState.data)
+                        LaunchedEffect(uiState.data) {
+                            loadingPrediction = true
+                            predictedImgUri = getImageUriPrediction(context, uiState.data)
+                            loadingPrediction = false
+                        }
                     }
                     is UiState.Error ->{
-                        Toast.makeText(LocalContext.current, "error", Toast.LENGTH_SHORT).show()
+                        predictedImgUri = null
+//                        Toast.makeText(LocalContext.current, "error", Toast.LENGTH_SHORT).show()
                     }
-                    else -> {
-                        Log.d("TAG", "TempScreen: ${uiState}")
+                    is UiState.Loading -> {
+                        onLoadingImageState()
                     }
                 }
             }
-            AsyncImage(
-                model = imageUri,
+            if(loadingPrediction) LoadingScanAnim()
+            else AsyncImage(
+                model = predictedImgUri ?: "",
                 modifier = Modifier
                     .size(320.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                ,
+                    .clip(RoundedCornerShape(16.dp)),
+                onLoading = {loadingState ->
+                    Log.d("TAG", "TempScreen: loading")
+                },
                 contentScale = ContentScale.Crop,
                 contentDescription = null,
                 placeholder = painterResource(id = R.drawable.baseline_image_24),
@@ -128,11 +145,31 @@ fun TempScreen(
     }
 }
 
-fun getImageUriPrediction(context: Context, uri: Uri): Uri{
+@Composable
+fun LoadingScanAnim(
+    modifier: Modifier = Modifier
+){
+    val composition by rememberLottieComposition(
+        spec = LottieCompositionSpec.RawRes(R.raw.lottie_blue_image_loading)
+    )
+    val progress by animateLottieCompositionAsState(
+        composition = composition,
+        isPlaying = true,
+        iterations = LottieConstants.IterateForever
+    )
+    LottieAnimation(
+        modifier = Modifier
+            .size(320.dp)
+            .clip(RectangleShape),
+        composition = composition,
+        progress = { progress }
+    )
+}
+
+suspend fun getImageUriPrediction(context: Context, uri: Uri): Uri = withContext(Dispatchers.IO){
     try {
         val inputStream = context.contentResolver.openInputStream(uri)
         var bitmap = BitmapFactory.decodeStream(inputStream)
-
         val input = Bitmap.createScaledBitmap(bitmap, 300, 300, true)
         val newInput = convertToGrayscale(bitmap)
         val image = TensorImage(DataType.FLOAT32)
@@ -140,12 +177,14 @@ fun getImageUriPrediction(context: Context, uri: Uri): Uri{
         val byteBuffer = image.buffer
 
         val resultBitmap = ObjectDetection.run(context, byteBuffer, bitmap)
-        return getImageUriFromBitmap(context, resultBitmap)
+        return@withContext getImageUriFromBitmap(context, resultBitmap)
     }catch (e: Exception){
         Log.d("TAG", "TempScreen: $e")
         throw e
     }
+
 }
+
 
 
 @Preview(showBackground = true, device = Devices.PIXEL_4)

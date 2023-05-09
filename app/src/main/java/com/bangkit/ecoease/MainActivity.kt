@@ -1,6 +1,7 @@
 package com.bangkit.ecoease
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.WindowManager
@@ -12,7 +13,11 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModelProvider
@@ -28,6 +33,7 @@ import com.bangkit.ecoease.config.ViewModelFactory
 import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.data.viewmodel.CameraViewModel
 import com.bangkit.ecoease.data.viewmodel.SplashViewModel
+import com.bangkit.ecoease.di.Injection
 import com.bangkit.ecoease.ui.screen.CameraScreen
 import com.bangkit.ecoease.ui.screen.OnBoardingScreen
 import com.bangkit.ecoease.ui.screen.TempScreen
@@ -37,7 +43,9 @@ import java.util.concurrent.Executors
 
 class MainActivity : ComponentActivity() {
     val splashViewModel = SplashViewModel()
-    private lateinit var cameraExecutor: ExecutorService
+    private val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
+    val cameraViewModel: CameraViewModel = ViewModelFactory(Injection.provideInjection(this)).create(CameraViewModel::class.java)
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,12 +60,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             EcoEaseTheme {
-                val cameraViewModel: CameraViewModel = viewModel(
-                    factory = ViewModelFactory()
-                )
-
                 val navController: NavHostController = rememberNavController()
-                cameraExecutor = Executors.newSingleThreadExecutor()
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -65,7 +68,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     NavHost(
                         navController = navController,
-                        startDestination = Screen.Home.route
+                        startDestination = Screen.Temp.route
                     ){
                         composable(Screen.Home.route){
                             OnBoardingScreen(
@@ -81,6 +84,7 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 filePath = filePath,
                                 imageUriState = cameraViewModel.uiStateImageUri,
+                                onLoadingImageState = { cameraViewModel.getImageUri() },
                                 openCamera = {
                                     val intent = Intent(this@MainActivity, CameraActivity::class.java)
                                     launcherIntentCameraX.launch(intent)
@@ -103,27 +107,15 @@ class MainActivity : ComponentActivity() {
         ActivityResultContracts.StartActivityForResult()
     ) {
         if (it.resultCode == CAMERA_X_RESULT) {
-            val imageUri = it.data?.getSerializableExtra("picture")
+            val imageUri = it.data?.getStringExtra("picture")
+            imageUri?.let {stringUri ->
+                cameraViewModel.setImageUri(Uri.parse(stringUri))
+            }
             Log.d("TAG", "from camera activity: $imageUri")
         }
     }
     override fun onDestroy() {
         super.onDestroy()
         cameraExecutor.shutdown()
-    }
-}
-
-
-
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    EcoEaseTheme {
-        Greeting("Android")
     }
 }

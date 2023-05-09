@@ -7,6 +7,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
@@ -16,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,13 +28,13 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.airbnb.lottie.compose.*
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -88,7 +90,7 @@ fun BoardingNavigation(
     pagerState: PagerState,
     navController: NavHostController
 ){
-
+    val scope = rememberCoroutineScope()
     Row(
         modifier
             .fillMaxWidth()
@@ -115,6 +117,11 @@ fun BoardingNavigation(
                     .width(animateDotWidth)
                     .clip(CircleShape)
                     .background(animateColorDot)
+                    .clickable {
+                        scope.launch {
+                            pagerState.scrollToPage(page = i, pageOffsetFraction = pagerState.currentPageOffsetFraction)
+                        }
+                    }
                 )
             }
         }

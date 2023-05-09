@@ -2,6 +2,7 @@ package com.bangkit.ecoease.ui.screen
 
 import android.Manifest
 import android.content.Context
+import android.os.Build
 import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -53,11 +54,16 @@ fun CameraScreen(
 ) {
     val context = LocalContext.current
     val permissionsState = rememberMultiplePermissionsState(
-        permissions = listOf(
+        permissions = if(Build.VERSION.SDK_INT < Build.VERSION_CODES.R) listOf(
             Manifest.permission.CAMERA,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
+        ) else listOf(
+            Manifest.permission.CAMERA,
         )
     )
+
+    Log.d("TAG", "CameraScreen: ${Build.VERSION.SDK_INT}")
+
     val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(Unit){
