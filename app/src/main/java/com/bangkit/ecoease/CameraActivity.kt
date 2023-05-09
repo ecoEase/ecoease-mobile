@@ -1,8 +1,13 @@
-package com.bangkit.ecoease.ui.screen
+package com.bangkit.ecoease
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import androidx.appcompat.app.AppCompatActivity
+import android.os.Bundle
 import android.util.Log
+import androidx.activity.compose.setContent
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.view.PreviewView
@@ -10,6 +15,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BrowseGallery
 import androidx.compose.material.icons.filled.CameraAlt
@@ -24,32 +31,70 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import coil.compose.AsyncImage
+import androidx.lifecycle.ViewModelProvider
+import com.bangkit.ecoease.config.ViewModelFactory
+import com.bangkit.ecoease.data.viewmodel.CameraViewModel
+import com.bangkit.ecoease.helper.createImageCaptureUseCase
+import com.bangkit.ecoease.helper.getOutputDirectory
+import com.bangkit.ecoease.helper.takePhoto
 import com.bangkit.ecoease.ui.component.FloatingButton
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionsRequired
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import java.util.*
-import java.util.concurrent.Executor
-import com.bangkit.ecoease.data.Screen
-import com.bangkit.ecoease.helper.createImageCaptureUseCase
-import com.bangkit.ecoease.helper.getCameraProvider
-import com.bangkit.ecoease.helper.getOutputDirectory
-import com.bangkit.ecoease.helper.takePhoto
-import kotlinx.coroutines.*
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+
+class CameraActivity : AppCompatActivity() {
+    companion object {
+        val CAMERA_X_RESULT = 200
+    }
+
+    private val cameraViewModel: CameraViewModel = ViewModelFactory().create(CameraViewModel::class.java)
+    private lateinit var cameraExecutor: ExecutorService
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        setContent {
+            EcoEaseTheme {
+
+                cameraExecutor = Executors.newSingleThreadExecutor()
+                // A surface container using the 'background' color from the theme
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colors.background
+                ) {
+                    CameraScreen(
+                        executor = cameraExecutor,
+                        onSavedImage = { imageUri ->
+                            val intent = Intent()
+                            intent.putExtra("picture", imageUri.toString())
+                            cameraViewModel.setImageUri(imageUri)
+                            setResult(CAMERA_X_RESULT, intent)
+                            finish()
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        cameraExecutor.shutdown()
+    }
+}
+
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun CameraScreen(
-    navController: NavHostController,
-    executor: Executor
+    executor: Executor,
+    onSavedImage: (Uri) -> Unit
 ) {
     val context = LocalContext.current
     val permissionsState = rememberMultiplePermissionsState(
@@ -77,16 +122,16 @@ fun CameraScreen(
         permissionsNotAvailableContent = {
             Log.d("TAG", "CameraScreen: permission error not available")
         }) {
-        CameraScreenContent(context = context, lifecycleOwner = lifecycleOwner, executor = executor, navController = navController)
+        CameraScreenContent(context = context, lifecycleOwner = lifecycleOwner, onSavedImage = onSavedImage, executor = executor)
     }
 }
 
 @Composable
 fun CameraScreenContent(
     modifier: Modifier = Modifier,
-    navController: NavHostController,
     context: Context,
     lifecycleOwner: LifecycleOwner,
+    onSavedImage: (Uri) -> Unit,
     executor: Executor,
 ) {
     val previewView = remember { PreviewView(context) }
@@ -120,16 +165,9 @@ fun CameraScreenContent(
                     imageCapture = imageCapture!!,
                     outpuDirectory = getOutputDirectory(context),
                     executor = executor,
-                    onImageCapture = {
-                        Log.d("Camera", "CameraScreenContent: $it")
-                        val imageUri = it.toString()
-                        Log.d("Camera", "CameraScreenContent: $it")
-
-                        CoroutineScope(Dispatchers.Main).launch {
-                            navController.navigate(Screen.Temp.setImage(
-                                URLEncoder.encode(imageUri, StandardCharsets.UTF_8.toString())
-                            ))
-                        }
+                    onImageCapture = { imageUri ->
+                        Log.d("Camera", "CameraScreenContent: $imageUri")
+                        onSavedImage(imageUri)
                     },
                     onError = { Log.d("Camera", "CameraScreenContent: $it") }
                 )
@@ -150,8 +188,8 @@ fun CameraScreenContent(
 fun PreviewCameraScreen() {
     EcoEaseTheme {
         CameraScreen(
-            navController = rememberNavController(),
-            executor = ContextCompat.getMainExecutor(LocalContext.current)
+            executor = ContextCompat.getMainExecutor(LocalContext.current),
+            onSavedImage = {}
         )
     }
 }

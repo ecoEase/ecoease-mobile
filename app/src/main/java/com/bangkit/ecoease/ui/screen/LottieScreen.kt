@@ -26,14 +26,19 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.airbnb.lottie.compose.*
 import com.bangkit.ecoease.R
+import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LottieScreen(
-    modifier: Modifier = Modifier
+fun OnBoardingScreen(
+    modifier: Modifier = Modifier,
+    navController: NavHostController
 ){
 
     val listPagerItem = listOf(
@@ -63,7 +68,9 @@ fun LottieScreen(
         BoardingNavigation(
             modifier = modifier.align(Alignment.BottomCenter),
             pagerState = pagerState,
-            lengthPager = listPagerItem.size)
+            lengthPager = listPagerItem.size,
+            navController = navController
+        )
     }
 }
 
@@ -79,6 +86,7 @@ fun BoardingNavigation(
     modifier: Modifier = Modifier,
     lengthPager: Int,
     pagerState: PagerState,
+    navController: NavHostController
 ){
 
     Row(
@@ -112,7 +120,7 @@ fun BoardingNavigation(
         }
         if(pagerState.currentPage == lengthPager - 1){
             Button(
-                onClick = { /*TODO*/ },
+                onClick = { navController.navigate(Screen.Temp.route) },
                 shape = RoundedCornerShape(20.dp)
             ) {
                 Text(text = "Ayo mulai")
@@ -170,6 +178,8 @@ fun LottieContent(
 @Composable
 fun PreviewLottieScreen(){
     EcoEaseTheme {
-        LottieScreen()
+        OnBoardingScreen(
+            navController = rememberNavController()
+        )
     }
 }

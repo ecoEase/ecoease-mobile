@@ -85,7 +85,11 @@ fun takePhoto(
 //            saveImageToGallery(context.contentResolver, rotateBitmap(bitmap, 90f), photoFile.name)
 //            Log.d("Camera", "onSuccess: $uri")
 
-            onImageCapture(uri)
+            try {
+                onImageCapture(uri)
+            }catch (e: Exception){
+                Log.d("TAG", "onImageSaved: $e")
+            }
         }
 
         override fun onError(exception: ImageCaptureException) {

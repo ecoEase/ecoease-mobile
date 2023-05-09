@@ -5,9 +5,7 @@
     <uses-feature android:name="android.hardware.camera.any" />
 
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission
-        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -16,13 +14,17 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.EcoEase"
+        android:theme="@style/Theme.EcoEase.SplashScreen"
         tools:targetApi="31">
+        <activity
+            android:theme="@style/Theme.AppCompat"
+            android:name=".CameraActivity"
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.EcoEase">
+            android:theme="@style/Theme.EcoEase.SplashScreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

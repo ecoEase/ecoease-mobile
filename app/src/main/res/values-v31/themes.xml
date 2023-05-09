@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
-
-    <style name="Theme.EcoEase" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:statusBarColor">@color/black</item>
-    </style>
+<resources>
 
     <style name="Theme.EcoEase.SplashScreen" parent="Theme.SplashScreen">
         <item name="windowSplashScreenAnimatedIcon">@drawable/splash_avd_anim</item>
         <item name="windowSplashScreenAnimationDuration">1000</item>
         <item name="postSplashScreenTheme">@style/Theme.EcoEase</item>
-        <item name="android:windowSplashScreenBrandingImage" tools:targetApi="s">@drawable/ecoease</item>
+        <item name="android:windowSplashScreenBrandingImage">@drawable/ecoease</item>
+
     </style>
 </resources>
