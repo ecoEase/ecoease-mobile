@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -49,6 +50,14 @@ import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
+val permissionsSdk28Below = listOf(
+    Manifest.permission.CAMERA,
+    Manifest.permission.WRITE_EXTERNAL_STORAGE
+)
+val permissionsSdk28Above= listOf(
+    Manifest.permission.CAMERA,
+)
+
 class CameraActivity : AppCompatActivity() {
     companion object {
         val CAMERA_X_RESULT = 200
@@ -58,7 +67,6 @@ class CameraActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        val cameraViewModel: CameraViewModel = ViewModelFactory(Injection.provideInjection(this)).create(CameraViewModel::class.java)
 
         setContent {
             EcoEaseTheme {
@@ -73,7 +81,6 @@ class CameraActivity : AppCompatActivity() {
                         onSavedImage = { imageUri ->
                             val intent = Intent()
                             intent.putExtra("picture", imageUri.toString())
-//                            cameraViewModel.setImageUri(imageUri)
                             setResult(CAMERA_X_RESULT, intent)
                             finish()
                         }
@@ -98,20 +105,12 @@ fun CameraScreen(
 ) {
     val context = LocalContext.current
     val permissionsState = rememberMultiplePermissionsState(
-        permissions = listOf(
-            Manifest.permission.CAMERA,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        )
+        permissions = if(Build.VERSION.SDK_INT > 28) permissionsSdk28Above else permissionsSdk28Below
     )
     val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(Unit){
         permissionsState.launchMultiplePermissionRequest()
-    }
-
-    DisposableEffect(Unit){
-//        (executor as ExecutorService).shutdown()
-        onDispose {  }
     }
 
     PermissionsRequired(
@@ -144,6 +143,13 @@ fun CameraScreenContent(
             cameraSelector = cameraSelector,
             previewView = previewView,
         )
+    }
+
+    DisposableEffect(Unit){
+
+        onDispose {
+
+        }
     }
 
     Box(modifier = modifier.fillMaxSize()){

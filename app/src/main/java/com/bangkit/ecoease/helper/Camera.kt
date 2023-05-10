@@ -18,6 +18,7 @@ import androidx.lifecycle.LifecycleOwner
 import com.bangkit.ecoease.R
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
@@ -130,8 +131,26 @@ fun getOutputDirectory(context: Context): File {
     return if (mediaDir != null && mediaDir.exists()) mediaDir else context.filesDir
 }
 fun getImageUriFromBitmap(context: Context, bitmap: Bitmap): Uri{
-    val bytes = ByteArrayOutputStream()
-    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
+    val bytesStream = ByteArrayOutputStream()
+    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytesStream)
     val path = MediaStore.Images.Media.insertImage(context.contentResolver, bitmap, "Title", null)
+
+    bytesStream.flush()
+    bytesStream.close()
+
     return Uri.parse(path.toString())
+}
+fun getImageUriFromTempBitmap(context: Context, bitmap: Bitmap): Uri{
+    val tempFile = File.createTempFile(
+        "temp-detect-result",
+        SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.US).format(System.currentTimeMillis()) + ".jpg"
+    )
+    val outputStream = FileOutputStream(tempFile)
+    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+    val uri = Uri.fromFile(tempFile)
+
+    outputStream.flush()
+    outputStream.close()
+
+    return uri
 }

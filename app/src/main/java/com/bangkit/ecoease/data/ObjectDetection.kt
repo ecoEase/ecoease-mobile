@@ -39,8 +39,6 @@ object ObjectDetection{
         val score = outputFeature2.floatArray
         val num = outputFeature3.intArray
 
-        classType.forEach { Log.d("TAG", "run: $it") }
-
         val imageWithBound = drawRectBound(image = image, bounds = boundLocation, classType = classType[0], score = score[0])
 // Releases model resources if no longer used.
         model.close()
@@ -71,8 +69,8 @@ object ObjectDetection{
                 bounds[x+2] * height),
             paint)//draw box
         paint.style = Paint.Style.FILL
-        paint.textSize = 32f
-        canvas.drawText("${label[classType]} ${score}", bounds[x+1] * width, bounds[x] * height - 32, paint)//draw label and score
+        paint.textSize = 64f
+        canvas.drawText("${label[classType]} ${score * 100}", bounds[x+1] * width, bounds[x] * height - 32, paint)//draw label and score
 
         return copyImage
     }

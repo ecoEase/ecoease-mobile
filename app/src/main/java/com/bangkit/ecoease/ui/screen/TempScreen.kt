@@ -39,10 +39,12 @@ import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.ObjectDetection
 import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.helper.getImageUriFromBitmap
+import com.bangkit.ecoease.helper.getImageUriFromTempBitmap
 import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.FloatingButton
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
 import org.tensorflow.lite.DataType
@@ -87,18 +89,17 @@ fun TempScreen(
     var predictedImgUri: Uri? by rememberSaveable {
         mutableStateOf(null)
     }
-    var loadingPrediction by remember{ mutableStateOf(false) }
+    var loadingPrediction by rememberSaveable{ mutableStateOf(false) }
 
     Scaffold(
         floatingActionButton = {
             FloatingButton(
-
                 description = "open camera",
                 icon = Icons.Default.CameraAlt,
                 onClick = {
-//                navController.navigate(Screen.Camera.route)
-                openCamera()
-            })
+                    openCamera()
+                }
+            )
         }
     ) {paddingValues ->
         Column(
@@ -109,21 +110,23 @@ fun TempScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            imageUriState.collectAsState(initial = UiState.Loading).value.let { uiState ->
-                when(uiState){
-                    is UiState.Success -> {
-                        LaunchedEffect(uiState.data) {
-                            loadingPrediction = true
-                            predictedImgUri = getImageUriPrediction(context, uiState.data)
-                            loadingPrediction = false
+            Log.d("predict state", "TempScreen: $predictedImgUri")
+            if(predictedImgUri == null){
+                imageUriState.collectAsState(initial = UiState.Loading).value.let { uiState ->
+                    when(uiState){
+                        is UiState.Success -> {
+                            LaunchedEffect(uiState.data) {
+                                loadingPrediction = true
+                                predictedImgUri = getImageUriPrediction(context, uiState.data)
+                                loadingPrediction = false
+                            }
                         }
-                    }
-                    is UiState.Error ->{
-                        predictedImgUri = null
-//                        Toast.makeText(LocalContext.current, "error", Toast.LENGTH_SHORT).show()
-                    }
-                    is UiState.Loading -> {
-                        onLoadingImageState()
+                        is UiState.Error ->{
+                            predictedImgUri = null
+                        }
+                        is UiState.Loading -> {
+                            onLoadingImageState()
+                        }
                     }
                 }
             }
@@ -150,7 +153,7 @@ fun LoadingScanAnim(
     modifier: Modifier = Modifier
 ){
     val composition by rememberLottieComposition(
-        spec = LottieCompositionSpec.RawRes(R.raw.lottie_blue_image_loading)
+        spec = LottieCompositionSpec.RawRes(R.raw.lottie_image_scan_load)
     )
     val progress by animateLottieCompositionAsState(
         composition = composition,
@@ -158,7 +161,7 @@ fun LoadingScanAnim(
         iterations = LottieConstants.IterateForever
     )
     LottieAnimation(
-        modifier = Modifier
+        modifier = modifier
             .size(320.dp)
             .clip(RectangleShape),
         composition = composition,
@@ -177,12 +180,12 @@ suspend fun getImageUriPrediction(context: Context, uri: Uri): Uri = withContext
         val byteBuffer = image.buffer
 
         val resultBitmap = ObjectDetection.run(context, byteBuffer, bitmap)
-        return@withContext getImageUriFromBitmap(context, resultBitmap)
+
+        return@withContext getImageUriFromTempBitmap(context, resultBitmap)
     }catch (e: Exception){
         Log.d("TAG", "TempScreen: $e")
         throw e
     }
-
 }
 
 
@@ -191,6 +194,12 @@ suspend fun getImageUriPrediction(context: Context, uri: Uri): Uri = withContext
 @Composable
 fun PreviewScreen(){
     EcoEaseTheme {
-//        TempScreen(filePath = "", navController = rememberNavController(), openCamera = {}, imageUri = URLEncoder.encode("", "asd"))
+        TempScreen(
+            filePath = "",
+            navController = rememberNavController(),
+            openCamera = {},
+            onLoadingImageState = {},
+            imageUriState = MutableStateFlow(UiState.Loading)
+        )
     }
 }
