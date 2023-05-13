@@ -1,12 +1,11 @@
 package com.bangkit.ecoease.ui.component
 
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bangkit.ecoease.ui.theme.BluePrimary
@@ -14,6 +13,7 @@ import com.bangkit.ecoease.ui.theme.EcoEaseTheme
 
 @Composable
 fun TextInput(
+    isTextArea: Boolean = false,
     modifier: Modifier = Modifier,
     onChange: (String) -> Unit = {}
 ){
@@ -21,7 +21,9 @@ fun TextInput(
         mutableStateOf("")
     }
     OutlinedTextField(
-        modifier = modifier,
+        modifier = modifier
+            .height(if(isTextArea) 112.dp else 56.dp)
+        ,
         value = value,
         label = {
             Text("Label")
@@ -35,7 +37,6 @@ fun TextInput(
             backgroundColor = MaterialTheme.colors.background,
             textColor = MaterialTheme.colors.onBackground,
             focusedLabelColor = MaterialTheme.colors.onBackground,
-
             focusedBorderColor = MaterialTheme.colors.primary,
             unfocusedBorderColor = BluePrimary
         )

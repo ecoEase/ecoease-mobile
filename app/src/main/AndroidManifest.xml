@@ -24,6 +24,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
             android:label="@string/app_name"
             android:theme="@style/Theme.EcoEase.SplashScreen">
             <intent-filter>
@@ -32,5 +33,4 @@
             </intent-filter>
         </activity>
     </application>
-
 </manifest>

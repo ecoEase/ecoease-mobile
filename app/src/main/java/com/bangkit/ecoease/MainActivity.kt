@@ -11,9 +11,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -21,6 +22,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.bangkit.ecoease.CameraActivity.Companion.CAMERA_X_RESULT
@@ -30,6 +32,8 @@ import com.bangkit.ecoease.data.model.ImageCaptured
 import com.bangkit.ecoease.data.viewmodel.CameraViewModel
 import com.bangkit.ecoease.data.viewmodel.SplashViewModel
 import com.bangkit.ecoease.di.Injection
+import com.bangkit.ecoease.ui.component.BottomNavBar
+import com.bangkit.ecoease.ui.component.FloatingButton
 import com.bangkit.ecoease.ui.screen.CameraScreen
 import com.bangkit.ecoease.ui.screen.OnBoardingScreen
 import com.bangkit.ecoease.ui.screen.TempScreen
@@ -38,63 +42,84 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class MainActivity : ComponentActivity() {
-    val splashViewModel = SplashViewModel()
     private val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
-    val cameraViewModel: CameraViewModel = ViewModelFactory(Injection.provideInjection(this)).create(CameraViewModel::class.java)
-
+    lateinit var cameraViewModel: CameraViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashViewModel = SplashViewModel()
         super.onCreate(savedInstanceState)
 
+        cameraViewModel = ViewModelFactory(Injection.provideInjection(this)).create(CameraViewModel::class.java)
         installSplashScreen().setKeepOnScreenCondition{
             splashViewModel.isLoading.value
         }
-//        window.setFlags(
-//            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-//            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-//        )
+
+        val listRoute = listOf(
+            Screen.Temp,
+            Screen.History,
+            Screen.Map,
+            Screen.Profile
+        )
         setContent {
             EcoEaseTheme {
                 val navController: NavHostController = rememberNavController()
-                // A surface container using the 'background' color from the theme
+                val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+
                 Surface(
                     modifier = Modifier
-                        .fillMaxSize(),
+                        .fillMaxSize()
+                    ,
                     color = MaterialTheme.colors.background
                 ) {
-                    NavHost(
-                        navController = navController,
-                        startDestination = Screen.Home.route
-                    ){
-                        composable(Screen.Home.route){
-                            OnBoardingScreen(
-                                navController = navController
-                            )
-                        }
-                        composable(
-                            route = Screen.Temp.route,
-                            arguments = listOf(navArgument("path"){type = NavType.StringType})
+                    Scaffold(
+                        floatingActionButton = {
+                            if(currentRoute != Screen.Onboard.route) FloatingButton(description = "scan", icon = Icons.Default.CameraAlt)
+                       },
+                        bottomBar = {
+                            if(currentRoute != Screen.Onboard.route) BottomNavBar(navController = navController, items = listRoute)
+                        },
+                        floatingActionButtonPosition = FabPosition.Center,
+                        isFloatingActionButtonDocked = true,
+                    ) {paddingValues ->
+                        NavHost(
+                            navController = navController,
+                            startDestination = Screen.Onboard.route,
+                            modifier = Modifier.padding(paddingValues)
                         ){
-                            val filePath = it.arguments?.getString("path") ?: ""
-                            TempScreen(
-                                navController = navController,
-                                filePath = filePath,
-                                imageCapturedState = cameraViewModel.uiStateImageCaptured,
-                                onLoadingImageState = { cameraViewModel.getImageUri() },
-                                openCamera = {
-                                    val intent = Intent(this@MainActivity, CameraActivity::class.java)
-                                    launcherIntentCameraX.launch(intent)
-                                }
-                            )
-                        }
-                        composable(Screen.Camera.route){
-                            CameraScreen(
-                                navController = navController,
-                                executor = cameraExecutor
-                            )
+                            composable(Screen.Onboard.route){
+                                OnBoardingScreen(
+                                    navController = navController
+                                )
+                            }
+                            composable(
+                                route = Screen.Temp.route,
+                                arguments = listOf(navArgument("path"){type = NavType.StringType})
+                            ){
+                                val filePath = it.arguments?.getString("path") ?: ""
+                                TempScreen(
+                                    navController = navController,
+                                    filePath = filePath,
+                                    imageCapturedState = cameraViewModel.uiStateImageCaptured,
+                                    onLoadingImageState = { cameraViewModel.getImageUri() },
+                                    openCamera = {
+                                        val intent = Intent(this@MainActivity, CameraActivity::class.java)
+                                        launcherIntentCameraX.launch(intent)
+                                    }
+                                )
+                            }
+                            composable(Screen.History.route){
+                                Text(text = "history")
+                            }
+                            composable(Screen.Profile.route){
+                                Text(text = "history")
+                            }
+                            composable(Screen.Map.route){
+                                Text(text = "map")
+                            }
                         }
                     }
                 }
+
             }
         }
     }
