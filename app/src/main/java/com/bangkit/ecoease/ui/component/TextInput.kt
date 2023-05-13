@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.bangkit.ecoease.ui.theme.BluePrimary
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
 
 @Composable
@@ -19,7 +20,6 @@ fun TextInput(
     var value by rememberSaveable{
         mutableStateOf("")
     }
-    val lightBlue = Color(0xff569DAA)
     OutlinedTextField(
         modifier = modifier,
         value = value,
@@ -36,8 +36,8 @@ fun TextInput(
             textColor = MaterialTheme.colors.onBackground,
             focusedLabelColor = MaterialTheme.colors.onBackground,
 
-            focusedBorderColor = Color.Magenta,
-            unfocusedBorderColor = lightBlue
+            focusedBorderColor = MaterialTheme.colors.primary,
+            unfocusedBorderColor = BluePrimary
         )
     )
 }

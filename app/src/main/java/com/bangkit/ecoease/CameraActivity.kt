@@ -21,7 +21,9 @@ import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BrowseGallery
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.FlipCameraAndroid
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -32,10 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.ViewModelProvider
-import com.bangkit.ecoease.config.ViewModelFactory
-import com.bangkit.ecoease.data.viewmodel.CameraViewModel
-import com.bangkit.ecoease.di.Injection
 import com.bangkit.ecoease.helper.createImageCaptureUseCase
 import com.bangkit.ecoease.helper.getOutputDirectory
 import com.bangkit.ecoease.helper.takePhoto
@@ -44,8 +42,6 @@ import com.bangkit.ecoease.ui.theme.EcoEaseTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionsRequired
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -78,9 +74,10 @@ class CameraActivity : AppCompatActivity() {
                 ) {
                     CameraScreen(
                         executor = cameraExecutor,
-                        onSavedImage = { imageUri ->
+                        onSavedImage = { imageUri, isBackCam ->
                             val intent = Intent()
                             intent.putExtra("picture", imageUri.toString())
+                            intent.putExtra("cam-facing", isBackCam)
                             setResult(CAMERA_X_RESULT, intent)
                             finish()
                         }
@@ -101,7 +98,7 @@ class CameraActivity : AppCompatActivity() {
 @Composable
 fun CameraScreen(
     executor: Executor,
-    onSavedImage: (Uri) -> Unit
+    onSavedImage: (Uri, Boolean) -> Unit
 ) {
     val context = LocalContext.current
     val permissionsState = rememberMultiplePermissionsState(
@@ -130,26 +127,19 @@ fun CameraScreenContent(
     modifier: Modifier = Modifier,
     context: Context,
     lifecycleOwner: LifecycleOwner,
-    onSavedImage: (Uri) -> Unit,
+    onSavedImage: (Uri, Boolean) -> Unit,
     executor: Executor,
 ) {
     val previewView = remember { PreviewView(context) }
-    var cameraSelector: CameraSelector by remember { mutableStateOf(CameraSelector.DEFAULT_BACK_CAMERA) }
+    var isBackCamera: Boolean by rememberSaveable{ mutableStateOf(true) }
     var imageCapture: ImageCapture? by remember { mutableStateOf(null) }
 
-    LaunchedEffect(previewView){
+    LaunchedEffect(previewView, isBackCamera){
         imageCapture = context.createImageCaptureUseCase(
             lifecycleOwner = lifecycleOwner,
-            cameraSelector = cameraSelector,
+            cameraSelector = if(isBackCamera) CameraSelector.DEFAULT_BACK_CAMERA else CameraSelector.DEFAULT_FRONT_CAMERA,
             previewView = previewView,
         )
-    }
-
-    DisposableEffect(Unit){
-
-        onDispose {
-
-        }
     }
 
     Box(modifier = modifier.fillMaxSize()){
@@ -172,12 +162,20 @@ fun CameraScreenContent(
                     outpuDirectory = getOutputDirectory(context),
                     executor = executor,
                     onImageCapture = { imageUri ->
-                        Log.d("Camera", "CameraScreenContent: $imageUri")
-                        onSavedImage(imageUri)
+//                        Log.d("Camera", "CameraScreenContent: $imageUri")
+                        onSavedImage(imageUri, isBackCamera)
                     },
                     onError = { Log.d("Camera", "CameraScreenContent: $it") }
                 )
             }
+        )
+        FloatingButton(
+            description = "swap camera",
+            icon = Icons.Default.FlipCameraAndroid,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .offset(y = (-32).dp),
+            onClick = { isBackCamera = !isBackCamera }
         )
         FloatingButton(
             description = "gallery",
@@ -189,13 +187,14 @@ fun CameraScreenContent(
     }
 }
 
+
 @Preview(showBackground = true, device = Devices.PIXEL_4)
 @Composable
 fun PreviewCameraScreen() {
     EcoEaseTheme {
         CameraScreen(
             executor = ContextCompat.getMainExecutor(LocalContext.current),
-            onSavedImage = {}
+            onSavedImage = { _, _ -> }
         )
     }
 }

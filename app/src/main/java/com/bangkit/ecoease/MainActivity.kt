@@ -4,24 +4,19 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -31,6 +26,7 @@ import androidx.navigation.navArgument
 import com.bangkit.ecoease.CameraActivity.Companion.CAMERA_X_RESULT
 import com.bangkit.ecoease.config.ViewModelFactory
 import com.bangkit.ecoease.data.Screen
+import com.bangkit.ecoease.data.model.ImageCaptured
 import com.bangkit.ecoease.data.viewmodel.CameraViewModel
 import com.bangkit.ecoease.data.viewmodel.SplashViewModel
 import com.bangkit.ecoease.di.Injection
@@ -53,22 +49,22 @@ class MainActivity : ComponentActivity() {
         installSplashScreen().setKeepOnScreenCondition{
             splashViewModel.isLoading.value
         }
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-        )
-
+//        window.setFlags(
+//            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+//            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+//        )
         setContent {
             EcoEaseTheme {
                 val navController: NavHostController = rememberNavController()
                 // A surface container using the 'background' color from the theme
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
                     NavHost(
                         navController = navController,
-                        startDestination = Screen.Temp.route
+                        startDestination = Screen.Home.route
                     ){
                         composable(Screen.Home.route){
                             OnBoardingScreen(
@@ -83,7 +79,7 @@ class MainActivity : ComponentActivity() {
                             TempScreen(
                                 navController = navController,
                                 filePath = filePath,
-                                imageUriState = cameraViewModel.uiStateImageUri,
+                                imageCapturedState = cameraViewModel.uiStateImageCaptured,
                                 onLoadingImageState = { cameraViewModel.getImageUri() },
                                 openCamera = {
                                     val intent = Intent(this@MainActivity, CameraActivity::class.java)
@@ -108,8 +104,16 @@ class MainActivity : ComponentActivity() {
     ) {
         if (it.resultCode == CAMERA_X_RESULT) {
             val imageUri = it.data?.getStringExtra("picture")
+            val isBackCam = it.data?.getBooleanExtra("cam-facing", true)
             imageUri?.let {stringUri ->
-                cameraViewModel.setImageUri(Uri.parse(stringUri))
+                isBackCam?.let { isBackCam ->
+                    cameraViewModel.setImage(
+                        ImageCaptured(
+                            uri = Uri.parse(stringUri),
+                            isBackCam = isBackCam
+                        )
+                    )
+                }
             }
             Log.d("TAG", "from camera activity: $imageUri")
         }

@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">EcoEase</string>
+    <string name="banner_text_1">Punya sampah daur ulang?</string>
+    <string name="banner_text_2">Laporkan, tukar sampah jadi uang</string>
+    <string name="make_report_btn">buat laporan</string>
+    <string name="average_price">Rerata harga</string>
+    <string name="order_not_taken">belum diambil</string>
+    <string name="order_on_process">dalam proses</string>
+    <string name="order_taken">sudah diambil</string>
+    <string name="order_canceled">dibatalkan</string>
+    <string name="detail">rincian</string>
+    <string name="not_found">Data tidak ditemukan</string>
 </resources>

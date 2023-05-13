@@ -8,8 +8,10 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.net.Uri
 import android.util.Log
+import com.bangkit.ecoease.helper.rotateBitmap
 import com.bangkit.ecoease.ml.SsdliteMobilenetV2
 import org.tensorflow.lite.DataType
+import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -17,16 +19,22 @@ import java.nio.ByteBuffer
 
 object ObjectDetection{
 
-    val label = listOf("Got Masked", "No Mask", "Wear Incorectly")
-
-    fun run(context: Context, inputBuffer: ByteBuffer, image: Bitmap): Bitmap{
+    private val label = listOf("Got Masked", "No Mask", "Wear Incorrectly")
+    fun run(context: Context, image: Bitmap, isBackCam: Boolean): Bitmap{
         val model = SsdliteMobilenetV2.newInstance(context)
+        // Rotate image base on camera facing
+        val rotatedBitmap = rotateBitmap(image, if (isBackCam) 90f else -90f)
+        // Create inputBuffer
+        val scalledBitmap = Bitmap.createScaledBitmap(image, 300, 300, true)
+        val tensorImage = TensorImage(DataType.FLOAT32)
+        tensorImage.load(scalledBitmap)
+        val inputBuffer = tensorImage.buffer
 
-// Creates inputs for reference.
+        // Creates inputs for reference.
         val inputFeature0 = TensorBuffer.createFixedSize(intArrayOf(1, 300, 300, 3), DataType.FLOAT32)
         inputFeature0.loadBuffer(inputBuffer)
 
-// Runs model inference and gets result.
+        // Runs model inference and gets result.
         val outputs = model.process(inputFeature0)
 
         val outputFeature0 = outputs.outputFeature0AsTensorBuffer
@@ -39,18 +47,47 @@ object ObjectDetection{
         val score = outputFeature2.floatArray
         val num = outputFeature3.intArray
 
-        val imageWithBound = drawRectBound(image = image, bounds = boundLocation, classType = classType[0], score = score[0])
-// Releases model resources if no longer used.
+        val imageWithBound = drawRectBound(
+            image = image,
+            bounds = boundLocation,
+            classType = classType[0],
+            score = score[0],
+            rotation = if (isBackCam) 90f else -90f
+        )
+        // Releases model resources if no longer used.
         model.close()
         return imageWithBound
     }
+    fun convertToGrayscale(inputBitmap: Bitmap): Bitmap {
+        val width = inputBitmap.width
+        val height = inputBitmap.height
 
-    private fun drawRectBound(image: Bitmap, bounds: FloatArray, classType: Int, score: Float): Bitmap{
+        val outputBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                val pixel = inputBitmap.getPixel(x, y)
+
+                val red = Color.red(pixel)
+                val green = Color.green(pixel)
+                val blue = Color.blue(pixel)
+
+                val grayscale = (0.299 * red + 0.587 * green + 0.114 * blue).toInt()
+
+                val grayPixel = Color.rgb(grayscale, grayscale, grayscale)
+
+                outputBitmap.setPixel(x, y, grayPixel)
+            }
+        }
+
+        return outputBitmap
+    }
+    private fun drawRectBound(image: Bitmap, bounds: FloatArray, classType: Int, score: Float, rotation: Float = 0f): Bitmap{
 
         var copyImage = image.copy(Bitmap.Config.ARGB_8888, true)
         val canvas = Canvas(copyImage)
         val paint = Paint()
-        var colors = listOf<Int>(
+        var colors = listOf(
             Color.BLUE, Color.GREEN, Color.RED, Color.CYAN, Color.GRAY, Color.BLACK,
             Color.DKGRAY, Color.MAGENTA, Color.YELLOW, Color.RED)
 
@@ -74,8 +111,6 @@ object ObjectDetection{
 
         return copyImage
     }
-
-
     @Throws(IOException::class)
     fun readBytes(context: Context, uri: Uri): ByteArray? =
         context.contentResolver.openInputStream(uri)?.buffered()?.use { it.readBytes() }

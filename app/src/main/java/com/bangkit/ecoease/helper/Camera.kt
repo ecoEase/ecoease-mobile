@@ -140,13 +140,16 @@ fun getImageUriFromBitmap(context: Context, bitmap: Bitmap): Uri{
 
     return Uri.parse(path.toString())
 }
-fun getImageUriFromTempBitmap(context: Context, bitmap: Bitmap): Uri{
+fun getImageUriFromTempBitmap(context: Context, bitmap: Bitmap, rotate: Float): Uri{
     val tempFile = File.createTempFile(
         "temp-detect-result",
         SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.US).format(System.currentTimeMillis()) + ".jpg"
     )
+    val rotatedBitmap = rotateBitmap(bitmap, rotate)
     val outputStream = FileOutputStream(tempFile)
-    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+    rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+
+
     val uri = Uri.fromFile(tempFile)
 
     outputStream.flush()

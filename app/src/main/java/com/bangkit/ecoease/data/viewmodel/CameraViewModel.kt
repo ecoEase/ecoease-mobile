@@ -4,37 +4,38 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bangkit.ecoease.data.model.ImageCaptured
 import com.bangkit.ecoease.data.repository.MainRepository
 import com.bangkit.ecoease.ui.common.UiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
-class CameraViewModel(private val repository: MainRepository): ViewModel() {
-    private val _uiStateImageUri: MutableStateFlow<UiState<Uri>> = MutableStateFlow(UiState.Loading)
-    val uiStateImageUri: StateFlow<UiState<Uri>> = _uiStateImageUri
 
-    fun setImageUri(uri: Uri){
-        _uiStateImageUri.value = UiState.Loading
-        repository.setCapturedImageUri(uri)
+class CameraViewModel(private val repository: MainRepository): ViewModel() {
+    private val _uiStateImageCaptured: MutableStateFlow<UiState<ImageCaptured>> = MutableStateFlow(UiState.Loading)
+    val uiStateImageCaptured: StateFlow<UiState<ImageCaptured>> = _uiStateImageCaptured
+
+    fun setImage(imageCaptured: ImageCaptured){
+        _uiStateImageCaptured.value = UiState.Loading
+        repository.setCapturedImage(imageCaptured)
     }
 
     fun getImageUri(){
         viewModelScope.launch {
             try {
-                repository.getCapturedImageUri()
+                repository.getCapturedImage()
                     .catch { error ->
                         Log.d("TAG", "getImageUri: ${error.message}")
-                        _uiStateImageUri.value = UiState.Error(error.message.toString())
+                        _uiStateImageCaptured.value = UiState.Error(error.message.toString())
                     }
-                    .collect{uri ->
-                        _uiStateImageUri.value = UiState.Success(uri)
-                        Log.d("TAG", "getImageUri success: ${uri}")
+                    .collect{imageCaptured ->
+                        _uiStateImageCaptured.value = UiState.Success(imageCaptured)
+                        Log.d("TAG", "getImageCaptured success: ${imageCaptured.uri}")
                     }
             }catch (e: Exception){
-                _uiStateImageUri.value = UiState.Error(e.message.toString())
+                _uiStateImageCaptured.value = UiState.Error(e.message.toString())
                 Log.d("TAG", "getImageUri: ${e.message}")
             }
         }

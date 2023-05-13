@@ -1,18 +1,18 @@
 package com.bangkit.ecoease.data.repository
 
-import android.net.Uri
 import android.util.Log
+import com.bangkit.ecoease.data.model.ImageCaptured
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
 class MainRepository {
-    private var capturedImageUri: Uri? = null
+    private var capturedImageUri: ImageCaptured? = null
 
-    fun setCapturedImageUri(uri: Uri){
-        capturedImageUri = uri
+    fun setCapturedImage(imageCapture: ImageCaptured){
+        capturedImageUri = imageCapture
     }
 
-    fun getCapturedImageUri(): Flow<Uri> {
+    fun getCapturedImage(): Flow<ImageCaptured> {
         Log.d(MainRepository::class.java.simpleName, "getCapturedImageUri: $capturedImageUri")
         return flowOf(capturedImageUri!!)
     }

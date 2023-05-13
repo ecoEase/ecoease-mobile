@@ -5,6 +5,7 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.TweenSpec
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,6 +24,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,7 +45,6 @@ fun OnBoardingScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController
 ){
-
     val listPagerItem = listOf(
         PagerItem(R.raw.lottie_wave, "Welcome", Color(0xFFB9EDDD)),
         PagerItem(R.raw.lottie_becket_trash_can, "b", Color(0xFF02AE9A)),
@@ -94,43 +96,63 @@ fun BoardingNavigation(
     Row(
         modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.1f)
-            .padding(horizontal = 32.dp)
+            .padding(horizontal = 32.dp, vertical = 16.dp)
         ,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            for (i in 0 until lengthPager){
-                val animateDotWidth: Dp by animateDpAsState(
-                    targetValue = if (pagerState.currentPage == i) 32.dp else 16.dp,
-                    animationSpec = getAnimationSpec()
-                )
-                val animateColorDot by animateColorAsState(
-                    targetValue = if (pagerState.currentPage == i) Color.White else Color.LightGray,
-                    animationSpec = getAnimationSpec()
-                )
-
-                Box(modifier = modifier
-                    .height(16.dp)
-                    .width(animateDotWidth)
-                    .clip(CircleShape)
-                    .background(animateColorDot)
-                    .clickable {
-                        scope.launch {
-                            pagerState.scrollToPage(page = i, pageOffsetFraction = pagerState.currentPageOffsetFraction)
-                        }
-                    }
-                )
-            }
-        }
-        if(pagerState.currentPage == lengthPager - 1){
-            Button(
-                onClick = { navController.navigate(Screen.Temp.route) },
-                shape = RoundedCornerShape(20.dp)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(text = "Ayo mulai")
+                for (i in 0 until lengthPager){
+                    val animateDotWidth: Dp by animateDpAsState(
+                        targetValue = if (pagerState.currentPage == i) 32.dp else 16.dp,
+                        animationSpec = getAnimationSpec()
+                    )
+                    val animateColorDot by animateColorAsState(
+                        targetValue = if (pagerState.currentPage == i) Color.White else Color.LightGray,
+                        animationSpec = getAnimationSpec()
+                    )
+
+                    Box(modifier = modifier
+                        .height(16.dp)
+                        .width(animateDotWidth)
+                        .clip(CircleShape)
+                        .background(animateColorDot)
+                        .clickable {
+                            scope.launch {
+                                pagerState.animateScrollToPage(page = i)
+                            }
+                        }
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Button(
+                    onClick = { navController.navigate(Screen.Temp.route) },
+                    shape = RoundedCornerShape(20.dp),
+                    border = BorderStroke(2.dp, Color.White),
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color.Transparent,
+                        contentColor = Color.White
+                    ),
+                    elevation = null
+                ) {
+                    Text(text = "Lewati")
+                }
+                if(pagerState.currentPage == lengthPager - 1){
+                    Button(
+                        onClick = { navController.navigate(Screen.Temp.route) },
+                        shape = RoundedCornerShape(20.dp)
+                    ) {
+                        Text(text = "Ayo mulai")
+                    }
+                }
             }
         }
     }
