@@ -76,8 +76,8 @@ fun CollapseContainer(
 fun CollapseContainerPreview(){
     EcoEaseTheme() {
         CollapseContainer(label = "Tambah alamat"){
-            TextInput()
-            TextInput()
+            TextInput(label = "lorem")
+            TextInput(label = "lorem")
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.bangkit.ecoease.ui.component
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -13,6 +14,7 @@ import com.bangkit.ecoease.ui.theme.EcoEaseTheme
 
 @Composable
 fun TextInput(
+    label: String,
     isTextArea: Boolean = false,
     modifier: Modifier = Modifier,
     onChange: (String) -> Unit = {}
@@ -22,11 +24,12 @@ fun TextInput(
     }
     OutlinedTextField(
         modifier = modifier
+            .fillMaxWidth()
             .height(if(isTextArea) 112.dp else 56.dp)
         ,
         value = value,
         label = {
-            Text("Label")
+            Text(label)
         },
         onValueChange = {
             value = it
@@ -47,6 +50,6 @@ fun TextInput(
 @Composable
 fun TextInputPreview(){
     EcoEaseTheme {
-        TextInput()
+        TextInput(label = "Label")
     }
 }

@@ -138,7 +138,7 @@ fun PreviewDropDown(){
     EcoEaseTheme {
         Column {
             DropDown(listItem = listOf("lorem", "ipsum","lorem", "ipsum","lorem", "ipsum","lorem", "ipsum",))
-            TextInput()
+            TextInput(label = "test dropdown")
 
         }
     }

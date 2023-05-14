@@ -14,4 +14,6 @@ sealed class Screen(val route: String, val icon: ImageVector){
     object History : Screen(route = "history", icon = Icons.Default.History)
     object Profile : Screen(route = "profile", icon = Icons.Default.AccountCircle)
     object Map : Screen(route = "map", icon = Icons.Default.Map)
+    object Auth : Screen(route = "auth", icon = Icons.Default.Login)
+    object Register : Screen(route = "register", icon = Icons.Default.AppRegistration)
 }

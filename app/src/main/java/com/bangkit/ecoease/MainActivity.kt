@@ -63,6 +63,12 @@ class MainActivity : ComponentActivity() {
             Screen.Map,
             Screen.Profile
         )
+
+        val listNoTopbar = listOf(
+            Screen.Onboard,
+            Screen.Auth,
+            Screen.Register,
+        )
         setContent {
             EcoEaseTheme {
                 val navController: NavHostController = rememberNavController()
@@ -76,7 +82,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     Scaffold(
                         topBar = {
-                            if(currentRoute != Screen.Onboard.route){
+                            if(!listNoTopbar.map { it.route }.contains(currentRoute)){
                                 TopAppBar(
                                     backgroundColor = MaterialTheme.colors.background,
                                     elevation = 0.dp,
@@ -89,24 +95,20 @@ class MainActivity : ComponentActivity() {
                             }
                         },
                         floatingActionButton = {
-                            if(currentRoute != Screen.Onboard.route) FloatingButton(description = "scan", icon = Icons.Default.CameraAlt)
+                            if(!listNoTopbar.map { it.route }.contains(currentRoute)) FloatingButton(description = "scan", icon = Icons.Default.CameraAlt)
                        },
                         bottomBar = {
-                            if(currentRoute != Screen.Onboard.route) BottomNavBar(navController = navController, items = listMainRoute)
+                            if(!listNoTopbar.map { it.route }.contains(currentRoute)) BottomNavBar(navController = navController, items = listMainRoute)
                         },
                         floatingActionButtonPosition = FabPosition.Center,
                         isFloatingActionButtonDocked = true,
                     ) {paddingValues ->
                         NavHost(
                             navController = navController,
-                            startDestination = Screen.Onboard.route,
+                            startDestination = Screen.Auth.route,
                             modifier = Modifier.padding(paddingValues)
                         ){
-                            composable(Screen.Onboard.route){
-                                OnBoardingScreen(
-                                    navController = navController
-                                )
-                            }
+                            composable(Screen.Onboard.route){ OnBoardingScreen(navController = navController) }
                             composable(
                                 route = Screen.Temp.route,
                                 arguments = listOf(navArgument("path"){type = NavType.StringType})
@@ -124,15 +126,11 @@ class MainActivity : ComponentActivity() {
 //                                )
                                 DashboardScreen(navHostController = navController)
                             }
-                            composable(Screen.History.route){
-                                OrderHistoryScreen(navHostController = navController)
-                            }
-                            composable(Screen.Profile.route){
-                                ProfileScreen(navHostController = navController)
-                            }
-                            composable(Screen.Map.route){
-                                MapScreen()
-                            }
+                            composable(Screen.History.route){ OrderHistoryScreen(navHostController = navController) }
+                            composable(Screen.Profile.route){ ProfileScreen(navHostController = navController) }
+                            composable(Screen.Map.route){ MapScreen() }
+                            composable(Screen.Auth.route){ AuthScreen(navHostController = navController) }
+                            composable(Screen.Register.route){ RegisterScreen(navHostController = navController) }
                         }
                     }
                 }
@@ -157,7 +155,6 @@ class MainActivity : ComponentActivity() {
                     )
                 }
             }
-            Log.d("TAG", "from camera activity: $imageUri")
         }
     }
     override fun onDestroy() {
