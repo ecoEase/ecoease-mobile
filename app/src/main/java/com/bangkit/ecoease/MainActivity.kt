@@ -9,13 +9,18 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.capitalize
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavHostController
@@ -34,9 +39,7 @@ import com.bangkit.ecoease.data.viewmodel.SplashViewModel
 import com.bangkit.ecoease.di.Injection
 import com.bangkit.ecoease.ui.component.BottomNavBar
 import com.bangkit.ecoease.ui.component.FloatingButton
-import com.bangkit.ecoease.ui.screen.CameraScreen
-import com.bangkit.ecoease.ui.screen.OnBoardingScreen
-import com.bangkit.ecoease.ui.screen.TempScreen
+import com.bangkit.ecoease.ui.screen.*
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -54,7 +57,7 @@ class MainActivity : ComponentActivity() {
             splashViewModel.isLoading.value
         }
 
-        val listRoute = listOf(
+        val listMainRoute = listOf(
             Screen.Temp,
             Screen.History,
             Screen.Map,
@@ -72,11 +75,24 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colors.background
                 ) {
                     Scaffold(
+                        topBar = {
+                            if(currentRoute != Screen.Onboard.route){
+                                TopAppBar(
+                                    backgroundColor = MaterialTheme.colors.background,
+                                    elevation = 0.dp,
+                                    title ={ if(currentRoute != Screen.Home.route) Text(
+                                        text = currentRoute?.let { text ->  text.replaceFirstChar { it.uppercase() }}  ?: "",
+                                        textAlign = TextAlign.Center,
+                                    )},
+                                    navigationIcon = { if(!listMainRoute.map { it.route }.contains(currentRoute)) IconButton(onClick = {}) { Icon(Icons.Filled.ArrowBack, "backIcon")}},
+                                )
+                            }
+                        },
                         floatingActionButton = {
                             if(currentRoute != Screen.Onboard.route) FloatingButton(description = "scan", icon = Icons.Default.CameraAlt)
                        },
                         bottomBar = {
-                            if(currentRoute != Screen.Onboard.route) BottomNavBar(navController = navController, items = listRoute)
+                            if(currentRoute != Screen.Onboard.route) BottomNavBar(navController = navController, items = listMainRoute)
                         },
                         floatingActionButtonPosition = FabPosition.Center,
                         isFloatingActionButtonDocked = true,
@@ -95,26 +111,27 @@ class MainActivity : ComponentActivity() {
                                 route = Screen.Temp.route,
                                 arguments = listOf(navArgument("path"){type = NavType.StringType})
                             ){
-                                val filePath = it.arguments?.getString("path") ?: ""
-                                TempScreen(
-                                    navController = navController,
-                                    filePath = filePath,
-                                    imageCapturedState = cameraViewModel.uiStateImageCaptured,
-                                    onLoadingImageState = { cameraViewModel.getImageUri() },
-                                    openCamera = {
-                                        val intent = Intent(this@MainActivity, CameraActivity::class.java)
-                                        launcherIntentCameraX.launch(intent)
-                                    }
-                                )
+//                                val filePath = it.arguments?.getString("path") ?: ""
+//                                TempScreen(
+//                                    navController = navController,
+//                                    filePath = filePath,
+//                                    imageCapturedState = cameraViewModel.uiStateImageCaptured,
+//                                    onLoadingImageState = { cameraViewModel.getImageUri() },
+//                                    openCamera = {
+//                                        val intent = Intent(this@MainActivity, CameraActivity::class.java)
+//                                        launcherIntentCameraX.launch(intent)
+//                                    }
+//                                )
+                                DashboardScreen(navHostController = navController)
                             }
                             composable(Screen.History.route){
-                                Text(text = "history")
+                                OrderHistoryScreen(navHostController = navController)
                             }
                             composable(Screen.Profile.route){
-                                Text(text = "history")
+                                ProfileScreen(navHostController = navController)
                             }
                             composable(Screen.Map.route){
-                                Text(text = "map")
+                                MapScreen()
                             }
                         }
                     }

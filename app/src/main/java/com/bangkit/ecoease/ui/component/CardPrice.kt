@@ -43,8 +43,9 @@ fun CardPrice(
         shape = RoundedCornerShape(16.dp)
     ) {
         Row {
-            if (isLoadingImage) CircularProgressIndicator(modifier = Modifier.size(64.dp).align(Alignment.CenterVertically).offset(x = 16.dp))
-            else AsyncImage(
+//            if (isLoadingImage) CircularProgressIndicator(modifier = Modifier.size(64.dp).align(Alignment.CenterVertically).offset(x = 16.dp))
+//            else
+            AsyncImage(
                 model = imageUrl,
                 contentDescription = "$name image",
                 modifier = Modifier

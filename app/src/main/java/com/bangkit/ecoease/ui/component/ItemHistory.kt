@@ -29,6 +29,9 @@ enum class StatusItemHistory{
 
 @Composable
 fun ItemHistory(
+    items: List<String>,
+    date: String,
+    totalPrice: String,
     statusItemHistory: StatusItemHistory,
     modifier: Modifier = Modifier
 ){
@@ -54,10 +57,10 @@ fun ItemHistory(
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = "Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum", modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(text = items.joinToString(", "), modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Box(modifier = Modifier.width(16.dp))
                 Text(
-                    text = "20-12-2012",
+                    text = date,
                     style = MaterialTheme.typography.caption.copy(
                         color = DarkGrey
                     )
@@ -73,7 +76,7 @@ fun ItemHistory(
                     ),
                     modifier = Modifier.align(Alignment.CenterVertically)
                 )
-                Text(text = "Rp12.000")
+                Text(text = totalPrice)
             }
             Row {
                 Text(
@@ -150,7 +153,7 @@ fun PillWidget(
 fun ItemHistoryPreview(){
     EcoEaseTheme() {
         Column(Modifier.padding(16.dp)) {
-            ItemHistory(statusItemHistory = StatusItemHistory.NOT_TAKEN)
+            ItemHistory(items = listOf("test", "test"), statusItemHistory = StatusItemHistory.NOT_TAKEN, date = "20-02-2020", totalPrice = "12000")
         }
     }
 }

@@ -30,6 +30,7 @@ val listStringId = listOf(
 
 @Composable
 fun Banner(
+    bannerAction: () -> Unit = {},
     modifier: Modifier = Modifier
 ){
     val density = LocalDensity.current
@@ -46,7 +47,7 @@ fun Banner(
     Card(
         modifier = modifier
             .height(170.dp)
-            .width(276.dp)
+            .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
         ,
     ) {
@@ -59,7 +60,9 @@ fun Banner(
            )
            .padding(horizontal =  24.dp, vertical = 34.dp)
        ){
-            Row {
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 Column(
                     verticalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier
@@ -110,7 +113,8 @@ fun Banner(
                     }
                     RoundedButton(
                         text = stringResource(id = R.string.make_report_btn),
-                        type = RoundedButtonType.SECONDARY
+                        type = RoundedButtonType.SECONDARY,
+                        onClick = bannerAction
                     )
                 }
                Image(

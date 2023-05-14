@@ -95,4 +95,7 @@ dependencies {
     implementation "com.google.accompanist:accompanist-permissions:$accompanistPermissionsVersion"
     //Splash Screen
     implementation 'androidx.core:core-splashscreen:1.0.0-beta02'
+    //Map
+    implementation 'com.google.maps.android:maps-compose:2.11.4'
+    implementation 'com.google.android.gms:play-services-maps:18.1.0'
 }

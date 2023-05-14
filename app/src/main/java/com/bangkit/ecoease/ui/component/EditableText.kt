@@ -1,6 +1,7 @@
 package com.bangkit.ecoease.ui.component
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -22,10 +23,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bangkit.ecoease.ui.theme.BluePrimary
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
+import com.bangkit.ecoease.ui.theme.LightGrey
+import com.bangkit.ecoease.ui.theme.LightGreyVariant
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun EditableText(
+    label: String,
     text: String,
     onChange: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -41,11 +45,12 @@ fun EditableText(
 
     OutlinedTextField(
         modifier = modifier
+            .fillMaxWidth()
             .focusRequester(focusRequester)
         ,
         value = value,
         label = {
-            Text("Label")
+            Text(label)
         },
         onValueChange = {
             value = it
@@ -53,7 +58,7 @@ fun EditableText(
         },
         shape = RoundedCornerShape(32.dp),
         colors = TextFieldDefaults.outlinedTextFieldColors(
-            backgroundColor = MaterialTheme.colors.background,
+            backgroundColor = LightGreyVariant,
             textColor = MaterialTheme.colors.onBackground,
             focusedLabelColor = MaterialTheme.colors.onBackground,
 
@@ -83,6 +88,6 @@ fun EditableText(
 @Composable
 fun EditableTextPreview(){
     EcoEaseTheme() {
-        EditableText(onChange = {}, text = "Lorem ipsum")
+        EditableText(onChange = {}, text = "Lorem ipsum", label = "Name")
     }
 }

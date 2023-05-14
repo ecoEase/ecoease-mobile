@@ -10,4 +10,6 @@
     <string name="order_canceled">dibatalkan</string>
     <string name="detail">rincian</string>
     <string name="not_found">Data tidak ditemukan</string>
+    <string name="garbage_price">Harga sampah</string>
+    <string name="good_morning">Selamat Pagi</string>
 </resources>
