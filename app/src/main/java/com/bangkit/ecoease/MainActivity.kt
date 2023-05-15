@@ -38,6 +38,7 @@ import com.bangkit.ecoease.data.viewmodel.CameraViewModel
 import com.bangkit.ecoease.data.viewmodel.SplashViewModel
 import com.bangkit.ecoease.di.Injection
 import com.bangkit.ecoease.ui.component.BottomNavBar
+import com.bangkit.ecoease.ui.component.ChangeAddressScreen
 import com.bangkit.ecoease.ui.component.FloatingButton
 import com.bangkit.ecoease.ui.screen.*
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
@@ -90,15 +91,17 @@ class MainActivity : ComponentActivity() {
                                         text = currentRoute?.let { text ->  text.replaceFirstChar { it.uppercase() }}  ?: "",
                                         textAlign = TextAlign.Center,
                                     )},
-                                    navigationIcon = { if(!listMainRoute.map { it.route }.contains(currentRoute)) IconButton(onClick = {}) { Icon(Icons.Filled.ArrowBack, "backIcon")}},
+                                    navigationIcon = { if(!listMainRoute.map { it.route }.contains(currentRoute)) IconButton(onClick = {
+                                        navController.popBackStack()
+                                    }) { Icon(Icons.Filled.ArrowBack, "backIcon")}},
                                 )
                             }
                         },
                         floatingActionButton = {
-                            if(!listNoTopbar.map { it.route }.contains(currentRoute)) FloatingButton(description = "scan", icon = Icons.Default.CameraAlt)
+                            if(listMainRoute.map { it.route }.contains(currentRoute)) FloatingButton(description = "scan", icon = Icons.Default.CameraAlt)
                        },
                         bottomBar = {
-                            if(!listNoTopbar.map { it.route }.contains(currentRoute)) BottomNavBar(navController = navController, items = listMainRoute)
+                            if(listMainRoute.map { it.route }.contains(currentRoute)) BottomNavBar(navController = navController, items = listMainRoute)
                         },
                         floatingActionButtonPosition = FabPosition.Center,
                         isFloatingActionButtonDocked = true,
@@ -128,9 +131,11 @@ class MainActivity : ComponentActivity() {
                             }
                             composable(Screen.History.route){ OrderHistoryScreen(navHostController = navController) }
                             composable(Screen.Profile.route){ ProfileScreen(navHostController = navController) }
-                            composable(Screen.Map.route){ MapScreen() }
+                            composable(Screen.Map.route){MapScreen()}
                             composable(Screen.Auth.route){ AuthScreen(navHostController = navController) }
                             composable(Screen.Register.route){ RegisterScreen(navHostController = navController) }
+                            composable(Screen.Order.route){ OrderScreen(navHostController = navController) }
+                            composable(Screen.ChangeAddress.route){ ChangeAddressScreen() }
                         }
                     }
                 }

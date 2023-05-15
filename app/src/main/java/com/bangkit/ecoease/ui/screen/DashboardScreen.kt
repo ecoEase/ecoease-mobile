@@ -11,12 +11,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.bangkit.ecoease.R
+import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.data.model.Garbage
 import com.bangkit.ecoease.ui.component.Banner
 import com.bangkit.ecoease.ui.component.CardPrice
 
 
-val listGarbage = listOf(
+val listGarbages = listOf(
     Garbage(
         imageUrl = "https://images.unsplash.com/photo-1528190336454-13cd56b45b5a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80",
         name = "Garbage",
@@ -53,7 +54,7 @@ fun DashboardScreen(
     ) {
         Text(text = stringResource(R.string.good_morning), style = MaterialTheme.typography.h4)
         Box(modifier = Modifier.height(42.dp))
-        Banner(bannerAction = {})
+        Banner(bannerAction = { navHostController.navigate(Screen.Order.route) })
         Box(modifier = Modifier.height(42.dp))
         Text(text = stringResource(R.string.garbage_price), style = MaterialTheme.typography.h5)
         Box(modifier = Modifier.height(16.dp))
@@ -64,7 +65,7 @@ fun DashboardScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(bottom = 64.dp)
         ){
-            items(listGarbage){item ->
+            items(listGarbages){item ->
                 CardPrice(imageUrl = item.imageUrl, name = item.name, price = item.price.toString())
             }
         }

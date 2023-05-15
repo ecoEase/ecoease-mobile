@@ -38,7 +38,9 @@ import com.bangkit.ecoease.ui.theme.DarkGrey
 @Composable
 fun DropDown(
     listItem: List<String>,
+    label: String,
     onChange: (String) -> Unit = {},
+    onSelected: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ){
     var expanded by remember{
@@ -64,8 +66,9 @@ fun DropDown(
             maxLines = 1,
             value = selectedText,
             label = {
-                Text("Label")
+                Text(label)
             },
+            readOnly = true,
             isError = isError,
             trailingIcon = {
                Icon(
@@ -76,7 +79,7 @@ fun DropDown(
                )
             },
             onValueChange = {
-                onChange(it)
+//                onChange(it)
                 selectedText = it
                 expanded = true
                 listItemState = if(it.isNotEmpty()) listItemState.filter { item -> item.contains(it) } else listItem
@@ -100,18 +103,19 @@ fun DropDown(
                 ,
                 contentPadding = PaddingValues(vertical = 8.dp)
             ){
-                items(listItemState){label ->
+                items(listItemState){
                     isError = false
                     Text(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                selectedText = label
+                                onSelected(it)
+                                selectedText = it
                                 expanded = false
                             }
                             .padding(horizontal = 16.dp, vertical = 4.dp)
                         ,
-                        text = label
+                        text = it
                     )
                 }
                 if(listItemState.isEmpty()){
@@ -137,7 +141,7 @@ fun DropDown(
 fun PreviewDropDown(){
     EcoEaseTheme {
         Column {
-            DropDown(listItem = listOf("lorem", "ipsum","lorem", "ipsum","lorem", "ipsum","lorem", "ipsum",))
+            DropDown(listItem = listOf("lorem", "ipsum","lorem", "ipsum","lorem", "ipsum","lorem", "ipsum",), label = "test")
             TextInput(label = "test dropdown")
 
         }

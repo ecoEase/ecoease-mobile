@@ -34,7 +34,7 @@ fun BottomNavBar(
                     selected = currentRoute == item.route,
                     selectedContentColor = MaterialTheme.colors.primary,
                     unselectedContentColor = DarkGrey,
-                    onClick = { navController.navigate(item.route) },
+                    onClick = { if(currentRoute != item.route) navController.navigate(item.route) },
                     icon = { Icon(item.icon, contentDescription = "${item.route}") }
                 )
             }

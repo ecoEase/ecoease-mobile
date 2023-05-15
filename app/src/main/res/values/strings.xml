@@ -12,4 +12,9 @@
     <string name="not_found">Data tidak ditemukan</string>
     <string name="garbage_price">Harga sampah</string>
     <string name="good_morning">Selamat Pagi</string>
+    <string name="address">Alamat</string>
+    <string name="change">ganti</string>
+    <string name="garbage">Sampah</string>
+    <string name="add">tambah</string>
+    <string name="garbage_type">Jenis sampah</string>
 </resources>
