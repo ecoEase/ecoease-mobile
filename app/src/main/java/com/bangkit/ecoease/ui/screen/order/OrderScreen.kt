@@ -1,4 +1,4 @@
-package com.bangkit.ecoease.ui.screen
+package com.bangkit.ecoease.ui.screen.order
 
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
@@ -20,10 +20,7 @@ import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.data.model.Address
 import com.bangkit.ecoease.data.model.Garbage
 import com.bangkit.ecoease.helper.generateUUID
-import com.bangkit.ecoease.ui.component.AddGarbageForm
-import com.bangkit.ecoease.ui.component.AddressCard
-import com.bangkit.ecoease.ui.component.BottomSheet
-import com.bangkit.ecoease.ui.component.RoundedButton
+import com.bangkit.ecoease.ui.component.*
 
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -32,7 +29,6 @@ fun OrderScreen(
     navHostController: NavHostController,
     modifier: Modifier = Modifier
 ){
-
 
     val dummyAddress = Address(
         name = "alamat 1",
@@ -60,9 +56,15 @@ fun OrderScreen(
     var garbageTypes: MutableList<String> by rememberSaveable{
         mutableStateOf(mutableListOf())
     }
+
     var addedForm by rememberSaveable {
         mutableStateOf(0)
     }
+
+    var openDialog by remember{
+        mutableStateOf(false)
+    }
+
     Box(modifier = modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -88,7 +90,6 @@ fun OrderScreen(
                     Log.d("TAG", "OrderScreen: ${garbageTypes[0]}")
                 })
             }
-            // TODO: Fix the add garbage lazy list
             AnimatedVisibility(visible = addedForm > 0) {
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -110,9 +111,12 @@ fun OrderScreen(
         BottomSheet(
             label = "Total",
             actionName = "buat order",
+            onActionButtonClicked = { openDialog = true },
             information = "Rp2000",
             isActive = true,
             modifier = Modifier.align(Alignment.BottomCenter)
         )
+        
+        DialogBox(text = "Apakah anda sudah yakin?", isOpen = openDialog, onDissmiss = { openDialog = false }, onAccept = { navHostController.navigate(Screen.OrderSuccess.route) })
     }
 }

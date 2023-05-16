@@ -19,4 +19,5 @@ sealed class Screen(val route: String, val icon: ImageVector){
     object Order : Screen(route = "order", icon = Icons.Default.Reorder)
     object DetailOrder : Screen(route = "detail order", icon = Icons.Default.Reorder)
     object ChangeAddress : Screen(route = "change address", icon = Icons.Default.Reorder)
+    object OrderSuccess : Screen(route = "order success", icon = Icons.Default.Reorder)
 }

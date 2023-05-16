@@ -24,4 +24,7 @@
     <string name="address_detail">Detail Alamat</string>
     <string name="reset">reset</string>
     <string name="added">tambahkan</string>
+    <string name="create_order_success">Yeah! anda berhasil membuat laporan sampah baru 🎉</string>
+    <string name="home">home</string>
+    <string name="check_on_map">lihat di map</string>
 </resources>

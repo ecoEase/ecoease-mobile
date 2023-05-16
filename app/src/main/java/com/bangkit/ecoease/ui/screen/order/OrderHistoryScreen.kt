@@ -1,4 +1,4 @@
-package com.bangkit.ecoease.ui.screen
+package com.bangkit.ecoease.ui.screen.order
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -71,7 +71,7 @@ fun OrderHistoryScreen(
         contentPadding = PaddingValues(top = 32.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ){
-        items(listItemHistory){item ->
+        items(listItemHistory){ item ->
             ItemHistory(items = item.items, date = item.date , totalPrice = item.price.toString(), statusItemHistory = item.statusItemHistory)
         }
     }

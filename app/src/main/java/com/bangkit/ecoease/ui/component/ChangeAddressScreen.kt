@@ -14,7 +14,6 @@ fun ChangeAddressScreen(
     navHostController: NavHostController,
     modifier: Modifier = Modifier
 ){
-    // TODO: add reset state
     Column(
         modifier = modifier
             .fillMaxSize()

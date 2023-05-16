@@ -1,4 +1,4 @@
-package com.bangkit.ecoease.ui.screen
+package com.bangkit.ecoease.ui.screen.onboard
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
@@ -134,7 +134,7 @@ fun BoardingNavigation(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Button(
-                    onClick = { navController.navigate(Screen.Temp.route) },
+                    onClick = { navController.navigate(Screen.Auth.route) },
                     shape = RoundedCornerShape(20.dp),
                     border = BorderStroke(2.dp, Color.White),
                     colors = ButtonDefaults.buttonColors(
@@ -147,7 +147,7 @@ fun BoardingNavigation(
                 }
                 if(pagerState.currentPage == lengthPager - 1){
                     Button(
-                        onClick = { navController.navigate(Screen.Temp.route) },
+                        onClick = { navController.navigate(Screen.Auth.route) },
                         shape = RoundedCornerShape(20.dp)
                     ) {
                         Text(text = "Ayo mulai")

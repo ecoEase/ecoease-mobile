@@ -1,6 +1,7 @@
 package com.bangkit.ecoease.ui.component
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
@@ -17,17 +18,14 @@ import com.bangkit.ecoease.ui.theme.EcoEaseTheme
 @Composable
 fun DialogBox(
     text: String,
+    onDissmiss: () -> Unit,
     onAccept: () -> Unit = {},
-    onDissmiss: () -> Unit = {},
     isOpen: Boolean = false,
     modifier: Modifier = Modifier
 ){
-    var isOpenState by remember {
-        mutableStateOf(isOpen)
-    }
-    AnimatedVisibility(visible = isOpenState) {
+    AnimatedVisibility(visible = isOpen) {
         Dialog(
-            onDismissRequest = {isOpenState = false},
+            onDismissRequest = { onDissmiss() },
         ) {
             Card(
                 shape = RoundedCornerShape(16.dp)
@@ -53,11 +51,10 @@ fun DialogBox(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         RoundedButton(text = "Tidak", type = RoundedButtonType.SECONDARY, onClick = {
-                            isOpenState = false
                             onDissmiss()
                         })
                         RoundedButton(text = "Ya", type = RoundedButtonType.PRIMARY, onClick = {
-                            isOpenState = false
+                            onDissmiss()
                             onAccept()
                         })
                     }
@@ -71,6 +68,6 @@ fun DialogBox(
 @Composable
 fun DialogBoxPreview(){
     EcoEaseTheme() {
-        DialogBox(text = "Testing?", isOpen = true)
+        DialogBox(text = "Testing?", isOpen = true, onDissmiss = {})
     }
 }

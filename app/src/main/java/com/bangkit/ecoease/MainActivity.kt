@@ -3,23 +3,18 @@ package com.bangkit.ecoease
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
-import android.view.ViewGroup
-import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material.icons.filled.CameraEnhance
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -41,6 +36,10 @@ import com.bangkit.ecoease.ui.component.BottomNavBar
 import com.bangkit.ecoease.ui.component.ChangeAddressScreen
 import com.bangkit.ecoease.ui.component.FloatingButton
 import com.bangkit.ecoease.ui.screen.*
+import com.bangkit.ecoease.ui.screen.onboard.OnBoardingScreen
+import com.bangkit.ecoease.ui.screen.order.OrderHistoryScreen
+import com.bangkit.ecoease.ui.screen.order.OrderScreen
+import com.bangkit.ecoease.ui.screen.order.OrderSuccesScreen
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -59,7 +58,7 @@ class MainActivity : ComponentActivity() {
         }
 
         val listMainRoute = listOf(
-            Screen.Temp,
+            Screen.Home,
             Screen.History,
             Screen.Map,
             Screen.Profile
@@ -69,6 +68,7 @@ class MainActivity : ComponentActivity() {
             Screen.Onboard,
             Screen.Auth,
             Screen.Register,
+            Screen.OrderSuccess
         )
         setContent {
             EcoEaseTheme {
@@ -98,7 +98,7 @@ class MainActivity : ComponentActivity() {
                             }
                         },
                         floatingActionButton = {
-                            if(listMainRoute.map { it.route }.contains(currentRoute)) FloatingButton(description = "scan", icon = Icons.Default.CameraAlt)
+                            if(listMainRoute.map { it.route }.contains(currentRoute)) FloatingButton(description = "scan", icon = Icons.Default.CameraEnhance, onClick = { navController.navigate(Screen.Temp.route) })
                        },
                         bottomBar = {
                             if(listMainRoute.map { it.route }.contains(currentRoute)) BottomNavBar(navController = navController, items = listMainRoute)
@@ -108,7 +108,7 @@ class MainActivity : ComponentActivity() {
                     ) {paddingValues ->
                         NavHost(
                             navController = navController,
-                            startDestination = Screen.Auth.route,
+                            startDestination = Screen.Onboard.route,
                             modifier = Modifier.padding(paddingValues)
                         ){
                             composable(Screen.Onboard.route){ OnBoardingScreen(navController = navController) }
@@ -116,17 +116,19 @@ class MainActivity : ComponentActivity() {
                                 route = Screen.Temp.route,
                                 arguments = listOf(navArgument("path"){type = NavType.StringType})
                             ){
-//                                val filePath = it.arguments?.getString("path") ?: ""
-//                                TempScreen(
-//                                    navController = navController,
-//                                    filePath = filePath,
-//                                    imageCapturedState = cameraViewModel.uiStateImageCaptured,
-//                                    onLoadingImageState = { cameraViewModel.getImageUri() },
-//                                    openCamera = {
-//                                        val intent = Intent(this@MainActivity, CameraActivity::class.java)
-//                                        launcherIntentCameraX.launch(intent)
-//                                    }
-//                                )
+                                val filePath = it.arguments?.getString("path") ?: ""
+                                TempScreen(
+                                    navController = navController,
+                                    filePath = filePath,
+                                    imageCapturedState = cameraViewModel.uiStateImageCaptured,
+                                    onLoadingImageState = { cameraViewModel.getImageUri() },
+                                    openCamera = {
+                                        val intent = Intent(this@MainActivity, CameraActivity::class.java)
+                                        launcherIntentCameraX.launch(intent)
+                                    }
+                                )
+                            }
+                            composable(Screen.Home.route){
                                 DashboardScreen(navHostController = navController)
                             }
                             composable(Screen.History.route){ OrderHistoryScreen(navHostController = navController) }
@@ -136,6 +138,7 @@ class MainActivity : ComponentActivity() {
                             composable(Screen.Register.route){ RegisterScreen(navHostController = navController) }
                             composable(Screen.Order.route){ OrderScreen(navHostController = navController) }
                             composable(Screen.ChangeAddress.route){ ChangeAddressScreen(navHostController = navController) }
+                            composable(Screen.OrderSuccess.route){ OrderSuccesScreen(navHostController = navController) }
                         }
                     }
                 }
