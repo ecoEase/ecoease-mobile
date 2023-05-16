@@ -1,7 +1,11 @@
 package com.bangkit.ecoease.ui.component
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -34,6 +38,7 @@ import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.zIndex
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.ui.theme.DarkGrey
+import com.bangkit.ecoease.ui.theme.LightTosca
 
 @Composable
 fun DropDown(
@@ -55,6 +60,11 @@ fun DropDown(
     var listItemState: List<String> by remember {
         mutableStateOf(listItem)
     }
+
+    val animatedBackgrounColor by animateColorAsState(
+        targetValue = if(selectedText.isNotEmpty()) LightTosca.copy(alpha = 0.3f) else MaterialTheme.colors.background,
+        animationSpec = tween(200)
+    )
 
     Column {
         OutlinedTextField(
@@ -86,7 +96,7 @@ fun DropDown(
             },
             shape = RoundedCornerShape(32.dp),
             colors = TextFieldDefaults.outlinedTextFieldColors(
-                backgroundColor = MaterialTheme.colors.background,
+                backgroundColor = animatedBackgrounColor,
                 textColor = MaterialTheme.colors.onBackground,
                 focusedLabelColor = MaterialTheme.colors.onBackground,
                 focusedBorderColor = MaterialTheme.colors.primary,
@@ -100,6 +110,7 @@ fun DropDown(
                     .heightIn(max = 152.dp)
                     .clip(RoundedCornerShape(32.dp))
                     .background(MaterialTheme.colors.background)
+                    .border(BorderStroke(1.dp, LightTosca), shape = RoundedCornerShape(32.dp))
                 ,
                 contentPadding = PaddingValues(vertical = 8.dp)
             ){

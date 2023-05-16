@@ -17,4 +17,11 @@
     <string name="garbage">Sampah</string>
     <string name="add">tambah</string>
     <string name="garbage_type">Jenis sampah</string>
+    <string name="add_address">Tambah Alamat</string>
+    <string name="address_name">Nama Alamat</string>
+    <string name="address_city">Kabupaten/Kota</string>
+    <string name="address_district">Kecamatan</string>
+    <string name="address_detail">Detail Alamat</string>
+    <string name="reset">reset</string>
+    <string name="added">tambahkan</string>
 </resources>

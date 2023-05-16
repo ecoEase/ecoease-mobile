@@ -17,13 +17,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.EcoEase.SplashScreen"
         tools:targetApi="31">
-
-        <meta-data android:name="com.google.android.geo.API_KEY" android:value="$GMAP_API_KEY"/>
-
         <activity
             android:theme="@style/Theme.AppCompat"
             android:name=".CameraActivity"
             android:exported="false" />
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="${google_map_api_key}" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -41,13 +41,6 @@ fun AddGarbageForm(
         mutableStateOf(0)
     }
 
-    DisposableEffect(Unit){
-        onDispose { //reset all saveable state
-            selectedGarbageIndex = -1
-            selectedGarbageAmount = 0
-            totalPrice = 0
-        }
-    }
     Card(
         modifier = modifier
             .fillMaxWidth()

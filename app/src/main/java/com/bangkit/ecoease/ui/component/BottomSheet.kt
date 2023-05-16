@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -28,16 +29,21 @@ fun BottomSheet(
 
     Column(modifier = modifier
         .fillMaxWidth()
-        .height(98.dp)
+        .height(120.dp)
         .background(animatedBackgroundColor)
         .padding(horizontal = 32.dp, vertical = 16.dp)
     ,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(text = label, style = MaterialTheme.typography.h5)
-            Text(text = information, style = MaterialTheme.typography.h5)
+            Text(text = label, style = MaterialTheme.typography.h5.copy(
+                color = MaterialTheme.colors.background
+            ))
+            Text(text = information, style = MaterialTheme.typography.h5.copy(
+                color = MaterialTheme.colors.background,
+                fontWeight = FontWeight.Bold
+            ))
         }
-        RoundedButton(text = actionName, onClick = onActionButtonClicked)
+        RoundedButton(text = actionName, onClick = onActionButtonClicked, type = RoundedButtonType.SECONDARY, modifier = Modifier.align(Alignment.End))
     }
 }

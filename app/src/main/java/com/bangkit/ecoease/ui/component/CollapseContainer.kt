@@ -2,7 +2,6 @@ package com.bangkit.ecoease.ui.component
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateValueAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -12,15 +11,12 @@ import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
@@ -30,7 +26,7 @@ import com.bangkit.ecoease.ui.theme.LightTosca
 fun CollapseContainer(
     label: String,
     modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit = {},
+    content: @Composable () -> Unit = {},
 ){
     var expanded by rememberSaveable{
         mutableStateOf(false)
@@ -65,7 +61,11 @@ fun CollapseContainer(
                 )
             }
             AnimatedVisibility(visible = expanded) {
-                content()
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    content()
+                }
             }
         }
     }

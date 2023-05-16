@@ -39,14 +39,12 @@ fun Counter(
         CounterButton(
             icon = Icons.Default.Remove,
             description = "minus",
-            modifier = Modifier.background(MaterialTheme.colors.secondary),
             onClick = { if(counter > 1) counter -= 1 }
         )
         Text(text = counter.toString(), modifier = Modifier.width(42.dp), textAlign = TextAlign.Center)
         CounterButton(
             icon = Icons.Default.Add,
             description = "plus",
-            modifier = Modifier.background(MaterialTheme.colors.secondary),
             onClick = { counter += 1 }
         )
     }

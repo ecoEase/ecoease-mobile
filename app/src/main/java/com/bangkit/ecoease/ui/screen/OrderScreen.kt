@@ -19,6 +19,7 @@ import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.data.model.Address
 import com.bangkit.ecoease.data.model.Garbage
+import com.bangkit.ecoease.helper.generateUUID
 import com.bangkit.ecoease.ui.component.AddGarbageForm
 import com.bangkit.ecoease.ui.component.AddressCard
 import com.bangkit.ecoease.ui.component.BottomSheet
@@ -56,55 +57,62 @@ fun OrderScreen(
         ),
     )
 
-    var garbageTypes: MutableList<Int> by rememberSaveable{
+    var garbageTypes: MutableList<String> by rememberSaveable{
         mutableStateOf(mutableListOf())
     }
     var addedForm by rememberSaveable {
         mutableStateOf(0)
     }
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 32.dp)
-            .padding(top = 52.dp)
-        ,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Text(text = stringResource(R.string.address))
-        AddressCard(
-            name = dummyAddress.name,
-            detail = dummyAddress.detail,
-            district = dummyAddress.district,
-            city = dummyAddress.city,
-            onClickChange = { navHostController.navigate(Screen.ChangeAddress.route) }
-        )
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(text = stringResource(R.string.garbage))
-            RoundedButton(text = stringResource(R.string.add), onClick = {
-                addedForm += 1
-                garbageTypes.add(addedForm)
-                Log.d("TAG", "OrderScreen: ${garbageTypes.size}")
-            })
-        }
-        Box(modifier = Modifier.weight(1f)) {
-
-            this@Column.AnimatedVisibility(visible = addedForm > 0) {
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 32.dp)
+                .padding(top = 52.dp)
+            ,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(text = stringResource(R.string.address))
+            AddressCard(
+                name = dummyAddress.name,
+                detail = dummyAddress.detail,
+                district = dummyAddress.district,
+                city = dummyAddress.city,
+                onClickChange = { navHostController.navigate(Screen.ChangeAddress.route) }
+            )
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(text = stringResource(R.string.garbage))
+                RoundedButton(text = stringResource(R.string.add), onClick = {
+                    addedForm += 1
+                    garbageTypes.add(generateUUID())
+                    Log.d("TAG", "OrderScreen: ${garbageTypes[0]}")
+                })
+            }
+            // TODO: Fix the add garbage lazy list
+            AnimatedVisibility(visible = addedForm > 0) {
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(bottom = 98.dp)
+                    contentPadding = PaddingValues(bottom = 136.dp)
                 ){
-                    items(addedForm){
+                    items(garbageTypes.toList(), key = { it }){
                         AddGarbageForm(
                             listGarbage = listGarbage,
-                            onDelete = { addedForm -= 1 },
+                            onDelete = {
+                                garbageTypes = garbageTypes.filter { elemen -> elemen != it} as MutableList<String>
+                            },
                             modifier = Modifier
                                 .animateItemPlacement(tween(durationMillis = 100))
                         )
                     }
                 }
             }
-            BottomSheet(label = "Total", actionName = "buat order", information = "Rp2000", isActive = true, modifier = Modifier.align(
-                Alignment.BottomCenter))
         }
+        BottomSheet(
+            label = "Total",
+            actionName = "buat order",
+            information = "Rp2000",
+            isActive = true,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }

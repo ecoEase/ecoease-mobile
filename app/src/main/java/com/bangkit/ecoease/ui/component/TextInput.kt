@@ -1,5 +1,7 @@
 package com.bangkit.ecoease.ui.component
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,6 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bangkit.ecoease.ui.theme.BluePrimary
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
+import com.bangkit.ecoease.ui.theme.LightTosca
 
 @Composable
 fun TextInput(
@@ -22,11 +25,20 @@ fun TextInput(
     var value by rememberSaveable{
         mutableStateOf("")
     }
+
+    val animatedBackgrounColor by animateColorAsState(
+        targetValue = if(value.isNotEmpty()) LightTosca.copy(alpha = 0.3f) else MaterialTheme.colors.background,
+        animationSpec = tween(200)
+    )
+
     OutlinedTextField(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(if(isTextArea) 112.dp else 56.dp)
+        modifier =
+            if(isTextArea) {
+                modifier.fillMaxWidth().height(124.dp)
+            } else {
+                modifier.fillMaxWidth()}
         ,
+        singleLine = !isTextArea,
         value = value,
         label = {
             Text(label)
@@ -37,11 +49,11 @@ fun TextInput(
         },
         shape = RoundedCornerShape(32.dp),
         colors = TextFieldDefaults.outlinedTextFieldColors(
-            backgroundColor = MaterialTheme.colors.background,
+            backgroundColor = animatedBackgrounColor,
             textColor = MaterialTheme.colors.onBackground,
             focusedLabelColor = MaterialTheme.colors.onBackground,
             focusedBorderColor = MaterialTheme.colors.primary,
-            unfocusedBorderColor = BluePrimary
+            unfocusedBorderColor = BluePrimary,
         )
     )
 }

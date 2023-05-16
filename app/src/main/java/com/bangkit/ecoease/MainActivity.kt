@@ -135,7 +135,7 @@ class MainActivity : ComponentActivity() {
                             composable(Screen.Auth.route){ AuthScreen(navHostController = navController) }
                             composable(Screen.Register.route){ RegisterScreen(navHostController = navController) }
                             composable(Screen.Order.route){ OrderScreen(navHostController = navController) }
-                            composable(Screen.ChangeAddress.route){ ChangeAddressScreen() }
+                            composable(Screen.ChangeAddress.route){ ChangeAddressScreen(navHostController = navController) }
                         }
                     }
                 }
