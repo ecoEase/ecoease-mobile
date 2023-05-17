@@ -15,6 +15,7 @@ import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.data.model.Garbage
 import com.bangkit.ecoease.ui.component.Banner
 import com.bangkit.ecoease.ui.component.CardPrice
+import com.bangkit.ecoease.ui.component.RoundedButton
 
 
 val listGarbages = listOf(
@@ -54,6 +55,7 @@ fun DashboardScreen(
     ) {
         Text(text = stringResource(R.string.good_morning), style = MaterialTheme.typography.h4)
         Box(modifier = Modifier.height(42.dp))
+        RoundedButton(text = "to chat screen", onClick = {navHostController.navigate(Screen.UsersChats.route)})
         Banner(bannerAction = { navHostController.navigate(Screen.Order.route) })
         Box(modifier = Modifier.height(42.dp))
         Text(text = stringResource(R.string.garbage_price), style = MaterialTheme.typography.h5)

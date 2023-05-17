@@ -17,9 +17,10 @@ import com.bangkit.ecoease.ui.theme.LightTosca
 
 @Composable
 fun TextInput(
-    label: String,
+    label: String? = null,
     isTextArea: Boolean = false,
     modifier: Modifier = Modifier,
+    placeHolder: String = "",
     onChange: (String) -> Unit = {}
 ){
     var value by rememberSaveable{
@@ -34,15 +35,16 @@ fun TextInput(
     OutlinedTextField(
         modifier =
             if(isTextArea) {
-                modifier.fillMaxWidth().height(124.dp)
+                modifier
+                    .fillMaxWidth()
+                    .height(124.dp)
             } else {
                 modifier.fillMaxWidth()}
         ,
         singleLine = !isTextArea,
         value = value,
-        label = {
-            Text(label)
-        },
+        label = { if(label != null) Text(label) },
+        placeholder = { Text(text = placeHolder) },
         onValueChange = {
             value = it
             onChange(it)

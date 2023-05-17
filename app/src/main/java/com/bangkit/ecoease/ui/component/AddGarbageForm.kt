@@ -19,6 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.model.Garbage
+import com.bangkit.ecoease.data.model.GarbageAdded
 import com.bangkit.ecoease.ui.theme.BluePrimary
 import com.bangkit.ecoease.ui.theme.DarkGrey
 import com.bangkit.ecoease.ui.theme.LightGrey
@@ -28,6 +29,7 @@ import com.bangkit.ecoease.ui.theme.OrangeAccent
 fun AddGarbageForm(
     listGarbage: List<Garbage>,
     onDelete: () -> Unit,
+    onUpdate: (GarbageAdded) -> Unit,
     modifier: Modifier = Modifier
 ){
     var selectedGarbageIndex: Int by rememberSaveable{
@@ -39,6 +41,18 @@ fun AddGarbageForm(
     val listGarbageName = listGarbage.map { it.name }
     var totalPrice by rememberSaveable {
         mutableStateOf(0)
+    }
+
+    LaunchedEffect(selectedGarbageAmount){
+        if(selectedGarbageIndex != -1){
+            onUpdate(
+                GarbageAdded(
+                    garbage = listGarbage[selectedGarbageIndex],
+                    amount = selectedGarbageAmount,
+                    totalPrice = listGarbage[selectedGarbageIndex].price * selectedGarbageAmount
+                )
+            )
+        }
     }
 
     Card(

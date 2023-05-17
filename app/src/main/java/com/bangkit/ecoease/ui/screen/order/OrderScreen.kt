@@ -7,11 +7,15 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -19,16 +23,27 @@ import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.data.model.Address
 import com.bangkit.ecoease.data.model.Garbage
+import com.bangkit.ecoease.data.model.GarbageAdded
+import com.bangkit.ecoease.data.model.Order
 import com.bangkit.ecoease.helper.generateUUID
 import com.bangkit.ecoease.ui.component.*
+import com.bangkit.ecoease.ui.theme.LightGrey
+import kotlinx.coroutines.flow.StateFlow
 
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OrderScreen(
     navHostController: NavHostController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    orderStateFlow: StateFlow<Order>,
+    addGarbageOrderSlot: () -> Unit = {},
+    deleteGarbageSlotAt: (Int) -> Unit = {},
+    updateGarbageAtIndex: (Int, GarbageAdded) -> Unit = { _, _, -> },
 ){
+
+    val orderState by orderStateFlow.collectAsState()
+    val lazyListState = rememberLazyListState()
 
     val dummyAddress = Address(
         name = "alamat 1",
@@ -65,6 +80,10 @@ fun OrderScreen(
         mutableStateOf(false)
     }
 
+    LaunchedEffect(garbageTypes.toList()){
+        lazyListState.animateScrollToItem(garbageTypes.size)
+    }
+    
     Box(modifier = modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -82,24 +101,44 @@ fun OrderScreen(
                 city = dummyAddress.city,
                 onClickChange = { navHostController.navigate(Screen.ChangeAddress.route) }
             )
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .drawBehind {
+                    val borderSize = 1.dp.toPx()
+                    drawLine(
+                        color = LightGrey,
+                        start = Offset(0f, size.height),
+                        end = Offset(size.width, size.height),
+                        strokeWidth = borderSize
+                    )
+                },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(text = stringResource(R.string.garbage))
                 RoundedButton(text = stringResource(R.string.add), onClick = {
+                    addGarbageOrderSlot()//add new slot garbage in viewmodel
                     addedForm += 1
                     garbageTypes.add(generateUUID())
-                    Log.d("TAG", "OrderScreen: ${garbageTypes[0]}")
                 })
             }
             AnimatedVisibility(visible = addedForm > 0) {
                 LazyColumn(
+                    state = lazyListState,
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(bottom = 136.dp)
                 ){
+                    // TODO: fix stateflow bug when changing screen, data still remain (not synchronized) 
                     items(garbageTypes.toList(), key = { it }){
+                        val index = garbageTypes.indexOf(it)
                         AddGarbageForm(
                             listGarbage = listGarbage,
                             onDelete = {
                                 garbageTypes = garbageTypes.filter { elemen -> elemen != it} as MutableList<String>
+                                deleteGarbageSlotAt(index)
+                            },
+                            onUpdate = { newUpdateGarbageData ->
+                                updateGarbageAtIndex(index, newUpdateGarbageData)
                             },
                             modifier = Modifier
                                 .animateItemPlacement(tween(durationMillis = 100))
@@ -112,8 +151,8 @@ fun OrderScreen(
             label = "Total",
             actionName = "buat order",
             onActionButtonClicked = { openDialog = true },
-            information = "Rp2000",
-            isActive = true,
+            information = "Rp${orderState.total}",
+            isActive = orderState.total > 0,
             modifier = Modifier.align(Alignment.BottomCenter)
         )
         

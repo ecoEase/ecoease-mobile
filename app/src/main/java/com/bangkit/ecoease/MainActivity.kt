@@ -30,17 +30,21 @@ import com.bangkit.ecoease.config.ViewModelFactory
 import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.data.model.ImageCaptured
 import com.bangkit.ecoease.data.viewmodel.CameraViewModel
+import com.bangkit.ecoease.data.viewmodel.OrderViewModel
 import com.bangkit.ecoease.data.viewmodel.SplashViewModel
 import com.bangkit.ecoease.di.Injection
 import com.bangkit.ecoease.ui.component.BottomNavBar
 import com.bangkit.ecoease.ui.component.ChangeAddressScreen
 import com.bangkit.ecoease.ui.component.FloatingButton
 import com.bangkit.ecoease.ui.screen.*
+import com.bangkit.ecoease.ui.screen.chat.ChatRoomScreen
+import com.bangkit.ecoease.ui.screen.chat.UsersChatsScreen
 import com.bangkit.ecoease.ui.screen.onboard.OnBoardingScreen
 import com.bangkit.ecoease.ui.screen.order.OrderHistoryScreen
 import com.bangkit.ecoease.ui.screen.order.OrderScreen
 import com.bangkit.ecoease.ui.screen.order.OrderSuccesScreen
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
+import com.google.firebase.FirebaseApp
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -48,11 +52,14 @@ class MainActivity : ComponentActivity() {
     private val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     lateinit var cameraViewModel: CameraViewModel
 
+    // TODO: move all business logic in viewmodel 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashViewModel = SplashViewModel()
         super.onCreate(savedInstanceState)
 
         cameraViewModel = ViewModelFactory(Injection.provideInjection(this)).create(CameraViewModel::class.java)
+        val orderViewModel = ViewModelFactory(Injection.provideInjection(this)).create(OrderViewModel::class.java)
+
         installSplashScreen().setKeepOnScreenCondition{
             splashViewModel.isLoading.value
         }
@@ -136,9 +143,18 @@ class MainActivity : ComponentActivity() {
                             composable(Screen.Map.route){MapScreen()}
                             composable(Screen.Auth.route){ AuthScreen(navHostController = navController) }
                             composable(Screen.Register.route){ RegisterScreen(navHostController = navController) }
-                            composable(Screen.Order.route){ OrderScreen(navHostController = navController) }
+                            composable(Screen.Order.route){
+                                OrderScreen(
+                                    navHostController = navController,
+                                    orderStateFlow = orderViewModel.orderState,
+                                    addGarbageOrderSlot = { orderViewModel.addGarbageSlot()},
+                                    deleteGarbageSlotAt = { orderViewModel.deleteGarbageAt(it)},
+                                    updateGarbageAtIndex = { index, newGarbage -> orderViewModel.updateGarbage(index, newGarbage) }
+                                ) }
                             composable(Screen.ChangeAddress.route){ ChangeAddressScreen(navHostController = navController) }
                             composable(Screen.OrderSuccess.route){ OrderSuccesScreen(navHostController = navController) }
+                            composable(Screen.UsersChats.route){ UsersChatsScreen(navHostController = navController) }
+                            composable(Screen.ChatRoom.route){ ChatRoomScreen(navHostController = navController) }
                         }
                     }
                 }

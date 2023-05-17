@@ -130,6 +130,7 @@ fun LoadingScanAnim(
 }
 
 suspend fun getImageUriPrediction(context: Context, uri: Uri, isBackCam: Boolean): Uri = withContext(Dispatchers.IO){
+    // TODO: fix image prediction result, not rotated 
     try {
         val inputStream = context.contentResolver.openInputStream(uri)
         var bitmap = BitmapFactory.decodeStream(inputStream)

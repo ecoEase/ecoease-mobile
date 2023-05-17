@@ -25,7 +25,6 @@ import com.bangkit.ecoease.ui.component.RoundedButtonType
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
 import com.bangkit.ecoease.ui.theme.GreenPrimary
 
-// TODO: create order success screen
 @Composable
 fun OrderSuccesScreen(
     navHostController: NavHostController,
