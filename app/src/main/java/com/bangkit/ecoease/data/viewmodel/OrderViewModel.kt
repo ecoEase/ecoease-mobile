@@ -11,11 +11,6 @@ class OrderViewModel: ViewModel() {
     private val garbages = MutableStateFlow<MutableList<GarbageAdded?>>(mutableListOf())
     private val _orderState = MutableStateFlow<Order>(Order(garbages = listOf(), total = 0))
     val orderState: StateFlow<Order> = _orderState
-
-    private fun resetCurrentOrder(){
-        _orderState.value = Order(garbages = listOf(), total = 0)
-    }
-
     private fun calculateCurrentOrder(){
         val currentTotal = garbages.value.map { garbage ->
             garbage?.let {
@@ -23,6 +18,11 @@ class OrderViewModel: ViewModel() {
             } ?: 0
         }.reduce { acc, i -> acc + i }
         _orderState.value = Order(garbages = garbages.value, total = currentTotal)
+    }
+
+    fun resetCurrentOrder(){
+        garbages.value = mutableListOf()
+        _orderState.value = Order(garbages = listOf(), total = 0)
     }
 
     fun addGarbageSlot(){

@@ -1,6 +1,7 @@
 package com.bangkit.ecoease.ui.screen.order
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -18,6 +19,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.Screen
@@ -39,6 +41,7 @@ fun OrderScreen(
     orderStateFlow: StateFlow<Order>,
     addGarbageOrderSlot: () -> Unit = {},
     deleteGarbageSlotAt: (Int) -> Unit = {},
+    onAcceptResetOrder: () -> Unit = {},
     updateGarbageAtIndex: (Int, GarbageAdded) -> Unit = { _, _, -> },
 ){
 
@@ -68,22 +71,33 @@ fun OrderScreen(
         ),
     )
 
-    var garbageTypes: MutableList<String> by rememberSaveable{
-        mutableStateOf(mutableListOf())
-    }
-
-    var addedForm by rememberSaveable {
-        mutableStateOf(0)
-    }
-
-    var openDialog by remember{
-        mutableStateOf(false)
-    }
+    var garbageTypes: MutableList<String> by rememberSaveable{ mutableStateOf(mutableListOf()) }
+    var addedForm by rememberSaveable { mutableStateOf(0) }
+    var openDialog by remember{ mutableStateOf(false) }
+    var openDialogResetOrder by remember{ mutableStateOf(false) }
 
     LaunchedEffect(garbageTypes.toList()){
         lazyListState.animateScrollToItem(garbageTypes.size)
     }
-    
+
+    DisposableEffect(navHostController){
+        val listener = NavController.OnDestinationChangedListener { controller, destination, _ ->
+            Log.d("TAG", "OrderScreen: screen will change $destination")
+        }
+        navHostController.addOnDestinationChangedListener(listener)
+        onDispose {
+            navHostController.removeOnDestinationChangedListener(listener)
+        }
+    }
+
+    BackHandler(orderState.total > 0) {//handle physical back button
+        openDialogResetOrder = true
+    }
+
+    LaunchedEffect(Unit){
+        Log.d("TAG", "OrderScreen: ${orderState.garbages}")
+    }
+
     Box(modifier = modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -131,6 +145,7 @@ fun OrderScreen(
                     // TODO: fix stateflow bug when changing screen, data still remain (not synchronized) 
                     items(garbageTypes.toList(), key = { it }){
                         val index = garbageTypes.indexOf(it)
+
                         AddGarbageForm(
                             listGarbage = listGarbage,
                             onDelete = {
@@ -143,6 +158,7 @@ fun OrderScreen(
                             modifier = Modifier
                                 .animateItemPlacement(tween(durationMillis = 100))
                         )
+
                     }
                 }
             }
@@ -157,5 +173,6 @@ fun OrderScreen(
         )
         
         DialogBox(text = "Apakah anda sudah yakin?", isOpen = openDialog, onDissmiss = { openDialog = false }, onAccept = { navHostController.navigate(Screen.OrderSuccess.route) })
+        DialogBox(text = "Apakah anda yakin ingin membatalkan order anda", onDissmiss = { openDialogResetOrder = false }, onAccept = { onAcceptResetOrder() }, isOpen = openDialogResetOrder)
     }
 }

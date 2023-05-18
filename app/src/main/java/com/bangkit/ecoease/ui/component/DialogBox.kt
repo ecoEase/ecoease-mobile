@@ -42,7 +42,7 @@ fun DialogBox(
                             .fillMaxWidth()
                             .weight(1f)
                         ,
-                        style = MaterialTheme.typography.h5.copy(
+                        style = MaterialTheme.typography.subtitle1.copy(
                             textAlign = TextAlign.Center
                         )
                     )

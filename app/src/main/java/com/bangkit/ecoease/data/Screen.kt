@@ -5,7 +5,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class Screen(val route: String, val icon: ImageVector){
-    object Onboard : Screen(route = "home", icon = Icons.Default.Start)
+    object Onboard : Screen(route = "onboard", icon = Icons.Default.Start)
     object Home : Screen(route = "home", icon = Icons.Default.Home)
     object Temp : Screen(route = "temp/{path}", icon = Icons.Default.Home){
         fun setImage(path: String) = "temp/$path"

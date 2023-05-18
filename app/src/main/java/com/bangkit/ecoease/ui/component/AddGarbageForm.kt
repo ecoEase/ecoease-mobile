@@ -1,6 +1,7 @@
 package com.bangkit.ecoease.ui.component
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -32,19 +33,15 @@ fun AddGarbageForm(
     onUpdate: (GarbageAdded) -> Unit,
     modifier: Modifier = Modifier
 ){
-    var selectedGarbageIndex: Int by rememberSaveable{
-        mutableStateOf(-1)
-    }
-    var selectedGarbageAmount: Int by rememberSaveable{
-        mutableStateOf(0)
-    }
+    var selectedGarbageIndex: Int by rememberSaveable{ mutableStateOf(-1) }
+    var selectedGarbageAmount: Int by rememberSaveable{ mutableStateOf(0) }
     val listGarbageName = listGarbage.map { it.name }
-    var totalPrice by rememberSaveable {
-        mutableStateOf(0)
-    }
+    var totalPrice by rememberSaveable { mutableStateOf(0) }
 
-    LaunchedEffect(selectedGarbageAmount){
+
+    LaunchedEffect(selectedGarbageAmount, selectedGarbageIndex){
         if(selectedGarbageIndex != -1){
+            totalPrice = selectedGarbageAmount * listGarbage[selectedGarbageIndex].price
             onUpdate(
                 GarbageAdded(
                     garbage = listGarbage[selectedGarbageIndex],
@@ -103,7 +100,7 @@ fun AddGarbageForm(
                         Text(text = "Rp$totalPrice")
                         Counter(onValueChange = {
                             selectedGarbageAmount = it
-                            totalPrice = selectedGarbageAmount * listGarbage[selectedGarbageIndex].price
+//                            totalPrice = selectedGarbageAmount * listGarbage[selectedGarbageIndex].price
                         })
                     }
                 }
