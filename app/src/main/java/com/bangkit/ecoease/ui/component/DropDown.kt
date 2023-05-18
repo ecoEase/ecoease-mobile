@@ -44,15 +44,15 @@ import com.bangkit.ecoease.ui.theme.LightTosca
 fun DropDown(
     listItem: List<String>,
     label: String,
-    onChange: (String) -> Unit = {},
     onSelected: (String) -> Unit = {},
+    initValue: String? = null,
     modifier: Modifier = Modifier
 ){
     var expanded by remember{
         mutableStateOf(false)
     }
     var selectedText by rememberSaveable{
-        mutableStateOf("")
+        mutableStateOf(initValue ?: "")
     }
     var isError by rememberSaveable {
         mutableStateOf(false)
@@ -84,12 +84,10 @@ fun DropDown(
                Icon(
                    if(expanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
                    contentDescription = "arrow dropdown",
-                   modifier = Modifier
-                       .clickable { expanded = !expanded }
+                   modifier = Modifier.clickable { expanded = !expanded }
                )
             },
             onValueChange = {
-//                onChange(it)
                 selectedText = it
                 expanded = true
                 listItemState = if(it.isNotEmpty()) listItemState.filter { item -> item.contains(it) } else listItem

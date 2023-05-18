@@ -22,11 +22,12 @@ import com.bangkit.ecoease.ui.theme.EcoEaseTheme
 
 @Composable
 fun Counter(
+    initValue: Int? = null,
     modifier: Modifier = Modifier,
     onValueChange: (Int) -> Unit = {}
 ){
     var counter: Int by rememberSaveable{
-        mutableStateOf(1)
+        mutableStateOf(initValue ?: 1)
     }
     
     LaunchedEffect(counter){
@@ -34,6 +35,7 @@ fun Counter(
     }
 
     Row(
+        modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         CounterButton(

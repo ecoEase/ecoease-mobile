@@ -142,11 +142,20 @@ fun OrderScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(bottom = 136.dp)
                 ){
-                    // TODO: fix stateflow bug when changing screen, data still remain (not synchronized) 
                     items(garbageTypes.toList(), key = { it }){
                         val index = garbageTypes.indexOf(it)
+                        //populate the addGarbageForm with stateflow order when there is data from it
+                        val addedGarbage = orderState.garbages[index]
+                        val initialGarbageName = addedGarbage?.garbage?.name
+                        val initialGarbageAmount = addedGarbage?.amount
+                        val initialGarbagePrice = addedGarbage?.garbage?.price
+                        val initialGarbageTotalPrice = addedGarbage?.totalPrice
 
                         AddGarbageForm(
+                            initSelected = initialGarbageName,
+                            initAmount = initialGarbageAmount,
+                            initPrice = initialGarbagePrice,
+                            initTotalPrice = initialGarbageTotalPrice,
                             listGarbage = listGarbage,
                             onDelete = {
                                 garbageTypes = garbageTypes.filter { elemen -> elemen != it} as MutableList<String>

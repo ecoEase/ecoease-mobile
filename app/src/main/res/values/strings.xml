@@ -27,4 +27,7 @@
     <string name="create_order_success">Yeah! anda berhasil membuat laporan sampah baru 🎉</string>
     <string name="home">home</string>
     <string name="check_on_map">lihat di map</string>
+    <string name="total">Total</string>
+    <string name="status">Status</string>
+    <string name="address_info">Info alamat</string>
 </resources>

@@ -5,6 +5,7 @@ import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
@@ -33,6 +34,7 @@ fun ItemHistory(
     date: String,
     totalPrice: String,
     statusItemHistory: StatusItemHistory,
+    onClickDetail: () -> Unit,
     modifier: Modifier = Modifier
 ){
     Card(
@@ -89,7 +91,7 @@ fun ItemHistory(
                 Box(modifier = Modifier.width(16.dp))
                 StatusOrder(statusItemHistory = statusItemHistory)
                 Box(modifier = Modifier.weight(1f))
-                PillWidget(color = MaterialTheme.colors.secondary, text = stringResource(R.string.detail), textColor = MaterialTheme.colors.onBackground)
+                PillWidget(color = MaterialTheme.colors.secondary, text = stringResource(R.string.detail), textColor = MaterialTheme.colors.onBackground, modifier = Modifier.clickable { onClickDetail() })
             }
         }
     }
@@ -153,7 +155,7 @@ fun PillWidget(
 fun ItemHistoryPreview(){
     EcoEaseTheme() {
         Column(Modifier.padding(16.dp)) {
-            ItemHistory(items = listOf("test", "test"), statusItemHistory = StatusItemHistory.NOT_TAKEN, date = "20-02-2020", totalPrice = "12000")
+            ItemHistory(items = listOf("test", "test"), statusItemHistory = StatusItemHistory.NOT_TAKEN, date = "20-02-2020", totalPrice = "12000", onClickDetail = { })
         }
     }
 }

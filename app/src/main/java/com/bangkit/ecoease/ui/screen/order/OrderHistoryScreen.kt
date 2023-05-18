@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.data.model.OrderHistory
 import com.bangkit.ecoease.ui.component.ItemHistory
 import com.bangkit.ecoease.ui.component.StatusItemHistory
@@ -72,7 +73,7 @@ fun OrderHistoryScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ){
         items(listItemHistory){ item ->
-            ItemHistory(items = item.items, date = item.date , totalPrice = item.price.toString(), statusItemHistory = item.statusItemHistory)
+            ItemHistory(items = item.items, date = item.date , totalPrice = item.price.toString(), statusItemHistory = item.statusItemHistory, onClickDetail = { navHostController.navigate(Screen.DetailOrder.route) })
         }
     }
 }

@@ -31,16 +31,22 @@ fun AddGarbageForm(
     listGarbage: List<Garbage>,
     onDelete: () -> Unit,
     onUpdate: (GarbageAdded) -> Unit,
+    initSelected: String? = null,
+    initAmount: Int? = null,
+    initPrice: Int? = null,
+    initTotalPrice: Int? = null,
     modifier: Modifier = Modifier
 ){
     var selectedGarbageIndex: Int by rememberSaveable{ mutableStateOf(-1) }
     var selectedGarbageAmount: Int by rememberSaveable{ mutableStateOf(0) }
     val listGarbageName = listGarbage.map { it.name }
-    var totalPrice by rememberSaveable { mutableStateOf(0) }
+    var totalPrice by rememberSaveable { mutableStateOf(initTotalPrice ?: 0) }
+    var price by rememberSaveable{ mutableStateOf(initPrice ?: 0) }
 
 
     LaunchedEffect(selectedGarbageAmount, selectedGarbageIndex){
         if(selectedGarbageIndex != -1){
+            price = listGarbage[selectedGarbageIndex].price
             totalPrice = selectedGarbageAmount * listGarbage[selectedGarbageIndex].price
             onUpdate(
                 GarbageAdded(
@@ -76,19 +82,16 @@ fun AddGarbageForm(
                 Icon(Icons.Default.Delete, contentDescription = "delete icon", tint = OrangeAccent, modifier = Modifier.clickable { onDelete() })
             }
             DropDown(
+                initValue = initSelected,
                 listItem = listGarbageName,
-                onChange = { selected ->
-                    Log.d("AddGarbageForm", "AddGarbageForm: $selected")
-                    selectedGarbageIndex = listGarbageName.indexOf(selected)
-                },
                 onSelected = { selected ->
                     selectedGarbageIndex = listGarbageName.indexOf(selected)
                 },
                 label = "Pilih sampah"
             )
-            AnimatedVisibility(visible = selectedGarbageIndex != -1) {
+            AnimatedVisibility(visible = selectedGarbageIndex != -1 || initSelected != null) {
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    Text(text = "Harga satuan Rp${listGarbage[selectedGarbageIndex].price}", style = MaterialTheme.typography.body2.copy(
+                    Text(text = "Harga satuan Rp$price", style = MaterialTheme.typography.body2.copy(
                         color = DarkGrey
                     ))
                     Row(
@@ -98,10 +101,13 @@ fun AddGarbageForm(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(text = "Rp$totalPrice")
-                        Counter(onValueChange = {
-                            selectedGarbageAmount = it
-//                            totalPrice = selectedGarbageAmount * listGarbage[selectedGarbageIndex].price
-                        })
+                        Counter(
+                            initValue = initAmount,
+                            onValueChange = {
+                                selectedGarbageAmount = it
+//                                totalPrice = selectedGarbageAmount * listGarbage[selectedGarbageIndex].price
+                            }
+                        )
                     }
                 }
             }

@@ -28,7 +28,7 @@ fun CollapseContainer(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit = {},
 ){
-    var expanded by rememberSaveable{
+    var expanded by remember{
         mutableStateOf(false)
     }
     val animateBotPadding by animateDpAsState(

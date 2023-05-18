@@ -39,6 +39,7 @@ import com.bangkit.ecoease.ui.screen.*
 import com.bangkit.ecoease.ui.screen.chat.ChatRoomScreen
 import com.bangkit.ecoease.ui.screen.chat.UsersChatsScreen
 import com.bangkit.ecoease.ui.screen.onboard.OnBoardingScreen
+import com.bangkit.ecoease.ui.screen.order.DetailOrderScreen
 import com.bangkit.ecoease.ui.screen.order.OrderHistoryScreen
 import com.bangkit.ecoease.ui.screen.order.OrderScreen
 import com.bangkit.ecoease.ui.screen.order.OrderSuccesScreen
@@ -171,6 +172,7 @@ class MainActivity : ComponentActivity() {
                                 ) }
                             composable(Screen.ChangeAddress.route){ ChangeAddressScreen(navHostController = navController) }
                             composable(Screen.OrderSuccess.route){ OrderSuccesScreen(navHostController = navController) }
+                            composable(Screen.DetailOrder.route){ DetailOrderScreen(navHostController = navController) }
                             composable(Screen.UsersChats.route){ UsersChatsScreen(navHostController = navController) }
                             composable(Screen.ChatRoom.route){ ChatRoomScreen(navHostController = navController) }
                         }
