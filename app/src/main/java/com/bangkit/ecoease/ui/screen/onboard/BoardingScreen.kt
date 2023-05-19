@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,6 +43,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnBoardingScreen(
+    onFinish: () -> Unit,
     modifier: Modifier = Modifier,
     navController: NavHostController
 ){
@@ -71,6 +73,7 @@ fun OnBoardingScreen(
             )
         }
         BoardingNavigation(
+            onFinish = onFinish,
             modifier = modifier.align(Alignment.BottomCenter),
             pagerState = pagerState,
             lengthPager = listPagerItem.size,
@@ -88,6 +91,7 @@ data class PagerItem(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BoardingNavigation(
+    onFinish: () -> Unit,
     modifier: Modifier = Modifier,
     lengthPager: Int,
     pagerState: PagerState,
@@ -135,7 +139,10 @@ fun BoardingNavigation(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Button(
-                    onClick = { navController.navigate(Screen.Auth.route) },
+                    onClick = {
+                        onFinish()
+                        navController.navigate(Screen.Auth.route)
+                    },
                     shape = RoundedCornerShape(20.dp),
                     border = BorderStroke(2.dp, Color.White),
                     colors = ButtonDefaults.buttonColors(
@@ -144,11 +151,14 @@ fun BoardingNavigation(
                     ),
                     elevation = null
                 ) {
-                    Text(text = "Lewati")
+                    Text(text = stringResource(R.string.skip))
                 }
                 if(pagerState.currentPage == lengthPager - 1){
                     Button(
-                        onClick = { navController.navigate(Screen.Auth.route) },
+                        onClick = {
+                            onFinish()
+                            navController.navigate(Screen.Auth.route)
+                        },
                         shape = RoundedCornerShape(20.dp)
                     ) {
                         Text(text = "Ayo mulai")
@@ -209,6 +219,7 @@ fun LottieContent(
 fun PreviewLottieScreen(){
     EcoEaseTheme {
         OnBoardingScreen(
+            onFinish = {},
             navController = rememberNavController()
         )
     }

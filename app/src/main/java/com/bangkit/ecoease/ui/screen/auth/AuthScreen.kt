@@ -23,6 +23,7 @@ import com.bangkit.ecoease.ui.theme.EcoEaseTheme
 
 @Composable
 fun AuthScreen(
+    loginAction: () -> Unit,
     navHostController: NavHostController,
     modifier: Modifier = Modifier
 ){
@@ -50,7 +51,10 @@ fun AuthScreen(
         Text("Login")
         TextInput(label = "Email")
         TextInput(label = "Password")
-        RoundedButton(text = "login", modifier = Modifier.fillMaxWidth(), onClick = { navHostController.navigate(Screen.Home.route) })
+        RoundedButton(text = "login", modifier = Modifier.fillMaxWidth(), onClick = {
+            loginAction()
+            navHostController.navigate(Screen.Home.route)
+        })
         Text("atau")
         Text("buat akun baru", modifier = Modifier.clickable { navHostController.navigate(Screen.Register.route) })
     }
@@ -60,6 +64,6 @@ fun AuthScreen(
 @Composable
 fun AuthScreenPreview(){
     EcoEaseTheme {
-        AuthScreen(navHostController = rememberNavController())
+        AuthScreen(navHostController = rememberNavController(), loginAction = {})
     }
 }

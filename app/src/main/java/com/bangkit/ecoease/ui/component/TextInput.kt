@@ -17,13 +17,14 @@ import com.bangkit.ecoease.ui.theme.LightTosca
 
 @Composable
 fun TextInput(
+    initialValue: String? = null,
     label: String? = null,
     isTextArea: Boolean = false,
     modifier: Modifier = Modifier,
     placeHolder: String = "",
     onChange: (String) -> Unit = {}
 ){
-    // TODO: change to stateless component 
+    // TODO: change to stateless component
     var value by rememberSaveable{
         mutableStateOf("")
     }
@@ -43,7 +44,7 @@ fun TextInput(
                 modifier.fillMaxWidth()}
         ,
         singleLine = !isTextArea,
-        value = value,
+        value = initialValue ?: value,
         label = { if(label != null) Text(label) },
         placeholder = { Text(text = placeHolder) },
         onValueChange = {

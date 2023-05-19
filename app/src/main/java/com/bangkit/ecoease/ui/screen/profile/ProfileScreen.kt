@@ -1,22 +1,25 @@
 package com.bangkit.ecoease.ui.screen
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.ui.component.Avatar
-import com.bangkit.ecoease.ui.component.EditableText
+import com.bangkit.ecoease.ui.component.TextReadOnly
 import com.bangkit.ecoease.ui.theme.BluePrimary
 
 @Composable
 fun ProfileScreen(
+    logoutAction: () -> Unit,
     navHostController: NavHostController,
     modifier: Modifier = Modifier
 ){
@@ -36,8 +39,28 @@ fun ProfileScreen(
         Text(text = "maya@gmail.com", style = MaterialTheme.typography.caption.copy(
             color = BluePrimary
         ))
-        EditableText(label = "Nama", text = "Maya", onChange = {})
-        EditableText(label = "No Telp.", text = "082132351498", onChange = {})
-        EditableText(label = "Password", text = "082132351498", onChange = {})
+        TextReadOnly(label = "Nama", text = "Maya")
+        TextReadOnly(label = "No Telp.", text = "082132351498")
+        TextReadOnly(label = "Password", text = "082132351498")
+        LogoutButton(action = {
+            logoutAction()
+            navHostController.navigate(Screen.Auth.route)
+        })
+    }
+}
+
+@Composable
+fun LogoutButton(
+    action: () -> Unit,
+    modifier: Modifier = Modifier
+){
+    Row(modifier = modifier
+        .fillMaxWidth()
+        .clickable { action() }
+    ,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Icon(imageVector = Icons.Default.Logout, contentDescription = "logout")
+        Text(text = "Logout")
     }
 }

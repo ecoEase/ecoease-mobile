@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.bangkit.ecoease.ui.theme.BlueSecondary
 import com.bangkit.ecoease.ui.theme.DarkGrey
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
@@ -46,33 +47,34 @@ fun ChatBubble(
                 )
             )
             .background(if (isOwner) MaterialTheme.colors.primary else MaterialTheme.colors.secondary)
-            .padding(vertical = 4.dp, horizontal = 16.dp)
+            .padding(vertical = 2.dp, horizontal = 16.dp)
             ,
             horizontalAlignment = if(isOwner) Alignment.Start else Alignment.End
         ) {
             Text(text = sender, style = MaterialTheme.typography.caption.copy(
-                fontWeight = FontWeight.Bold,
-                color = if(isOwner) Color.White.copy(
-                    alpha = 0.5f
-                ) else BlueSecondary.copy(
-                    alpha = 0.5f
-                )
-            ))
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text(text = message.trim(), style = MaterialTheme.typography.body1.copy(
-                    if(isOwner) Color.White
-                    else BlueSecondary
-                ))
-                Text(text = date, style = MaterialTheme.typography.caption.copy(
-                    if(isOwner) Color.White.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = if(isOwner) Color.White.copy(
                         alpha = 0.5f
                     ) else BlueSecondary.copy(
                         alpha = 0.5f
                     )
                 ),
-                    modifier = Modifier.align(Alignment.Bottom)
-                )
-            }
+            modifier = Modifier.align(Alignment.Start)
+            )
+            Text(text = message.trim(), style = MaterialTheme.typography.body2.copy(
+                if(isOwner) Color.White
+                else BlueSecondary
+            ))
+            Text(text = date, style = MaterialTheme.typography.caption.copy(
+                if(isOwner) Color.White.copy(
+                    alpha = 0.5f
+                ) else BlueSecondary.copy(
+                    alpha = 0.5f
+                ),
+                fontSize = 8.sp
+            ),
+                modifier = Modifier.align(Alignment.End)
+            )
         }
     }
 }

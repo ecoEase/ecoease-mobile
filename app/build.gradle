@@ -66,20 +66,9 @@ dependencies {
     implementation 'org.tensorflow:tensorflow-lite-gpu:2.3.0'
     implementation 'org.tensorflow:tensorflow-lite-support:0.1.0'
     implementation 'org.tensorflow:tensorflow-lite-metadata:0.1.0'
+
+    //firebase
     implementation 'com.google.firebase:firebase-database-ktx:20.2.1'
-
-//
-//    //firebase
-//    implementation 'com.google.firebase:firebase-database-ktx:20.0.4'
-//    implementation 'com.firebaseui:firebase-ui-database:8.0.0'
-
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_ui_version"
-    debugImplementation "androidx.compose.ui:ui-tooling:$compose_ui_version"
-    debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_ui_version"
-    implementation "androidx.compose.material:material-icons-extended:$compose_ui_version"
 
     //navigation
     def nav_version = "2.5.3"
@@ -108,4 +97,17 @@ dependencies {
     implementation 'com.google.android.gms:play-services-maps:18.1.0'
     //fused location
     implementation 'com.google.android.gms:play-services-location:20.0.0'
+
+    //datastore
+    implementation "androidx.datastore:datastore-preferences:1.0.0"
+
+    //testing
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_ui_version"
+    debugImplementation "androidx.compose.ui:ui-tooling:$compose_ui_version"
+    debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_ui_version"
+    implementation "androidx.compose.material:material-icons-extended:$compose_ui_version"
+
 }

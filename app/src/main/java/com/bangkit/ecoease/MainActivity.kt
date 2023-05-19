@@ -11,13 +11,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CameraEnhance
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -44,19 +42,30 @@ import com.bangkit.ecoease.ui.screen.order.OrderHistoryScreen
 import com.bangkit.ecoease.ui.screen.order.OrderScreen
 import com.bangkit.ecoease.ui.screen.order.OrderSuccesScreen
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
-import com.google.firebase.FirebaseApp
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
+
+val listMainRoute = listOf(
+    Screen.Home,
+    Screen.History,
+    Screen.Map,
+    Screen.Profile
+)
+val listNoTopbar = listOf(
+    Screen.Onboard,
+    Screen.Auth,
+    Screen.Register,
+    Screen.OrderSuccess
+)
 class MainActivity : ComponentActivity() {
     private val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
-    lateinit var cameraViewModel: CameraViewModel
+    private lateinit var cameraViewModel: CameraViewModel
 
     // TODO: move all business logic in viewmodel
     override fun onCreate(savedInstanceState: Bundle?) {
-        val splashViewModel = SplashViewModel()
+        val splashViewModel = ViewModelFactory(Injection.provideInjection(this)).create(SplashViewModel::class.java)
         super.onCreate(savedInstanceState)
-
         cameraViewModel = ViewModelFactory(Injection.provideInjection(this)).create(CameraViewModel::class.java)
         val orderViewModel = ViewModelFactory(Injection.provideInjection(this)).create(OrderViewModel::class.java)
 
@@ -64,32 +73,22 @@ class MainActivity : ComponentActivity() {
             splashViewModel.isLoading.value
         }
 
-        val listMainRoute = listOf(
-            Screen.Home,
-            Screen.History,
-            Screen.Map,
-            Screen.Profile
-        )
-
-        val listNoTopbar = listOf(
-            Screen.Onboard,
-            Screen.Auth,
-            Screen.Register,
-            Screen.OrderSuccess
-        )
-
         setContent {
             EcoEaseTheme {
+
                 val navController: NavHostController = rememberNavController()
                 val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
                 var openDialog by remember{
                     mutableStateOf(false)
                 }
+                val isReadOnboardNew by splashViewModel.isReadOnboard.collectAsState()
+                val isLogged by splashViewModel.isLogged.collectAsState()
 
                 fun resetOrder(){
                     orderViewModel.resetCurrentOrder()
                     navController.popBackStack()
                 }
+
                 var isTopBarShown = !listNoTopbar.map { it.route }.contains(currentRoute)
                 var topBarTitle = if(currentRoute != Screen.Home.route) Text( text = currentRoute?.let { text ->  text.replaceFirstChar { it.uppercase() }}  ?: "",textAlign = TextAlign.Center) else {}
 
@@ -133,10 +132,13 @@ class MainActivity : ComponentActivity() {
                         DialogBox(text = "Apakah anda yakin ingin membatalkan order anda", onDissmiss = { openDialog = false }, onAccept = { resetOrder() }, isOpen = openDialog)
                         NavHost(
                             navController = navController,
-                            startDestination = Screen.Home.route, //Screen.OnBoard.route,
+                            startDestination =  if(isReadOnboardNew){
+                                                    if(isLogged) Screen.Home.route else Screen.Auth.route
+                                                } else Screen.Onboard.route, //Screen.OnBoard.route,
                             modifier = Modifier.padding(paddingValues)
                         ){
-                            composable(Screen.Onboard.route){ OnBoardingScreen(navController = navController) }
+
+                            composable(Screen.Onboard.route){ OnBoardingScreen(navController = navController, onFinish = { splashViewModel.finishedOnBoard() }) }
                             composable(
                                 route = Screen.Temp.route,
                                 arguments = listOf(navArgument("path"){type = NavType.StringType})
@@ -157,9 +159,9 @@ class MainActivity : ComponentActivity() {
                                 DashboardScreen(navHostController = navController)
                             }
                             composable(Screen.History.route){ OrderHistoryScreen(navHostController = navController) }
-                            composable(Screen.Profile.route){ ProfileScreen(navHostController = navController) }
+                            composable(Screen.Profile.route){ ProfileScreen(navHostController = navController, logoutAction = { splashViewModel.logout() }) }
                             composable(Screen.Map.route){MapScreen()}
-                            composable(Screen.Auth.route){ AuthScreen(navHostController = navController) }
+                            composable(Screen.Auth.route){ AuthScreen(navHostController = navController, loginAction = { splashViewModel.login() }) }
                             composable(Screen.Register.route){ RegisterScreen(navHostController = navController) }
                             composable(Screen.Order.route){
                                 OrderScreen(
