@@ -29,6 +29,7 @@ import com.bangkit.ecoease.config.ViewModelFactory
 import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.data.model.ImageCaptured
 import com.bangkit.ecoease.data.viewmodel.CameraViewModel
+import com.bangkit.ecoease.data.viewmodel.GarbageViewModel
 import com.bangkit.ecoease.data.viewmodel.OrderViewModel
 import com.bangkit.ecoease.data.viewmodel.SplashViewModel
 import com.bangkit.ecoease.di.Injection
@@ -68,6 +69,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         cameraViewModel = ViewModelFactory(Injection.provideInjection(this)).create(CameraViewModel::class.java)
         val orderViewModel = ViewModelFactory(Injection.provideInjection(this)).create(OrderViewModel::class.java)
+        val garbageViewModel = ViewModelFactory(Injection.provideInjection(this)).create(GarbageViewModel::class.java)
 
         installSplashScreen().setKeepOnScreenCondition{
             splashViewModel.isLoading.value
@@ -156,7 +158,7 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             composable(Screen.Home.route){
-                                DashboardScreen(navHostController = navController)
+                                DashboardScreen(navHostController = navController, garbageStateFlow = garbageViewModel.garbageState, loadGarbage = { garbageViewModel.getAllGarbage() })
                             }
                             composable(Screen.History.route){ OrderHistoryScreen(navHostController = navController) }
                             composable(Screen.Profile.route){ ProfileScreen(navHostController = navController, logoutAction = { splashViewModel.logout() }) }

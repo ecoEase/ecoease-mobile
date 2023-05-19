@@ -2,6 +2,8 @@ package com.bangkit.ecoease.data.repository
 
 import android.util.Log
 import com.bangkit.ecoease.data.datastore.DataStorePreferences
+import com.bangkit.ecoease.data.dummy.listGarbages
+import com.bangkit.ecoease.data.model.Garbage
 import com.bangkit.ecoease.data.model.ImageCaptured
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
@@ -28,6 +30,8 @@ class MainRepository(private val datastore: DataStorePreferences) {
     suspend fun setToken(newToken: String){
         datastore.setToken(newToken)
     }
+
+    suspend fun getAllGarbage(): Flow<List<Garbage>> = flowOf(listGarbages)
 
     companion object{
         @Volatile
