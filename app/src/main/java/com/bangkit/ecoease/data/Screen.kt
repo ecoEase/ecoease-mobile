@@ -21,5 +21,7 @@ sealed class Screen(val route: String, val icon: ImageVector){
     object ChangeAddress : Screen(route = "change address", icon = Icons.Default.Reorder)
     object OrderSuccess : Screen(route = "order success", icon = Icons.Default.Reorder)
     object UsersChats : Screen(route = "users chats", icon = Icons.Default.Chat)
-    object ChatRoom : Screen(route = "chat room", icon = Icons.Default.Chat)
+    object ChatRoom : Screen(route = "chat room", icon = Icons.Default.Chat){
+
+    }
 }

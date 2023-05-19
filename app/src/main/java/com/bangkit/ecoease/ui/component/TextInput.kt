@@ -23,6 +23,7 @@ fun TextInput(
     placeHolder: String = "",
     onChange: (String) -> Unit = {}
 ){
+    // TODO: change to stateless component 
     var value by rememberSaveable{
         mutableStateOf("")
     }

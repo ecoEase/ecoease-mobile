@@ -3,13 +3,16 @@ package com.bangkit.ecoease.ui.screen.chat
 import android.text.format.DateUtils
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
@@ -28,60 +31,75 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.bangkit.ecoease.BuildConfig
+import com.bangkit.ecoease.data.firebase.FireBaseRealtimeDatabase
+import com.bangkit.ecoease.data.firebase.FireBaseRealtimeDatabase.getCurrentChat
 import com.bangkit.ecoease.data.model.Message
 import com.bangkit.ecoease.ui.component.ChatBubble
 import com.bangkit.ecoease.ui.component.TextInput
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.*
 import java.util.*
 
 @Composable
 fun ChatRoomScreen(
+    roomId: String,
     navHostController: NavHostController,
     modifier: Modifier = Modifier
 ){
-    val db: FirebaseDatabase = FirebaseDatabase.getInstance (BuildConfig.firebase_realtime_db_url)
-    val messagesRef = db.reference.child("ref")
     val context = LocalContext.current
-//    val messagesRef = FireBaseRealtimeDatabase.createMessageRef("message")
-    var message: String by rememberSaveable {
-        mutableStateOf("")
-    }
+    val messagesRef = FireBaseRealtimeDatabase.createMessageRef(roomId)
+    var message: String by rememberSaveable { mutableStateOf("") }
+    var chats: MutableList<Message> = remember{ mutableStateListOf() }
+    var loading by remember{ mutableStateOf(false) }
+    val lazyListState = rememberLazyListState()
+
     // TODO: move chat bussiness logic in a viewmodel
-    messagesRef.get().addOnCompleteListener{task ->
-        if(task.isSuccessful){
-            val result = task.result
-            result?.let {
-                val final = result.children.map { snapshot ->
-                    snapshot.getValue(Message::class.java)!!
-                }
-                Log.d("TAG", "ChatRoomScreen: $final")
+    LaunchedEffect(Unit){
+        loading = true
+        messagesRef.getCurrentChat(roomId = roomId).addOnCompleteListener {
+            loading = false
+            if(it.isSuccessful){
+                chats.clear()
+                chats.addAll(it.result)
             }
         }
     }
+
+    // TODO: animate scroll when new chat added
+    LaunchedEffect(chats.size){
+        lazyListState.animateScrollToItem(chats.size - 1)
+    }
+
+    DisposableEffect(Unit){
+        val childEventListener = FireBaseRealtimeDatabase.childEventListener { chats.add(it) }
+        messagesRef.addChildEventListener(childEventListener)
+        onDispose {
+            messagesRef.removeEventListener(childEventListener)
+        }
+    }
+
 
     val animatedIconBgColor by animateColorAsState(
         targetValue = if(message.isNotEmpty()) MaterialTheme.colors.primary else MaterialTheme.colors.secondary,
         animationSpec = tween(200)
     )
 
-    val fakeChats = listOf<Message>(
-        Message("lorem", "ipsum", 10000),
-        Message("lorem", "ipsum", 10001),
-        Message("lorem", "ipsum", 10002),
-        Message("lorem", "ipsum", 10003),
-        Message("lorem", "ipsum", 10004),
-    )
-
     Column(modifier = modifier.fillMaxSize()) {
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)){
-            items(fakeChats, key = { "${it.name}-${it.timeStamp}" }){message ->
-                ChatBubble(message = message.text ?: "", sender = message.name ?: "", isOwner = true, date = DateUtils.getRelativeTimeSpanString(message.timeStamp ?: 0).toString())
-            }
-            item {
-                ChatBubble(message = fakeChats[0].text ?: "", sender = fakeChats[0].name ?: "", isOwner = false, date = DateUtils.getRelativeTimeSpanString(fakeChats[0].timeStamp ?: 0).toString())
+        if(loading) CircularProgressIndicator()
+
+        AnimatedVisibility(
+            visible = !loading,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+        ) {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxHeight()){
+                items(chats.toList()){message ->
+                    ChatBubble(message = message.text ?: "", sender = message.name ?: "", isOwner = true, date = DateUtils.getRelativeTimeSpanString(message.timeStamp ?: 0).toString())
+                }
             }
         }
+
         Row(modifier = Modifier.fillMaxWidth()) {
             TextInput(placeHolder = "Type message", onChange = {message = it}, modifier = Modifier.weight(1f))
             IconButton(onClick = { messagesRef
@@ -119,6 +137,6 @@ fun ChatRoomScreen(
 @Composable
 fun ChatRoomScreenPreview(){
     EcoEaseTheme() {
-        ChatRoomScreen(navHostController = rememberNavController())
+        ChatRoomScreen(navHostController = rememberNavController(), roomId = "ref")
     }
 }

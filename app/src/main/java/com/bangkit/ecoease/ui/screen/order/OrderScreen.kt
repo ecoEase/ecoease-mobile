@@ -94,10 +94,6 @@ fun OrderScreen(
         openDialogResetOrder = true
     }
 
-    LaunchedEffect(Unit){
-        Log.d("TAG", "OrderScreen: ${orderState.garbages}")
-    }
-
     Box(modifier = modifier.fillMaxSize()) {
         Column(
             modifier = Modifier

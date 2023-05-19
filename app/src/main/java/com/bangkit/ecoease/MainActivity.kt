@@ -133,7 +133,7 @@ class MainActivity : ComponentActivity() {
                         DialogBox(text = "Apakah anda yakin ingin membatalkan order anda", onDissmiss = { openDialog = false }, onAccept = { resetOrder() }, isOpen = openDialog)
                         NavHost(
                             navController = navController,
-                            startDestination = Screen.Onboard.route,
+                            startDestination = Screen.Home.route, //Screen.OnBoard.route,
                             modifier = Modifier.padding(paddingValues)
                         ){
                             composable(Screen.Onboard.route){ OnBoardingScreen(navController = navController) }
@@ -174,7 +174,13 @@ class MainActivity : ComponentActivity() {
                             composable(Screen.OrderSuccess.route){ OrderSuccesScreen(navHostController = navController) }
                             composable(Screen.DetailOrder.route){ DetailOrderScreen(navHostController = navController) }
                             composable(Screen.UsersChats.route){ UsersChatsScreen(navHostController = navController) }
-                            composable(Screen.ChatRoom.route){ ChatRoomScreen(navHostController = navController) }
+                            composable(
+                                route = "${Screen.ChatRoom.route}?roomId={roomId}",
+                                arguments = listOf(navArgument("roomId"){type = NavType.StringType})
+                            ){
+                                val roomId = it.arguments?.getString("roomId") ?: "ref"
+                                ChatRoomScreen(navHostController = navController, roomId = roomId)
+                            }
                         }
                     }
                 }

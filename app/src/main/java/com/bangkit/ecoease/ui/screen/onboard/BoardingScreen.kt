@@ -45,6 +45,7 @@ fun OnBoardingScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController
 ){
+    // TODO: add datastore to save state if user already finish the onboard screen
     val listPagerItem = listOf(
         PagerItem(R.raw.lottie_wave, "Welcome", Color(0xFFB9EDDD)),
         PagerItem(R.raw.lottie_becket_trash_can, "b", Color(0xFF02AE9A)),

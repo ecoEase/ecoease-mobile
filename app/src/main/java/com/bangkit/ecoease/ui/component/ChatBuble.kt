@@ -36,7 +36,7 @@ fun ChatBubble(
         horizontalArrangement = if(isOwner) Arrangement.End else Arrangement.Start
     ) {
         Column(modifier = modifier
-            .widthIn(max = screenWidthDp)
+            .widthIn(max = screenWidthDp * 3/5)
             .clip(
                 RoundedCornerShape(
                     topStart = if (isOwner) 16.dp else 0.dp,
@@ -59,7 +59,7 @@ fun ChatBubble(
                 )
             ))
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text(text = message, style = MaterialTheme.typography.body1.copy(
+                Text(text = message.trim(), style = MaterialTheme.typography.body1.copy(
                     if(isOwner) Color.White
                     else BlueSecondary
                 ))
@@ -83,7 +83,7 @@ fun ChatBubblePreview(){
     EcoEaseTheme() {
         Column(modifier = Modifier.fillMaxSize()) {
             ChatBubble(message = "lorem", sender = "udin", isOwner = true, date = "Now")
-            ChatBubble(message = "lorem", sender = "udin", isOwner = false, date = "Now")
+            ChatBubble(message = " lorem lorem lorem udin lorem lorem loremudin lorem lorem loremudin lorem lorem loremudin lorem lorem lorem", sender = "udin", isOwner = false, date = "Now")
         }
     }
 }
