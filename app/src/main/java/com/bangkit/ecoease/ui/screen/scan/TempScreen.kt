@@ -28,6 +28,7 @@ import com.airbnb.lottie.compose.*
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.ObjectDetection
 import com.bangkit.ecoease.data.model.ImageCaptured
+import com.bangkit.ecoease.helper.getImageUriFromBitmap
 import com.bangkit.ecoease.helper.getImageUriFromTempBitmap
 import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.FloatingButton
@@ -136,6 +137,12 @@ suspend fun getImageUriPrediction(context: Context, uri: Uri, isBackCam: Boolean
         var bitmap = BitmapFactory.decodeStream(inputStream)
 
         val resultBitmap = ObjectDetection.run(context, bitmap, isBackCam)
+        //SAVE TO GALLERY
+//        return@withContext getImageUriFromBitmap(
+//            context = context,
+//            bitmap = resultBitmap
+//        )
+        //SAVE TO TEMPORARY FILE
         return@withContext getImageUriFromTempBitmap(
             context = context,
             bitmap = resultBitmap,

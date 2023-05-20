@@ -16,7 +16,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -28,6 +27,7 @@ import com.bangkit.ecoease.data.model.Garbage
 import com.bangkit.ecoease.data.model.GarbageAdded
 import com.bangkit.ecoease.data.model.Order
 import com.bangkit.ecoease.helper.generateUUID
+import com.bangkit.ecoease.helper.toCurrency
 import com.bangkit.ecoease.ui.component.*
 import com.bangkit.ecoease.ui.theme.LightGrey
 import kotlinx.coroutines.flow.StateFlow
@@ -49,6 +49,7 @@ fun OrderScreen(
     val lazyListState = rememberLazyListState()
 
     val dummyAddress = Address(
+        id = generateUUID(),
         name = "alamat 1",
         detail = "jalan yang lurus",
         district = "Besuki",
@@ -57,14 +58,17 @@ fun OrderScreen(
 
     val listGarbage = listOf(
         Garbage(
+            id = generateUUID(),
             imageUrl = "https://images.unsplash.com/photo-1528190336454-13cd56b45b5a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80",
             name = "Kantong plastik",
             price = 200
         ),Garbage(
+            id = generateUUID(),
             imageUrl = "https://images.unsplash.com/photo-1528190336454-13cd56b45b5a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80",
             name = "Botol plastik",
             price = 300
         ),Garbage(
+            id = generateUUID(),
             imageUrl = "https://images.unsplash.com/photo-1528190336454-13cd56b45b5a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80",
             name = "Kaleng",
             price = 700
@@ -141,7 +145,7 @@ fun OrderScreen(
                     items(garbageTypes.toList(), key = { it }){
                         val index = garbageTypes.indexOf(it)
                         //populate the addGarbageForm with stateflow order when there is data from it
-                        val addedGarbage = orderState.garbages[index]
+                        val addedGarbage = if(orderState.garbageList.isNotEmpty()) orderState.garbageList[index] else null
                         val initialGarbageName = addedGarbage?.garbage?.name
                         val initialGarbageAmount = addedGarbage?.amount
                         val initialGarbagePrice = addedGarbage?.garbage?.price
@@ -172,7 +176,7 @@ fun OrderScreen(
             label = "Total",
             actionName = "buat order",
             onActionButtonClicked = { openDialog = true },
-            information = "Rp${orderState.total}",
+            information = "Rp${orderState.total.toCurrency()}",
             isActive = orderState.total > 0,
             modifier = Modifier.align(Alignment.BottomCenter)
         )

@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.ui.component.Avatar
+import com.bangkit.ecoease.ui.component.AvatarSize
 import com.bangkit.ecoease.ui.component.TextReadOnly
 import com.bangkit.ecoease.ui.theme.BluePrimary
 
@@ -33,7 +34,7 @@ fun ProfileScreen(
     ) {
         Avatar(
             imageUrl = "https://images.unsplash.com/photo-1528190336454-13cd56b45b5a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80",
-            isLarge = true
+            size = AvatarSize.LARGE
         )
         Text(text = "Maya", style = MaterialTheme.typography.h4)
         Text(text = "maya@gmail.com", style = MaterialTheme.typography.caption.copy(

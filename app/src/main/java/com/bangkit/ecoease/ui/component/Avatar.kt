@@ -15,9 +15,15 @@ import com.bangkit.ecoease.R
 import com.bangkit.ecoease.ui.theme.DarkGrey
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
 
+
+enum class AvatarSize{
+    EXTRA_SMALL,
+    SMALL,
+    LARGE
+}
 @Composable
 fun Avatar(
-    isLarge: Boolean = false,
+    size: AvatarSize = AvatarSize.SMALL,
     imageUrl: String,
     modifier: Modifier = Modifier
 ){
@@ -25,7 +31,13 @@ fun Avatar(
         model = imageUrl,
         contentDescription = "user avatar",
         modifier = modifier
-            .size(if (isLarge) 128.dp else 64.dp)
+            .size(
+                when(size){
+                    AvatarSize.EXTRA_SMALL -> 32.dp
+                    AvatarSize.SMALL -> 64.dp
+                    AvatarSize.LARGE -> 128.dp
+                }
+            )
             .clip(CircleShape)
             .background(DarkGrey)
         ,

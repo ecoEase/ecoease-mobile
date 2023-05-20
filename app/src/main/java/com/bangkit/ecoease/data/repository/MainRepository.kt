@@ -2,11 +2,12 @@ package com.bangkit.ecoease.data.repository
 
 import android.util.Log
 import com.bangkit.ecoease.data.datastore.DataStorePreferences
-import com.bangkit.ecoease.data.dummy.listGarbages
+import com.bangkit.ecoease.data.dummy.OrderHistoryDummy
+import com.bangkit.ecoease.data.dummy.listGarbage
 import com.bangkit.ecoease.data.model.Garbage
 import com.bangkit.ecoease.data.model.ImageCaptured
+import com.bangkit.ecoease.data.model.OrderHistory
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 
@@ -20,7 +21,7 @@ class MainRepository(private val datastore: DataStorePreferences) {
         Log.d(MainRepository::class.java.simpleName, "getCapturedImageUri: $capturedImageUri")
         return flowOf(capturedImageUri!!)
     }
-    //ONBOARDING
+    //ON BOARDING
     suspend fun getIsFinishOnboard(): Boolean = datastore.isFinishReadOnBoard().first()
     suspend fun finishOnBoard(){
         datastore.finishReadOnboard()
@@ -30,8 +31,10 @@ class MainRepository(private val datastore: DataStorePreferences) {
     suspend fun setToken(newToken: String){
         datastore.setToken(newToken)
     }
-
-    suspend fun getAllGarbage(): Flow<List<Garbage>> = flowOf(listGarbages)
+    //GARBAGE
+    fun getAllGarbage(): Flow<List<Garbage>> = flowOf(listGarbage)
+    //ORDER HISTORY
+    fun getAllOrderHistories(): Flow<List<OrderHistory>> = flowOf(OrderHistoryDummy.getOrderHistories())
 
     companion object{
         @Volatile

@@ -26,7 +26,7 @@ import com.bangkit.ecoease.ui.theme.EcoEaseTheme
 import com.bangkit.ecoease.ui.theme.GreenPrimary
 
 @Composable
-fun OrderSuccesScreen(
+fun OrderSuccessScreen(
     navHostController: NavHostController,
     modifier: Modifier = Modifier
 ){
@@ -69,7 +69,7 @@ fun OrderSuccesScreen(
 @Preview(showBackground = true)
 @Composable
 fun OrderScreenSuccessPreview(){
-    EcoEaseTheme() {
-        OrderSuccesScreen(navHostController = rememberNavController())
+    EcoEaseTheme {
+        OrderSuccessScreen(navHostController = rememberNavController())
     }
 }

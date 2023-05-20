@@ -51,7 +51,12 @@ fun UsersChatsScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { navHostController.navigate("${Screen.ChatRoom.route}?roomId=$roomId") },
+                            .clickable {
+                                roomId?.let{id ->
+                                    Screen.ChatRoom.setTitle(id)
+                                    navHostController.navigate("${Screen.ChatRoom.route}?roomId=$id")
+                                }
+                           },
                         horizontalArrangement = Arrangement.spacedBy(16.dp))
                     {
                         Avatar(imageUrl = "https://images.unsplash.com/photo-1596815064285-45ed8a9c0463?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=366&q=80")

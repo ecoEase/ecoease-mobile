@@ -10,7 +10,7 @@ sealed class Screen(val route: String, val icon: ImageVector){
     object Temp : Screen(route = "temp/{path}", icon = Icons.Default.Home){
         fun setImage(path: String) = "temp/$path"
     }
-    object Camera : Screen(route = "camera", icon = Icons.Default.CameraAlt)
+//    object Camera : Screen(route = "camera", icon = Icons.Default.CameraAlt)
     object History : Screen(route = "history", icon = Icons.Default.History)
     object Profile : Screen(route = "profile", icon = Icons.Default.AccountCircle)
     object Map : Screen(route = "map", icon = Icons.Default.Map)
@@ -22,6 +22,10 @@ sealed class Screen(val route: String, val icon: ImageVector){
     object OrderSuccess : Screen(route = "order success", icon = Icons.Default.Reorder)
     object UsersChats : Screen(route = "users chats", icon = Icons.Default.Chat)
     object ChatRoom : Screen(route = "chat room", icon = Icons.Default.Chat){
-
+        private var title: String? = null
+        fun setTitle(newTitle: String?){
+            title = newTitle
+        }
+        fun getTitle(): String? = title
     }
 }

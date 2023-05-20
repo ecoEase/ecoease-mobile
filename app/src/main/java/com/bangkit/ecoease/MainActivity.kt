@@ -6,6 +6,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
@@ -41,7 +44,7 @@ import com.bangkit.ecoease.ui.screen.onboard.OnBoardingScreen
 import com.bangkit.ecoease.ui.screen.order.DetailOrderScreen
 import com.bangkit.ecoease.ui.screen.order.OrderHistoryScreen
 import com.bangkit.ecoease.ui.screen.order.OrderScreen
-import com.bangkit.ecoease.ui.screen.order.OrderSuccesScreen
+import com.bangkit.ecoease.ui.screen.order.OrderSuccessScreen
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -51,9 +54,9 @@ val listMainRoute = listOf(
     Screen.Home,
     Screen.History,
     Screen.Map,
-    Screen.Profile
+    Screen.UsersChats
 )
-val listNoTopbar = listOf(
+val listNoTopBar = listOf(
     Screen.Onboard,
     Screen.Auth,
     Screen.Register,
@@ -77,12 +80,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             EcoEaseTheme {
-
                 val navController: NavHostController = rememberNavController()
                 val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
-                var openDialog by remember{
-                    mutableStateOf(false)
-                }
+                var openDialog by remember{ mutableStateOf(false) }
                 val isReadOnboardNew by splashViewModel.isReadOnboard.collectAsState()
                 val isLogged by splashViewModel.isLogged.collectAsState()
 
@@ -91,7 +91,7 @@ class MainActivity : ComponentActivity() {
                     navController.popBackStack()
                 }
 
-                var isTopBarShown = !listNoTopbar.map { it.route }.contains(currentRoute)
+                var isTopBarShown = !listNoTopBar.map { it.route }.contains(currentRoute)
                 var topBarTitle = if(currentRoute != Screen.Home.route) Text( text = currentRoute?.let { text ->  text.replaceFirstChar { it.uppercase() }}  ?: "",textAlign = TextAlign.Center) else {}
 
                 Surface(
@@ -104,14 +104,39 @@ class MainActivity : ComponentActivity() {
                         topBar = {
                             // TODO: refactor topappbar code
 //                                 TopBar(isShown = isTopBarShown, title = { topBarTitle })
-                            if(!listNoTopbar.map { it.route }.contains(currentRoute)){
+                            if(!listNoTopBar.map { it.route }.contains(currentRoute)){
                                 TopAppBar(
                                     backgroundColor = MaterialTheme.colors.background,
                                     elevation = 0.dp,
-                                    title ={ if(currentRoute != Screen.Home.route) Text(
-                                        text = currentRoute?.let { text ->  text.replaceFirstChar { it.uppercase() }}  ?: "",
-                                        textAlign = TextAlign.Center,
-                                    )},
+                                    title ={
+                                        when{
+                                            currentRoute?.substringBefore("?") == Screen.ChatRoom.route -> {
+                                                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                                    Avatar(
+                                                        imageUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=464&q=80",
+                                                        size = AvatarSize.EXTRA_SMALL,
+                                                    )
+                                                    Text(
+                                                        text = Screen.ChatRoom.getTitle()?.let { text ->  text.replaceFirstChar { it.uppercase() }}  ?: "",
+                                                        textAlign = TextAlign.Center,
+                                                    )
+                                                }
+                                            }
+                                            currentRoute != Screen.Home.route -> Text(
+                                                text = currentRoute?.let { text ->  text.replaceFirstChar { it.uppercase() }}  ?: "",
+                                                textAlign = TextAlign.Center,
+                                            )
+                                        }
+                                    },
+                                    actions = {
+                                        if(currentRoute == Screen.Home.route) Avatar(
+                                            imageUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=464&q=80",
+                                            size = AvatarSize.EXTRA_SMALL,
+                                            modifier = Modifier
+                                                .padding(end = 32.dp)
+                                                .clickable { navController.navigate(Screen.Profile.route) }
+                                        )
+                                    },
                                     navigationIcon = { if(!listMainRoute.map { it.route }.contains(currentRoute)) IconButton(onClick = {
                                         if(orderViewModel.orderState.value.total > 0 && currentRoute == Screen.Order.route){
                                             openDialog = true
@@ -139,8 +164,9 @@ class MainActivity : ComponentActivity() {
                                                 } else Screen.Onboard.route, //Screen.OnBoard.route,
                             modifier = Modifier.padding(paddingValues)
                         ){
-
-                            composable(Screen.Onboard.route){ OnBoardingScreen(navController = navController, onFinish = { splashViewModel.finishedOnBoard() }) }
+                            composable(Screen.Onboard.route){
+                                OnBoardingScreen(navController = navController, onFinish = { splashViewModel.finishedOnBoard() })
+                            }
                             composable(
                                 route = Screen.Temp.route,
                                 arguments = listOf(navArgument("path"){type = NavType.StringType})
@@ -160,11 +186,25 @@ class MainActivity : ComponentActivity() {
                             composable(Screen.Home.route){
                                 DashboardScreen(navHostController = navController, garbageStateFlow = garbageViewModel.garbageState, loadGarbage = { garbageViewModel.getAllGarbage() })
                             }
-                            composable(Screen.History.route){ OrderHistoryScreen(navHostController = navController) }
-                            composable(Screen.Profile.route){ ProfileScreen(navHostController = navController, logoutAction = { splashViewModel.logout() }) }
-                            composable(Screen.Map.route){MapScreen()}
-                            composable(Screen.Auth.route){ AuthScreen(navHostController = navController, loginAction = { splashViewModel.login() }) }
-                            composable(Screen.Register.route){ RegisterScreen(navHostController = navController) }
+                            composable(Screen.History.route){
+                                OrderHistoryScreen(
+                                    orderHistoryState = orderViewModel.orderHistoryState,
+                                    loadOrderHistory = { orderViewModel.loadOrderHistory() },
+                                    navHostController = navController
+                                )
+                            }
+                            composable(Screen.Profile.route){
+                                ProfileScreen(navHostController = navController, logoutAction = { splashViewModel.logout() })
+                            }
+                            composable(Screen.Map.route){
+                                MapScreen()
+                            }
+                            composable(Screen.Auth.route){
+                                AuthScreen(navHostController = navController, loginAction = { splashViewModel.login() })
+                            }
+                            composable(Screen.Register.route){
+                                RegisterScreen(navHostController = navController)
+                            }
                             composable(Screen.Order.route){
                                 OrderScreen(
                                     navHostController = navController,
@@ -174,10 +214,18 @@ class MainActivity : ComponentActivity() {
                                     updateGarbageAtIndex = { index, newGarbage -> orderViewModel.updateGarbage(index, newGarbage) },
                                     onAcceptResetOrder = {resetOrder()}
                                 ) }
-                            composable(Screen.ChangeAddress.route){ ChangeAddressScreen(navHostController = navController) }
-                            composable(Screen.OrderSuccess.route){ OrderSuccesScreen(navHostController = navController) }
-                            composable(Screen.DetailOrder.route){ DetailOrderScreen(navHostController = navController) }
-                            composable(Screen.UsersChats.route){ UsersChatsScreen(navHostController = navController) }
+                            composable(Screen.ChangeAddress.route){
+                                ChangeAddressScreen(navHostController = navController)
+                            }
+                            composable(Screen.OrderSuccess.route){
+                                OrderSuccessScreen(navHostController = navController)
+                            }
+                            composable(Screen.DetailOrder.route){
+                                DetailOrderScreen(navHostController = navController)
+                            }
+                            composable(Screen.UsersChats.route){
+                                UsersChatsScreen(navHostController = navController)
+                            }
                             composable(
                                 route = "${Screen.ChatRoom.route}?roomId={roomId}",
                                 arguments = listOf(navArgument("roomId"){type = NavType.StringType})

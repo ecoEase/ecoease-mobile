@@ -15,6 +15,7 @@ import androidx.navigation.NavHostController
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.data.model.Garbage
+import com.bangkit.ecoease.helper.toCurrency
 import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.Banner
 import com.bangkit.ecoease.ui.component.CardPrice
@@ -57,7 +58,7 @@ fun DashboardScreen(
                         contentPadding = PaddingValues(bottom = 64.dp)
                     ){
                         items(uiState.data){item ->
-                            CardPrice(imageUrl = item.imageUrl, name = item.name, price = item.price.toString())
+                            CardPrice(imageUrl = item.imageUrl, name = item.name, price = "Rp${item.price.toCurrency()}")
                         }
                     }
                 }

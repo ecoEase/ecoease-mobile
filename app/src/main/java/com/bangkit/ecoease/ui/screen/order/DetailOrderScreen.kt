@@ -17,6 +17,7 @@ import androidx.navigation.compose.rememberNavController
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.model.Garbage
 import com.bangkit.ecoease.data.model.GarbageAdded
+import com.bangkit.ecoease.helper.generateUUID
 import com.bangkit.ecoease.ui.component.*
 import com.bangkit.ecoease.ui.theme.DarkGrey
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
@@ -33,7 +34,7 @@ fun DetailOrderScreen(
 
     val garbages = listOf<GarbageAdded>(
         GarbageAdded(
-            garbage = Garbage(imageUrl = "", name = "kaleng", price = 700),
+            garbage = Garbage(id = generateUUID(), imageUrl = "", name = "kaleng", price = 700),
             amount = 2,
             totalPrice = 1400
         )

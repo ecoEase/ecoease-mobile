@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.model.Garbage
 import com.bangkit.ecoease.data.model.GarbageAdded
+import com.bangkit.ecoease.helper.toCurrency
 import com.bangkit.ecoease.ui.theme.BluePrimary
 import com.bangkit.ecoease.ui.theme.DarkGrey
 import com.bangkit.ecoease.ui.theme.LightGrey
@@ -91,7 +92,7 @@ fun AddGarbageForm(
             )
             AnimatedVisibility(visible = selectedGarbageIndex != -1 || initSelected != null) {
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    Text(text = "Harga satuan Rp$price", style = MaterialTheme.typography.body2.copy(
+                    Text(text = "Harga satuan Rp${price.toCurrency()}", style = MaterialTheme.typography.body2.copy(
                         color = DarkGrey
                     ))
                     Row(
@@ -100,7 +101,7 @@ fun AddGarbageForm(
                         ,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(text = "Rp$totalPrice")
+                        Text(text = "Rp${totalPrice.toCurrency()}")
                         Counter(
                             initValue = initAmount,
                             onValueChange = {

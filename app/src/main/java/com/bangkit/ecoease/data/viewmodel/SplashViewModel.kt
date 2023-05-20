@@ -1,6 +1,5 @@
 package com.bangkit.ecoease.data.viewmodel
 
-import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -10,7 +9,6 @@ import com.bangkit.ecoease.helper.generateUUID
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class SplashViewModel(private val repository: MainRepository): ViewModel() {

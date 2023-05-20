@@ -1,7 +1,6 @@
 package com.bangkit.ecoease.ui.screen.chat
 
 import android.text.format.DateUtils
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -30,14 +29,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.bangkit.ecoease.BuildConfig
 import com.bangkit.ecoease.data.firebase.FireBaseRealtimeDatabase
 import com.bangkit.ecoease.data.firebase.FireBaseRealtimeDatabase.getCurrentChat
 import com.bangkit.ecoease.data.model.Message
 import com.bangkit.ecoease.ui.component.ChatBubble
 import com.bangkit.ecoease.ui.component.TextInput
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
-import com.google.firebase.database.*
 import java.util.*
 
 @Composable
@@ -85,7 +82,7 @@ fun ChatRoomScreen(
     )
 
     Column(modifier = modifier.fillMaxSize()) {
-        if(loading) CircularProgressIndicator()
+        if(loading) Loader(modifier = Modifier.fillMaxWidth().weight(1f))
 
         AnimatedVisibility(
             visible = !loading,
@@ -93,7 +90,9 @@ fun ChatRoomScreen(
                 .weight(1f)
                 .fillMaxWidth()
         ) {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxHeight()){
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier
+                .fillMaxHeight()
+                .padding(horizontal = 32.dp), contentPadding = PaddingValues(bottom = 64.dp)){
                 items(chats.toList()){message ->
                     ChatBubble(message = message.text ?: "", sender = message.name ?: "", isOwner = true, date = DateUtils.getRelativeTimeSpanString(message.timeStamp ?: 0).toString())
                 }
@@ -132,10 +131,15 @@ fun ChatRoomScreen(
         }
     }
 }
-
+@Composable
+private fun Loader(modifier: Modifier = Modifier){
+    Column(modifier = modifier) {
+        CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+    }
+}
 @Preview(showBackground = true, device = Devices.PIXEL_4)
 @Composable
-fun ChatRoomScreenPreview(){
+private fun ChatRoomScreenPreview(){
     EcoEaseTheme() {
         ChatRoomScreen(navHostController = rememberNavController(), roomId = "ref")
     }

@@ -1,7 +1,7 @@
 package com.bangkit.ecoease.data.model
 
 data class Order(
-    val garbages: List<GarbageAdded?>,
+    val garbageList: List<GarbageAdded?>,
     val total: Int
 )
 data class GarbageAdded(
