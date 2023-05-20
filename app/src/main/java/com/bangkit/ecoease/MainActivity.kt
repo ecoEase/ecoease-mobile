@@ -31,10 +31,7 @@ import com.bangkit.ecoease.CameraActivity.Companion.CAMERA_X_RESULT
 import com.bangkit.ecoease.config.ViewModelFactory
 import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.data.model.ImageCaptured
-import com.bangkit.ecoease.data.viewmodel.CameraViewModel
-import com.bangkit.ecoease.data.viewmodel.GarbageViewModel
-import com.bangkit.ecoease.data.viewmodel.OrderViewModel
-import com.bangkit.ecoease.data.viewmodel.SplashViewModel
+import com.bangkit.ecoease.data.viewmodel.*
 import com.bangkit.ecoease.di.Injection
 import com.bangkit.ecoease.ui.component.*
 import com.bangkit.ecoease.ui.screen.*
@@ -73,6 +70,7 @@ class MainActivity : ComponentActivity() {
         cameraViewModel = ViewModelFactory(Injection.provideInjection(this)).create(CameraViewModel::class.java)
         val orderViewModel = ViewModelFactory(Injection.provideInjection(this)).create(OrderViewModel::class.java)
         val garbageViewModel = ViewModelFactory(Injection.provideInjection(this)).create(GarbageViewModel::class.java)
+        val addressViewModel = ViewModelFactory(Injection.provideInjection(this)).create(AddressViewModel::class.java)
 
         installSplashScreen().setKeepOnScreenCondition{
             splashViewModel.isLoading.value
@@ -148,7 +146,7 @@ class MainActivity : ComponentActivity() {
                             }
                         },
                         floatingActionButton = {
-                            if(listMainRoute.map { it.route }.contains(currentRoute)) FloatingButton(description = "scan", icon = Icons.Default.CameraEnhance, onClick = { navController.navigate(Screen.Temp.route) })
+                            if(listMainRoute.map { it.route }.contains(currentRoute)) FloatingButton(description = "scan", icon = Icons.Default.CameraEnhance, onClick = { navController.navigate(Screen.Scan.route) })
                         },
                         bottomBar = {
                             if(listMainRoute.map { it.route }.contains(currentRoute)) BottomNavBar(navController = navController, items = listMainRoute)
@@ -156,6 +154,7 @@ class MainActivity : ComponentActivity() {
                         floatingActionButtonPosition = FabPosition.Center,
                         isFloatingActionButtonDocked = true,
                     ) {paddingValues ->
+                        // TODO: TESTING FOR EACH SCREEN 
                         DialogBox(text = "Apakah anda yakin ingin membatalkan order anda", onDissmiss = { openDialog = false }, onAccept = { resetOrder() }, isOpen = openDialog)
                         NavHost(
                             navController = navController,
@@ -168,11 +167,11 @@ class MainActivity : ComponentActivity() {
                                 OnBoardingScreen(navController = navController, onFinish = { splashViewModel.finishedOnBoard() })
                             }
                             composable(
-                                route = Screen.Temp.route,
+                                route = Screen.Scan.route,
                                 arguments = listOf(navArgument("path"){type = NavType.StringType})
                             ){
                                 val filePath = it.arguments?.getString("path") ?: ""
-                                TempScreen(
+                                ScanScreen(
                                     navController = navController,
                                     filePath = filePath,
                                     imageCapturedState = cameraViewModel.uiStateImageCaptured,
@@ -215,7 +214,12 @@ class MainActivity : ComponentActivity() {
                                     onAcceptResetOrder = {resetOrder()}
                                 ) }
                             composable(Screen.ChangeAddress.route){
-                                ChangeAddressScreen(navHostController = navController)
+                                ChangeAddressScreen(
+                                    navHostController = navController,
+                                    onLoadSavedAddress = { addressViewModel.loadSavedAddress() },
+                                    onAddNewAddress = { address -> addressViewModel.addNewAddress(address) },
+                                    savedAddressStateFlow = addressViewModel.savedAddress
+                                )
                             }
                             composable(Screen.OrderSuccess.route){
                                 OrderSuccessScreen(navHostController = navController)

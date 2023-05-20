@@ -5,7 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -25,6 +26,11 @@ fun RegisterScreen(
     navHostController: NavHostController,
     modifier: Modifier = Modifier
 ){
+    var name by rememberSaveable{ mutableStateOf("") }
+    var email by rememberSaveable{ mutableStateOf("") }
+    var password by rememberSaveable{ mutableStateOf("") }
+    var phoneNum by rememberSaveable{ mutableStateOf("") }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -47,10 +53,10 @@ fun RegisterScreen(
             Text(text = stringResource(id = R.string.app_name), style = MaterialTheme.typography.h5)
         }
         Text("Registrasi")
-        TextInput(label = "Nama")
-        TextInput(label = "Email")
-        TextInput(label = "Nomor Telepon")
-        TextInput(label = "Password")
+        TextInput(label = "Nama", value = name, onValueChange = {it -> name = it})
+        TextInput(label = "Email", value = email, onValueChange = {it -> email = it})
+        TextInput(label = "Nomor Telepon", value = phoneNum, onValueChange = {it -> phoneNum = it})
+        TextInput(label = "Password", value = password, onValueChange = {it -> password = it})
         RoundedButton(text = "registrasi", modifier = Modifier.fillMaxWidth())
         Text("atau")
         Text("login akun", modifier = Modifier.clickable { navHostController.navigate(Screen.Auth.route) })

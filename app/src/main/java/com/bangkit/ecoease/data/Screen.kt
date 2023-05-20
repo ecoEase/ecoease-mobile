@@ -7,9 +7,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 sealed class Screen(val route: String, val icon: ImageVector){
     object Onboard : Screen(route = "onboard", icon = Icons.Default.Start)
     object Home : Screen(route = "home", icon = Icons.Default.Home)
-    object Temp : Screen(route = "temp/{path}", icon = Icons.Default.Home){
-        fun setImage(path: String) = "temp/$path"
-    }
+    object Scan : Screen(route = "scan", icon = Icons.Default.Home)
 //    object Camera : Screen(route = "camera", icon = Icons.Default.CameraAlt)
     object History : Screen(route = "history", icon = Icons.Default.History)
     object Profile : Screen(route = "profile", icon = Icons.Default.AccountCircle)

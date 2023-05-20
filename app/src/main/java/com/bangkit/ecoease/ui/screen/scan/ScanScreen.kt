@@ -28,7 +28,6 @@ import com.airbnb.lottie.compose.*
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.ObjectDetection
 import com.bangkit.ecoease.data.model.ImageCaptured
-import com.bangkit.ecoease.helper.getImageUriFromBitmap
 import com.bangkit.ecoease.helper.getImageUriFromTempBitmap
 import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.FloatingButton
@@ -39,7 +38,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
 
 @Composable
-fun TempScreen(
+fun ScanScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController,
     filePath: String,
@@ -159,7 +158,7 @@ suspend fun getImageUriPrediction(context: Context, uri: Uri, isBackCam: Boolean
 @Composable
 fun PreviewScreen(){
     EcoEaseTheme {
-        TempScreen(
+        ScanScreen(
             filePath = "",
             navController = rememberNavController(),
             openCamera = {},

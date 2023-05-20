@@ -7,14 +7,17 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.ui.component.Avatar
 import com.bangkit.ecoease.ui.component.AvatarSize
+import com.bangkit.ecoease.ui.component.DialogBox
 import com.bangkit.ecoease.ui.component.TextReadOnly
 import com.bangkit.ecoease.ui.theme.BluePrimary
 
@@ -24,6 +27,7 @@ fun ProfileScreen(
     navHostController: NavHostController,
     modifier: Modifier = Modifier
 ){
+    var openDialog by remember{ mutableStateOf(false) }
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -44,6 +48,9 @@ fun ProfileScreen(
         TextReadOnly(label = "No Telp.", text = "082132351498")
         TextReadOnly(label = "Password", text = "082132351498")
         LogoutButton(action = {
+            openDialog = true
+        })
+        DialogBox(text = stringResource(R.string.logout_confirm), onDissmiss = { openDialog = false }, isOpen = openDialog, onAccept = {
             logoutAction()
             navHostController.navigate(Screen.Auth.route)
         })

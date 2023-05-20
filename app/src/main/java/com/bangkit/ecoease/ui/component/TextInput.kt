@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -17,17 +16,14 @@ import com.bangkit.ecoease.ui.theme.LightTosca
 
 @Composable
 fun TextInput(
-    initialValue: String? = null,
+    value: String,
+    onValueChange: (String) -> Unit,
     label: String? = null,
     isTextArea: Boolean = false,
     modifier: Modifier = Modifier,
     placeHolder: String = "",
-    onChange: (String) -> Unit = {}
 ){
     // TODO: change to stateless component
-    var value by rememberSaveable{
-        mutableStateOf("")
-    }
 
     val animatedBackgrounColor by animateColorAsState(
         targetValue = if(value.isNotEmpty()) LightTosca.copy(alpha = 0.3f) else MaterialTheme.colors.background,
@@ -44,13 +40,10 @@ fun TextInput(
                 modifier.fillMaxWidth()}
         ,
         singleLine = !isTextArea,
-        value = initialValue ?: value,
+        value = value,
         label = { if(label != null) Text(label) },
         placeholder = { Text(text = placeHolder) },
-        onValueChange = {
-            value = it
-            onChange(it)
-        },
+        onValueChange = onValueChange,
         shape = RoundedCornerShape(32.dp),
         colors = TextFieldDefaults.outlinedTextFieldColors(
             backgroundColor = animatedBackgrounColor,
@@ -66,6 +59,6 @@ fun TextInput(
 @Composable
 fun TextInputPreview(){
     EcoEaseTheme {
-        TextInput(label = "Label")
+        TextInput(label = "Label", value = "", onValueChange = {})
     }
 }

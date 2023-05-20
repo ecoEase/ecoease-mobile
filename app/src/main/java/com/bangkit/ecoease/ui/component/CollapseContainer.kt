@@ -14,7 +14,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.tooling.preview.Preview
@@ -76,8 +75,8 @@ fun CollapseContainer(
 fun CollapseContainerPreview(){
     EcoEaseTheme() {
         CollapseContainer(label = "Tambah alamat"){
-            TextInput(label = "lorem")
-            TextInput(label = "lorem")
+            TextInput(label = "lorem", value = "", onValueChange = {})
+            TextInput(label = "lorem", value = "", onValueChange = {})
         }
     }
 }

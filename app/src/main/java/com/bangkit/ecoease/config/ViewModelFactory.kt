@@ -3,10 +3,7 @@ package com.bangkit.ecoease.config
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.bangkit.ecoease.data.repository.MainRepository
-import com.bangkit.ecoease.data.viewmodel.CameraViewModel
-import com.bangkit.ecoease.data.viewmodel.GarbageViewModel
-import com.bangkit.ecoease.data.viewmodel.OrderViewModel
-import com.bangkit.ecoease.data.viewmodel.SplashViewModel
+import com.bangkit.ecoease.data.viewmodel.*
 
 
 class ViewModelFactory(private val repository: MainRepository): ViewModelProvider.NewInstanceFactory() {
@@ -15,6 +12,7 @@ class ViewModelFactory(private val repository: MainRepository): ViewModelProvide
         return when{
             modelClass.isAssignableFrom(CameraViewModel::class.java) -> CameraViewModel(repository) as T
             modelClass.isAssignableFrom(OrderViewModel::class.java) -> OrderViewModel(repository) as T
+            modelClass.isAssignableFrom(AddressViewModel::class.java) -> AddressViewModel(repository) as T
             modelClass.isAssignableFrom(SplashViewModel::class.java) -> SplashViewModel(repository) as T
             modelClass.isAssignableFrom(GarbageViewModel::class.java) -> GarbageViewModel(repository) as T
             else -> throw java.lang.IllegalArgumentException("Unknown ViewModel class ${modelClass.name}")

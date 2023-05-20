@@ -5,7 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -27,6 +28,8 @@ fun AuthScreen(
     navHostController: NavHostController,
     modifier: Modifier = Modifier
 ){
+    var email by rememberSaveable{ mutableStateOf("") }
+    var password by rememberSaveable{ mutableStateOf("") }
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -49,8 +52,8 @@ fun AuthScreen(
             Text(text = stringResource(id = R.string.app_name), style = MaterialTheme.typography.h5)
         }
         Text("Login")
-        TextInput(label = "Email")
-        TextInput(label = "Password")
+        TextInput(label = "Email", value = email, onValueChange = { it -> email = it})
+        TextInput(label = "Password", value = password, onValueChange = { it -> password = it})
         RoundedButton(text = "login", modifier = Modifier.fillMaxWidth(), onClick = {
             loginAction()
             navHostController.navigate(Screen.Home.route)

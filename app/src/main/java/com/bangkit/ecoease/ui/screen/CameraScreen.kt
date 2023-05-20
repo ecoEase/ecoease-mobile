@@ -27,7 +27,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import coil.compose.AsyncImage
 import com.bangkit.ecoease.ui.component.FloatingButton
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -37,14 +36,11 @@ import java.util.*
 import java.util.concurrent.Executor
 import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.helper.createImageCaptureUseCase
-import com.bangkit.ecoease.helper.getCameraProvider
 import com.bangkit.ecoease.helper.getOutputDirectory
 import com.bangkit.ecoease.helper.takePhoto
 import kotlinx.coroutines.*
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -132,9 +128,9 @@ fun CameraScreenContent(
                         Log.d("Camera", "CameraScreenContent: $it")
 
                         CoroutineScope(Dispatchers.Main).launch {
-                            navController.navigate(Screen.Temp.setImage(
-                                URLEncoder.encode(imageUri, StandardCharsets.UTF_8.toString())
-                            ))
+//                            navController.navigate(Screen.Scan.setImage(
+//                                URLEncoder.encode(imageUri, StandardCharsets.UTF_8.toString())
+//                            ))
                         }
                     },
                     onError = { Log.d("Camera", "CameraScreenContent: $it") }

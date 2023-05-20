@@ -100,7 +100,7 @@ fun ChatRoomScreen(
         }
 
         Row(modifier = Modifier.fillMaxWidth()) {
-            TextInput(placeHolder = "Type message", onChange = {message = it}, initialValue = message, modifier = Modifier.weight(1f))
+            TextInput(placeHolder = "Type message", value = message, modifier = Modifier.weight(1f), onValueChange = {it -> message = it})
             IconButton(onClick = { messagesRef
                 .push()
                 .setValue(
