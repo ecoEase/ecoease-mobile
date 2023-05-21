@@ -10,30 +10,39 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.bangkit.ecoease.R
 import com.bangkit.ecoease.ui.theme.DarkGrey
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
 import com.bangkit.ecoease.ui.theme.GreenSecondary
+import com.bangkit.ecoease.ui.theme.OrangeAccent
 
 @Composable
 fun AddressChoice(
-    addressName: String,
-    addressDetail1: String,
-    addressDetail2: String,
+    name: String,
+    detail: String,
+    district: String,
+    city: String,
+    onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ){
-    var clicked by rememberSaveable{
-        mutableStateOf(false)
-    }
+    var clicked by rememberSaveable{ mutableStateOf(false) }
+    var openDialog by remember{ mutableStateOf(false) }
+
     val animateColorRadio by animateColorAsState(
         targetValue = if(clicked) MaterialTheme.colors.primary else Color.Transparent,
         animationSpec = tween(200)
@@ -51,6 +60,7 @@ fun AddressChoice(
     ) {
         Row(
             modifier = Modifier
+                .fillMaxWidth()
                 .padding(vertical = 16.dp, horizontal = 16.dp)
             ,
             verticalAlignment = Alignment.CenterVertically,
@@ -60,20 +70,38 @@ fun AddressChoice(
                     .size(24.dp)
                     .clip(CircleShape)
                     .background(animateColorRadio)
-                    .border(border = BorderStroke(width = 1.dp, color = MaterialTheme.colors.primary), shape = CircleShape)
+                    .border(
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = MaterialTheme.colors.primary
+                        ), shape = CircleShape
+                    )
                     .clickable { clicked = !clicked }
             )
             Box(modifier = Modifier.width(27.dp))
-            Column {
-                Text(text = addressName)
+            Column(Modifier.weight(1f)) {
+                Text(text = name, overflow = TextOverflow.Ellipsis, maxLines = 1)
                 Box(modifier = Modifier.height(8.dp))
-                Text(text = addressDetail1, style = MaterialTheme.typography.body2)
+                Text(text = detail, style = MaterialTheme.typography.body2, overflow = TextOverflow.Ellipsis, maxLines = 2)
                 Box(modifier = Modifier.height(4.dp))
-                Text(text = addressDetail2, style = MaterialTheme.typography.body2.copy(
+                Text(text = "$district, $city", style = MaterialTheme.typography.body2.copy(
                     color = DarkGrey
-                ))
+                ), overflow = TextOverflow.Ellipsis, maxLines = 1)
             }
+            Box(modifier = Modifier.width(27.dp))
+            Icon(
+                imageVector = Icons.Default.Delete,
+                tint = OrangeAccent,
+                contentDescription = "delete icon",
+                modifier = Modifier
+                    .size(24.dp)
+                    .align(Alignment.Top)
+                    .clickable { openDialog = true }
+            )
         }
+        DialogBox(text = stringResource(R.string.delete_address_confirm), onDissmiss = { openDialog = false }, isOpen = openDialog, onAccept = {
+            onDelete()
+        })
     }
 }
 
@@ -82,6 +110,6 @@ fun AddressChoice(
 @Composable
 fun AddressChoicePreview(){
     EcoEaseTheme() {
-        AddressChoice(addressName = "Alamat 1", addressDetail1 = "Jalan yang lurus lorem ipsum blabal", addressDetail2 = "Malang, Jawa Timur")
+        AddressChoice(name = "Alamat 1", detail = "Jalan yang lurus lorem ipsum blabalasdasdasd", district = "Candi", city = "Malang", onDelete = {})
     }
 }

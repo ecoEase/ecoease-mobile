@@ -218,6 +218,8 @@ class MainActivity : ComponentActivity() {
                                     navHostController = navController,
                                     onLoadSavedAddress = { addressViewModel.loadSavedAddress() },
                                     onAddNewAddress = { address -> addressViewModel.addNewAddress(address) },
+                                    onDeleteAddress = { address -> addressViewModel.deleteAddress(address) },
+                                    toastMessageState = addressViewModel.message,
                                     savedAddressStateFlow = addressViewModel.savedAddress
                                 )
                             }

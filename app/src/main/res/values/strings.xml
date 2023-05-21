@@ -32,4 +32,8 @@
     <string name="address_info">Info alamat</string>
     <string name="skip">Lewati</string>
     <string name="logout_confirm">Apakah anda yakin untuk keluar dari akun anda?</string>
+    <string name="delete_address_confirm">Apakah anda yakin untuk menghapus alamat ini?</string>
+    <string name="saved_address">Alamat yang disimpan</string>
+    <string name="no_saved_address">Belum ada alamat yg disimpan</string>
+    <string name="reload">Muat ulang</string>
 </resources>

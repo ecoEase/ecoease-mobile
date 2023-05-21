@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,23 +28,27 @@ fun BottomSheet(
         animationSpec = tween(durationMillis = 200)
     )
 
-    Column(modifier = modifier
+    Surface(modifier = modifier
         .fillMaxWidth()
         .height(120.dp)
-        .background(animatedBackgroundColor)
-        .padding(horizontal = 32.dp, vertical = 16.dp)
-    ,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(text = label, style = MaterialTheme.typography.h5.copy(
-                color = MaterialTheme.colors.background
-            ))
-            Text(text = information, style = MaterialTheme.typography.h5.copy(
-                color = MaterialTheme.colors.background,
-                fontWeight = FontWeight.Bold
-            ))
+    ){
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .background(animatedBackgroundColor)
+            .padding(horizontal = 32.dp, vertical = 16.dp)
+        ,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(text = label, style = MaterialTheme.typography.h5.copy(
+                    color = MaterialTheme.colors.background
+                ))
+                Text(text = information, style = MaterialTheme.typography.h5.copy(
+                    color = MaterialTheme.colors.background,
+                    fontWeight = FontWeight.Bold
+                ))
+            }
+            RoundedButton(text = actionName, onClick = onActionButtonClicked, type = RoundedButtonType.SECONDARY, modifier = Modifier.align(Alignment.End))
         }
-        RoundedButton(text = actionName, onClick = onActionButtonClicked, type = RoundedButtonType.SECONDARY, modifier = Modifier.align(Alignment.End))
     }
 }
