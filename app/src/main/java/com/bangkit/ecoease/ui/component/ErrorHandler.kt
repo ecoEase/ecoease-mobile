@@ -3,8 +3,6 @@ package com.bangkit.ecoease.ui.component
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -19,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.ui.theme.DarkGrey
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
-import org.xml.sax.ErrorHandler
 
 @Composable
 fun ErrorHandler(

@@ -8,24 +8,26 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.Screen
-import com.bangkit.ecoease.data.model.Garbage
+import com.bangkit.ecoease.data.room.model.Garbage
 import com.bangkit.ecoease.helper.toCurrency
 import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.Banner
 import com.bangkit.ecoease.ui.component.CardPrice
-import com.bangkit.ecoease.ui.component.RoundedButton
+import com.bangkit.ecoease.ui.component.ErrorHandler
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun DashboardScreen(
     garbageStateFlow: StateFlow<UiState<List<Garbage>>>,
-    loadGarbage: () -> Unit,
+    onLoadGarbage: () -> Unit,
+    onReloadGarbage: () -> Unit,
     navHostController: NavHostController,
     modifier: Modifier = Modifier
 ){
@@ -45,8 +47,8 @@ fun DashboardScreen(
         garbageStateFlow.collectAsState(initial = UiState.Loading).value.let { uiState ->
             when(uiState){
                 is UiState.Loading -> {
-                    CircularProgressIndicator()
-                    loadGarbage()
+                    CircularProgressIndicator(modifier = modifier.align(Alignment.CenterHorizontally))
+                    onLoadGarbage()
                 }
                 is UiState.Success -> {
                     LazyColumn(
@@ -61,9 +63,7 @@ fun DashboardScreen(
                         }
                     }
                 }
-                is UiState.Error -> {
-                    Text(text = uiState.errorMessage)
-                }
+                is UiState.Error -> ErrorHandler(errorText = uiState.errorMessage, onReload = { onReloadGarbage() })
             }
         }
     }

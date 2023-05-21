@@ -183,7 +183,12 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             composable(Screen.Home.route){
-                                DashboardScreen(navHostController = navController, garbageStateFlow = garbageViewModel.garbageState, loadGarbage = { garbageViewModel.getAllGarbage() })
+                                DashboardScreen(
+                                    navHostController = navController,
+                                    garbageStateFlow = garbageViewModel.garbageState,
+                                    onLoadGarbage = { garbageViewModel.getAllGarbage() },
+                                    onReloadGarbage = { garbageViewModel.reloadGarbage() },
+                                )
                             }
                             composable(Screen.History.route){
                                 OrderHistoryScreen(
@@ -219,6 +224,7 @@ class MainActivity : ComponentActivity() {
                                     onLoadSavedAddress = { addressViewModel.loadSavedAddress() },
                                     onAddNewAddress = { address -> addressViewModel.addNewAddress(address) },
                                     onDeleteAddress = { address -> addressViewModel.deleteAddress(address) },
+                                    onReloadSavedAddress = { addressViewModel.reloadSavedAddress() },
                                     toastMessageState = addressViewModel.message,
                                     savedAddressStateFlow = addressViewModel.savedAddress
                                 )

@@ -1,14 +1,14 @@
 package com.bangkit.ecoease.data.repository
 
 import android.util.Log
-import androidx.room.RoomDatabase
 import com.bangkit.ecoease.data.datastore.DataStorePreferences
+import com.bangkit.ecoease.data.dummy.AddressDummy
+import com.bangkit.ecoease.data.dummy.GarbageDummy
 import com.bangkit.ecoease.data.dummy.OrderHistoryDummy
-import com.bangkit.ecoease.data.dummy.listGarbage
-import com.bangkit.ecoease.data.model.Garbage
+import com.bangkit.ecoease.data.room.model.Garbage
 import com.bangkit.ecoease.data.model.ImageCaptured
 import com.bangkit.ecoease.data.model.OrderHistory
-import com.bangkit.ecoease.data.room.dao.Address
+import com.bangkit.ecoease.data.room.model.Address
 import com.bangkit.ecoease.data.room.database.MainDatabase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -35,16 +35,52 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
         datastore.setToken(newToken)
     }
     //GARBAGE
-    fun getAllGarbage(): Flow<List<Garbage>> = flowOf(listGarbage)
+    suspend fun getAllGarbage(): Flow<List<Garbage>>{
+        try {
+            val response = GarbageDummy.listGarbage
+            roomDatabase.garbageDao().deleteAllGarbage()
+            response.forEach { garbage ->
+                roomDatabase.garbageDao().addGarbage(garbage)
+            }
+        }catch (e: Exception){
+            if (roomDatabase.garbageDao().getAllGarbage().isEmpty()){
+                Log.d(TAG, "getAllGarbage: e")
+                throw e
+            }
+        }
+        return flowOf(roomDatabase.garbageDao().getAllGarbage())
+    }
     //ORDER HISTORY
     fun getAllOrderHistories(): Flow<List<OrderHistory>> = flowOf(OrderHistoryDummy.getOrderHistories())
 
     //Address
-    fun getSavedAddress(): Flow<List<Address>> = flowOf(roomDatabase.addressDao().getAllAddress())
-    suspend fun addAddress(address: Address) = roomDatabase.addressDao().addAddress(address)
-    suspend fun deleteAddress(address: Address) = roomDatabase.addressDao().deleteAddress(address)
+    suspend fun getSavedAddress(): Flow<List<Address>>{
+        try {
+           val response = AddressDummy.listSavedAddress
+           roomDatabase.addressDao().deleteAllAddress()
+           response.forEach { address ->
+               roomDatabase.addressDao().addAddress(address)
+           }
+        }catch (e: Exception){
+            Log.d(TAG, "getSavedAddress: ${e.message}")
+            if(roomDatabase.addressDao().getAllAddress().isEmpty()){
+                throw e
+            }
+        }
+        return flowOf(roomDatabase.addressDao().getAllAddress())
+    }
+    suspend fun addAddress(address: Address){
+//        roomDatabase.addressDao().addAddress(address)
+        AddressDummy.listSavedAddress.add(address)
+    }
+    suspend fun deleteAddress(address: Address){
+//        roomDatabase.addressDao().deleteAddress(address)
+        AddressDummy.listSavedAddress.remove(address)
+    }
 
     companion object{
+        val TAG = MainRepository::class.java.simpleName
+
         @Volatile
         private var INSTANCE: MainRepository? = null
 

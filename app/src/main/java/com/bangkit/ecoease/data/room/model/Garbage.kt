@@ -1,30 +1,26 @@
-package com.bangkit.ecoease.data.room.dao
+package com.bangkit.ecoease.data.room.model
 
 import android.os.Parcelable
 import androidx.annotation.NonNull
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.bangkit.ecoease.helper.generateUUID
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-@Entity(tableName = "address")
-data class Address(
+@Entity(tableName = "garbage")
+data class Garbage(
     @PrimaryKey
     @NonNull
     @ColumnInfo(name = "id")
     val id: String,
 
+    @ColumnInfo(name = "image_url")
+    val imageUrl: String,
+
     @ColumnInfo(name = "name")
     val name: String,
 
-    @ColumnInfo(name = "district")
-    val district: String,
-
-    @ColumnInfo(name = "detail")
-    val detail: String,
-
-    @ColumnInfo(name = "city")
-    val city: String,
+    @ColumnInfo(name = "price")
+    val price: Int
 ) : Parcelable

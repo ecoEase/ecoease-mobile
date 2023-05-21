@@ -19,7 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.bangkit.ecoease.R
-import com.bangkit.ecoease.data.room.dao.Address
+import com.bangkit.ecoease.data.room.model.Address
 import com.bangkit.ecoease.helper.generateUUID
 import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.theme.DarkGrey
@@ -32,6 +32,7 @@ fun ChangeAddressScreen(
     onLoadSavedAddress: () -> Unit,
     onAddNewAddress: (Address) -> Unit,
     onDeleteAddress: (Address) -> Unit,
+    onReloadSavedAddress: () -> Unit,
     toastMessageState: StateFlow<String>,
     navHostController: NavHostController,
     modifier: Modifier = Modifier
@@ -83,6 +84,7 @@ fun ChangeAddressScreen(
                             city = city,
                         )
                         onAddNewAddress(newAddress)
+
                     }
                 )
             }
@@ -117,7 +119,7 @@ fun ChangeAddressScreen(
                         }
                     }
                 }
-                is UiState.Error -> Text(text = "error: ${uiState.errorMessage}")
+                is UiState.Error -> ErrorHandler(errorText = uiState.errorMessage, onReload = { onReloadSavedAddress() })
             }
         }
     }

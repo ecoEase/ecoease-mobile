@@ -4,12 +4,27 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.bangkit.ecoease.data.room.dao.Address
-import com.bangkit.ecoease.data.room.dao.AddressDao
+import com.bangkit.ecoease.data.room.dao.*
+import com.bangkit.ecoease.data.room.model.*
 
-@Database(entities = [(Address::class)], version = 1, exportSchema = false)
+@Database(
+    entities =
+    [
+        (Address::class),
+        (ChatRoom::class),
+        (Message::class),
+        (Garbage::class),
+        (User::class),
+   ],
+    version = 2,
+    exportSchema = false
+)
 abstract class MainDatabase : RoomDatabase(){
     abstract fun addressDao(): AddressDao
+    abstract fun chatRoomDao(): ChatRoomDao
+    abstract fun messageDao(): MessageDao
+    abstract fun garbageDao(): GarbageDao
+    abstract fun userDao(): UserDao
 
     companion object{
         @Volatile
