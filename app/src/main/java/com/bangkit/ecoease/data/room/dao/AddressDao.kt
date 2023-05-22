@@ -13,12 +13,17 @@ interface AddressDao{
 
     @Update
     suspend fun updateAddress(address: Address)
+    @Update
+    suspend fun updateBatchAddresses(addresses: List<Address>)
 
     @Query("SELECT * FROM address")
     fun getAllAddress(): List<Address>
 
     @Query("SELECT * FROM address WHERE id = :id")
     fun getAddress(id: String): Address
+
+    @Query("SELECT * FROM address WHERE selected = true LIMIT 1")
+    fun getSelectedAddress(): Address?
 
     @Query("DELETE FROM address")
     suspend fun deleteAllAddress()

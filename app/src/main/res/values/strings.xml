@@ -36,4 +36,7 @@
     <string name="saved_address">Alamat yang disimpan</string>
     <string name="no_saved_address">Belum ada alamat yg disimpan</string>
     <string name="reload">Muat ulang</string>
+    <string name="scan_message">Silahkan foto sampah kamu terlebih dahulu.</string>
+    <string name="start_scan">mulai scan</string>
+    <string name="restart_scan">scan ulang</string>
 </resources>

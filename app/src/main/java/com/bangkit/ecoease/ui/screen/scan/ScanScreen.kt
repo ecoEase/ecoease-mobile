@@ -4,9 +4,12 @@ import android.content.Context
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.runtime.*
@@ -18,6 +21,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -27,11 +31,17 @@ import coil.compose.AsyncImage
 import com.airbnb.lottie.compose.*
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.ObjectDetection
+import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.data.model.ImageCaptured
 import com.bangkit.ecoease.helper.getImageUriFromTempBitmap
 import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.FloatingButton
+import com.bangkit.ecoease.ui.component.RoundedButton
+import com.bangkit.ecoease.ui.component.RoundedButtonType
+import com.bangkit.ecoease.ui.theme.DarkGrey
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
+import com.bangkit.ecoease.ui.theme.LightGrey
+import com.bangkit.ecoease.ui.theme.LightGreyVariant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -47,63 +57,69 @@ fun ScanScreen(
     openCamera: () -> Unit
 ){
     val context = LocalContext.current
-    var predictedImgUri: Uri? by rememberSaveable {
-        mutableStateOf(null)
-    }
+    var predictedImgUri: Uri? by rememberSaveable { mutableStateOf(null) }
+    val defaultScanMessage = stringResource(R.string.scan_message)
+    var scanMessage: String by rememberSaveable { mutableStateOf(defaultScanMessage) }
     var loadingPrediction by rememberSaveable{ mutableStateOf(false) }
 
-    Scaffold(
-        floatingActionButton = {
-            FloatingButton(
-                description = "open camera",
-                icon = Icons.Default.CameraAlt,
-                onClick = {
-                    openCamera()
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 32.dp)
+        ,
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    )
+    {
+//            Log.d("predict state", "TempScreen: $predictedImgUri")
+        imageCapturedState.collectAsState(initial = UiState.Loading).value.let { uiState ->
+            when(uiState){
+                is UiState.Success -> {
+                    LaunchedEffect(uiState.data) {
+                        loadingPrediction = true
+                        predictedImgUri = getImageUriPrediction(context, uiState.data.uri, uiState.data.isBackCam)
+                        loadingPrediction = false
+                    }
                 }
-            )
-        }
-    ) {paddingValues ->
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-            ,
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Log.d("predict state", "TempScreen: $predictedImgUri")
-            imageCapturedState.collectAsState(initial = UiState.Loading).value.let { uiState ->
-                when(uiState){
-                    is UiState.Success -> {
-                        LaunchedEffect(uiState.data) {
-                            loadingPrediction = true
-                            predictedImgUri = getImageUriPrediction(context, uiState.data.uri, uiState.data.isBackCam)
-                            loadingPrediction = false
-                        }
-                    }
-                    is UiState.Error ->{
-                        predictedImgUri = null
-                    }
-                    is UiState.Loading -> {
-                        onLoadingImageState()
-                    }
+                is UiState.Error ->{
+                    predictedImgUri = null
+                }
+                is UiState.Loading -> {
+                    onLoadingImageState()
                 }
             }
+        }
 
-            if(loadingPrediction) LoadingScanAnim()
-            else AsyncImage(
-                model = predictedImgUri ?: "",
-                modifier = Modifier
-                    .size(320.dp)
-                    .clip(RoundedCornerShape(16.dp)),
-                onLoading = {loadingState ->
-                    Log.d("TAG", "TempScreen: loading")
-                },
-                contentScale = ContentScale.Crop,
-                contentDescription = null,
-                placeholder = painterResource(id = R.drawable.baseline_image_24),
-                error = painterResource(id = R.drawable.baseline_image_24),
-            )
+        if(loadingPrediction) LoadingScanAnim()
+        else AsyncImage(
+            model = predictedImgUri ?: "",
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(394.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(LightGreyVariant)
+            ,
+            onLoading = {loadingState ->
+                Log.d("TAG", "TempScreen: loading")
+            },
+            contentScale = ContentScale.Crop,
+            contentDescription = null,
+            placeholder = painterResource(id = R.drawable.baseline_image_24),
+            error = painterResource(id = R.drawable.baseline_image_24),
+        )
+        if(!loadingPrediction){
+            if(predictedImgUri == null) Text( text = scanMessage, style = MaterialTheme.typography.caption.copy( color = DarkGrey), modifier = Modifier.padding(top = 32.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(top = 16.dp)){
+                RoundedButton(
+                    modifier = Modifier.weight(1f),
+                    text = if(predictedImgUri != null) stringResource(R.string.restart_scan) else stringResource(R.string.start_scan),
+                    type = if(predictedImgUri != null) RoundedButtonType.SECONDARY else RoundedButtonType.PRIMARY,
+                    onClick = { openCamera() })
+                if(predictedImgUri != null) RoundedButton(
+                    modifier = Modifier.weight(1f),
+                    text = stringResource(id = R.string.make_report_btn),
+                    onClick = { navController.navigate(Screen.Order.route) })
+            }
         }
     }
 }

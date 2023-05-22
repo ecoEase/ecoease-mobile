@@ -12,20 +12,16 @@ import androidx.activity.compose.setContent
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BrowseGallery
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.FlipCameraAndroid
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Devices
@@ -39,6 +35,7 @@ import com.bangkit.ecoease.helper.getOutputDirectory
 import com.bangkit.ecoease.helper.takePhoto
 import com.bangkit.ecoease.ui.component.FloatingButton
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
+import com.bangkit.ecoease.ui.theme.LightTosca
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionsRequired
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -147,43 +144,54 @@ fun CameraScreenContent(
             factory = { previewView },
             modifier = Modifier.fillMaxSize()
         )
-        FloatingButton(
-            description = "take picture",
-            icon = Icons.Default.CameraAlt,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .offset(y = (-32).dp)
-                .size(64.dp),
-            onClick = {
-                takePhoto(
-                    context = context,
-                    filename = "yyyy-MM-dd-HH-mm-ss-SSS",
-                    imageCapture = imageCapture!!,
-                    outpuDirectory = getOutputDirectory(context),
-                    executor = executor,
-                    onImageCapture = { imageUri ->
-//                        Log.d("Camera", "CameraScreenContent: $imageUri")
-                        onSavedImage(imageUri, isBackCamera)
-                    },
-                    onError = { Log.d("Camera", "CameraScreenContent: $it") }
-                )
-            }
-        )
-        FloatingButton(
-            description = "swap camera",
-            icon = Icons.Default.FlipCameraAndroid,
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .offset(y = (-32).dp),
-            onClick = { isBackCamera = !isBackCamera }
-        )
-        FloatingButton(
-            description = "gallery",
-            icon = Icons.Default.BrowseGallery,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .offset(y = (-32).dp)
-        )
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .align(Alignment.BottomCenter)
+            .offset(y = (-32).dp)
+            .padding(horizontal = 48.dp)
+            ,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ){
+
+            FloatingButton(
+                backgroundColor = LightTosca,
+                iconColor = Color.Black,
+                description = "swap camera",
+                icon = Icons.Default.FlipCameraAndroid,
+                modifier = Modifier,
+                onClick = { isBackCamera = !isBackCamera }
+            )
+
+            FloatingButton(
+                description = "take picture",
+                icon = Icons.Default.CameraAlt,
+                modifier = Modifier
+                    .size(64.dp),
+                onClick = {
+                    takePhoto(
+                        context = context,
+                        filename = "yyyy-MM-dd-HH-mm-ss-SSS",
+                        imageCapture = imageCapture!!,
+                        outpuDirectory = getOutputDirectory(context),
+                        executor = executor,
+                        onImageCapture = { imageUri ->
+                            onSavedImage(imageUri, isBackCamera)
+                        },
+                        onError = { Log.d("Camera", "CameraScreenContent: $it") }
+                    )
+                }
+            )
+
+            // TODO: make open gallery functionality
+            FloatingButton(
+                backgroundColor = LightTosca,
+                iconColor = Color.Black,
+                description = "gallery",
+                icon = Icons.Default.Image,
+                modifier = Modifier
+            )
+        }
     }
 }
 

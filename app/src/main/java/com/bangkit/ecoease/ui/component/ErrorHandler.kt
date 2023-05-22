@@ -36,6 +36,6 @@ fun ErrorHandler(
 @Composable
 private fun ErrorHandlerPreview(){
     EcoEaseTheme() {
-        ErrorHandler(errorText = "error", onReload = { /*TODO*/ })
+        ErrorHandler(errorText = "error", onReload = {  })
     }
 }

@@ -24,13 +24,15 @@ fun FloatingButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
     description: String,
+    backgroundColor: Color = MaterialTheme.colors.primary,
+    iconColor: Color = Color.White,
     icon: ImageVector
 ){
     Box(
         modifier = modifier
             .size(48.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colors.primary)
+            .background(backgroundColor)
             .clickable { onClick() }
     ) {
         Icon(
@@ -38,7 +40,7 @@ fun FloatingButton(
             contentDescription = description,
             modifier = Modifier
                 .align(Alignment.Center),
-            tint = Color.White
+            tint = iconColor
         )
     }
 }

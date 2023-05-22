@@ -23,7 +23,6 @@ fun TextInput(
     modifier: Modifier = Modifier,
     placeHolder: String = "",
 ){
-    // TODO: change to stateless component
 
     val animatedBackgrounColor by animateColorAsState(
         targetValue = if(value.isNotEmpty()) LightTosca.copy(alpha = 0.3f) else MaterialTheme.colors.background,

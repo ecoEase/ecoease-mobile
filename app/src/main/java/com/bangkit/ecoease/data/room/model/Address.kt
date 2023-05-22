@@ -27,4 +27,8 @@ data class Address(
 
     @ColumnInfo(name = "city")
     val city: String,
+
+    @ColumnInfo(name = "selected")
+    val selected: Boolean = false,
+
 ) : Parcelable

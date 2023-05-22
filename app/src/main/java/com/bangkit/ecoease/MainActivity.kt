@@ -6,19 +6,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraEnhance
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -89,8 +83,8 @@ class MainActivity : ComponentActivity() {
                     navController.popBackStack()
                 }
 
-                var isTopBarShown = !listNoTopBar.map { it.route }.contains(currentRoute)
-                var topBarTitle = if(currentRoute != Screen.Home.route) Text( text = currentRoute?.let { text ->  text.replaceFirstChar { it.uppercase() }}  ?: "",textAlign = TextAlign.Center) else {}
+                val isTopBarShown = !listNoTopBar.map { it.route }.contains(currentRoute)
+                val isMainRoute = listMainRoute.map { it.route }.contains(currentRoute)
 
                 Surface(
                     modifier = Modifier
@@ -99,57 +93,30 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colors.background
                 ) {
                     Scaffold(
-                        topBar = {
-                            // TODO: refactor topappbar code
-//                                 TopBar(isShown = isTopBarShown, title = { topBarTitle })
-                            if(!listNoTopBar.map { it.route }.contains(currentRoute)){
-                                TopAppBar(
-                                    backgroundColor = MaterialTheme.colors.background,
-                                    elevation = 0.dp,
-                                    title ={
-                                        when{
-                                            currentRoute?.substringBefore("?") == Screen.ChatRoom.route -> {
-                                                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                                                    Avatar(
-                                                        imageUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=464&q=80",
-                                                        size = AvatarSize.EXTRA_SMALL,
-                                                    )
-                                                    Text(
-                                                        text = Screen.ChatRoom.getTitle()?.let { text ->  text.replaceFirstChar { it.uppercase() }}  ?: "",
-                                                        textAlign = TextAlign.Center,
-                                                    )
-                                                }
-                                            }
-                                            currentRoute != Screen.Home.route -> Text(
-                                                text = currentRoute?.let { text ->  text.replaceFirstChar { it.uppercase() }}  ?: "",
-                                                textAlign = TextAlign.Center,
-                                            )
-                                        }
-                                    },
-                                    actions = {
-                                        if(currentRoute == Screen.Home.route) Avatar(
-                                            imageUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=464&q=80",
-                                            size = AvatarSize.EXTRA_SMALL,
-                                            modifier = Modifier
-                                                .padding(end = 32.dp)
-                                                .clickable { navController.navigate(Screen.Profile.route) }
-                                        )
-                                    },
-                                    navigationIcon = { if(!listMainRoute.map { it.route }.contains(currentRoute)) IconButton(onClick = {
+                        topBar = { if(isTopBarShown){
+                                TopBar(
+                                    currentRoute = currentRoute,
+                                    navController = navController,
+                                    isUseNavButton = !isMainRoute,
+                                    isUseAvatar = currentRoute == Screen.Home.route,
+                                    onTapNavButton = {
                                         if(orderViewModel.orderState.value.total > 0 && currentRoute == Screen.Order.route){
                                             openDialog = true
                                         }else{
                                             navController.popBackStack()
                                         }
-                                    }) { Icon(Icons.Filled.ArrowBack, "backIcon")}},
+                                    },
+                                    onTapAvatar = {
+                                        navController.navigate(Screen.Profile.route)
+                                    }
                                 )
                             }
                         },
                         floatingActionButton = {
-                            if(listMainRoute.map { it.route }.contains(currentRoute)) FloatingButton(description = "scan", icon = Icons.Default.CameraEnhance, onClick = { navController.navigate(Screen.Scan.route) })
+                            if(isMainRoute) FloatingButton(description = "scan", icon = Icons.Default.CameraEnhance, onClick = { navController.navigate(Screen.Scan.route) })
                         },
                         bottomBar = {
-                            if(listMainRoute.map { it.route }.contains(currentRoute)) BottomNavBar(navController = navController, items = listMainRoute)
+                            if(isMainRoute) BottomNavBar(navController = navController, items = listMainRoute)
                         },
                         floatingActionButtonPosition = FabPosition.Center,
                         isFloatingActionButtonDocked = true,
@@ -168,7 +135,11 @@ class MainActivity : ComponentActivity() {
                             }
                             composable(
                                 route = Screen.Scan.route,
-                                arguments = listOf(navArgument("path"){type = NavType.StringType})
+                                arguments = listOf(navArgument("path"){
+                                    nullable = true
+                                    defaultValue = null
+                                    type = NavType.StringType
+                                })
                             ){
                                 val filePath = it.arguments?.getString("path") ?: ""
                                 ScanScreen(
@@ -213,6 +184,9 @@ class MainActivity : ComponentActivity() {
                                 OrderScreen(
                                     navHostController = navController,
                                     orderStateFlow = orderViewModel.orderState,
+                                    selectedAddressStateFlow = addressViewModel.selectedAddress,
+                                    onLoadSelectedAddress = { addressViewModel.loadSelectedAddress() },
+                                    onReloadSelectedAddress = { addressViewModel.reloadSelectedAddress() },
                                     addGarbageOrderSlot = { orderViewModel.addGarbageSlot()},
                                     deleteGarbageSlotAt = { orderViewModel.deleteGarbageAt(it)},
                                     updateGarbageAtIndex = { index, newGarbage -> orderViewModel.updateGarbage(index, newGarbage) },
@@ -224,9 +198,12 @@ class MainActivity : ComponentActivity() {
                                     onLoadSavedAddress = { addressViewModel.loadSavedAddress() },
                                     onAddNewAddress = { address -> addressViewModel.addNewAddress(address) },
                                     onDeleteAddress = { address -> addressViewModel.deleteAddress(address) },
+                                    onSelectedAddress = { address -> addressViewModel.pickSelectedAddress(address) },
+                                    onSaveSelectedAddress = { address -> addressViewModel.confirmSelectedAddress(address) },
                                     onReloadSavedAddress = { addressViewModel.reloadSavedAddress() },
                                     toastMessageState = addressViewModel.message,
-                                    savedAddressStateFlow = addressViewModel.savedAddress
+                                    savedAddressStateFlow = addressViewModel.savedAddress,
+                                    tempSelectedAddressStateFlow = addressViewModel.tempSelectedAddress,
                                 )
                             }
                             composable(Screen.OrderSuccess.route){

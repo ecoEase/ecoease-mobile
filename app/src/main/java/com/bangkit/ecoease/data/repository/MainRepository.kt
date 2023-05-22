@@ -1,6 +1,7 @@
 package com.bangkit.ecoease.data.repository
 
 import android.util.Log
+import androidx.room.ColumnInfo
 import com.bangkit.ecoease.data.datastore.DataStorePreferences
 import com.bangkit.ecoease.data.dummy.AddressDummy
 import com.bangkit.ecoease.data.dummy.GarbageDummy
@@ -52,7 +53,6 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
     }
     //ORDER HISTORY
     fun getAllOrderHistories(): Flow<List<OrderHistory>> = flowOf(OrderHistoryDummy.getOrderHistories())
-
     //Address
     suspend fun getSavedAddress(): Flow<List<Address>>{
         try {
@@ -70,12 +70,47 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
         return flowOf(roomDatabase.addressDao().getAllAddress())
     }
     suspend fun addAddress(address: Address){
-//        roomDatabase.addressDao().addAddress(address)
-        AddressDummy.listSavedAddress.add(address)
+        AddressDummy.listSavedAddress.add(address)//this dummy will simulate data from api
+        roomDatabase.addressDao().addAddress(address)
     }
     suspend fun deleteAddress(address: Address){
-//        roomDatabase.addressDao().deleteAddress(address)
-        AddressDummy.listSavedAddress.remove(address)
+        AddressDummy.listSavedAddress.remove(address)//this dummy will simulate data from api
+        roomDatabase.addressDao().deleteAddress(address)
+    }
+
+    suspend fun getSelectedAddress(): Flow<Address?>{
+        var response: Flow<Address?>
+        try {
+            response = flowOf(roomDatabase.addressDao().getSelectedAddress())
+        }catch (e: Exception){
+            throw e
+        }
+        return response
+    }
+
+    suspend fun saveSelectedAddress(address: Address){
+        //call api update selected address
+
+        val updatedAddressStatus = Address(
+            id = address.id,
+            name = address.name,
+            district = address.district,
+            city = address.city,
+            detail = address.detail,
+            selected = true
+        )
+        //update all saved address selected value to false
+        val resetSelectedAddresses = roomDatabase.addressDao().getAllAddress().map { item ->  Address(
+                id = item.id,
+                name = item.name,
+                district = item.district,
+                city = item.city,
+                detail = item.detail,
+                selected = false
+            )
+        }
+        roomDatabase.addressDao().updateBatchAddresses(resetSelectedAddresses)
+        roomDatabase.addressDao().updateAddress(updatedAddressStatus)
     }
 
     companion object{

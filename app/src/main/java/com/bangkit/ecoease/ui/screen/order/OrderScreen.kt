@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -28,6 +29,7 @@ import com.bangkit.ecoease.data.model.GarbageAdded
 import com.bangkit.ecoease.data.model.Order
 import com.bangkit.ecoease.helper.generateUUID
 import com.bangkit.ecoease.helper.toCurrency
+import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.*
 import com.bangkit.ecoease.ui.theme.LightGrey
 import kotlinx.coroutines.flow.StateFlow
@@ -42,19 +44,22 @@ fun OrderScreen(
     addGarbageOrderSlot: () -> Unit = {},
     deleteGarbageSlotAt: (Int) -> Unit = {},
     onAcceptResetOrder: () -> Unit = {},
+    onLoadSelectedAddress: () -> Unit,
+    onReloadSelectedAddress: () -> Unit,
+    selectedAddressStateFlow: StateFlow<UiState<com.bangkit.ecoease.data.room.model.Address?>>,
     updateGarbageAtIndex: (Int, GarbageAdded) -> Unit = { _, _, -> },
 ){
 
     val orderState by orderStateFlow.collectAsState()
     val lazyListState = rememberLazyListState()
 
-    val dummyAddress = Address(
-        id = generateUUID(),
-        name = "alamat 1",
-        detail = "jalan yang lurus",
-        district = "Besuki",
-        city = "Tulungagung"
-    )
+//    val dummyAddress = Address(
+//        id = generateUUID(),
+//        name = "alamat 1",
+//        detail = "jalan yang lurus",
+//        district = "Besuki",
+//        city = "Tulungagung"
+//    )
 
     val listGarbage = listOf(
         Garbage(
@@ -108,13 +113,30 @@ fun OrderScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(text = stringResource(R.string.address))
-            AddressCard(
-                name = dummyAddress.name,
-                detail = dummyAddress.detail,
-                district = dummyAddress.district,
-                city = dummyAddress.city,
-                onClickChange = { navHostController.navigate(Screen.ChangeAddress.route) }
-            )
+            selectedAddressStateFlow.collectAsState(initial = UiState.Loading).value.let { uiState ->
+                when(uiState){
+                    is UiState.Loading -> {
+                        CircularProgressIndicator()
+                        onLoadSelectedAddress()
+                    }
+                    is UiState.Success -> {
+                        if(uiState.data == null){
+                            Text("alamat masih kosong")
+                            RoundedButton(text = "pilih alamat",  onClick = { navHostController.navigate(Screen.ChangeAddress.route) })
+                        }else{
+                            AddressCard(
+                                name = uiState.data.name,
+                                detail = uiState.data.detail,
+                                district = uiState.data.district,
+                                city = uiState.data.city,
+                                onClickChange = { navHostController.navigate(Screen.ChangeAddress.route) }
+                            )
+                        }
+                    }
+                    is UiState.Error -> ErrorHandler(errorText = uiState.errorMessage, onReload = { onReloadSelectedAddress() })
+                }
+            }
+
             Row(modifier = Modifier
                 .fillMaxWidth()
                 .drawBehind {
@@ -158,7 +180,7 @@ fun OrderScreen(
                             initTotalPrice = initialGarbageTotalPrice,
                             listGarbage = listGarbage,
                             onDelete = {
-                                garbageTypes = garbageTypes.filter { elemen -> elemen != it} as MutableList<String>
+                                garbageTypes = garbageTypes.filter { element -> element != it} as MutableList<String>
                                 deleteGarbageSlotAt(index)
                             },
                             onUpdate = { newUpdateGarbageData ->
@@ -167,7 +189,6 @@ fun OrderScreen(
                             modifier = Modifier
                                 .animateItemPlacement(tween(durationMillis = 100))
                         )
-
                     }
                 }
             }
@@ -181,7 +202,10 @@ fun OrderScreen(
             modifier = Modifier.align(Alignment.BottomCenter)
         )
         
-        DialogBox(text = "Apakah anda sudah yakin?", isOpen = openDialog, onDissmiss = { openDialog = false }, onAccept = { navHostController.navigate(Screen.OrderSuccess.route) })
+        DialogBox(text = "Apakah anda sudah yakin?", isOpen = openDialog, onDissmiss = { openDialog = false }, onAccept = {
+            onAcceptResetOrder()
+            navHostController.navigate(Screen.OrderSuccess.route)
+        })
         DialogBox(text = "Apakah anda yakin ingin membatalkan order anda", onDissmiss = { openDialogResetOrder = false }, onAccept = { onAcceptResetOrder() }, isOpen = openDialogResetOrder)
     }
 }

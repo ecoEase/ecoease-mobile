@@ -26,10 +26,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bangkit.ecoease.R
-import com.bangkit.ecoease.ui.theme.DarkGrey
-import com.bangkit.ecoease.ui.theme.EcoEaseTheme
-import com.bangkit.ecoease.ui.theme.GreenSecondary
-import com.bangkit.ecoease.ui.theme.OrangeAccent
+import com.bangkit.ecoease.data.room.model.Address
+import com.bangkit.ecoease.ui.theme.*
 
 @Composable
 fun AddressChoice(
@@ -37,22 +35,26 @@ fun AddressChoice(
     detail: String,
     district: String,
     city: String,
+    checked: Boolean = false,
     onDelete: () -> Unit,
+    onSelected: () -> Unit,
     modifier: Modifier = Modifier
 ){
-    var clicked by rememberSaveable{ mutableStateOf(false) }
+    // TODO: fix the checked radio state, it still checked when other card choice is selected probably change to stateless component
+//    var checked by remember{ mutableStateOf(checked) }
     var openDialog by remember{ mutableStateOf(false) }
 
     val animateColorRadio by animateColorAsState(
-        targetValue = if(clicked) MaterialTheme.colors.primary else Color.Transparent,
+        targetValue = if(checked) MaterialTheme.colors.primary else Color.Transparent,
         animationSpec = tween(200)
     )
     val animateColorBorder by animateColorAsState(
-        targetValue = if(clicked) MaterialTheme.colors.primary else GreenSecondary,
+        targetValue = if(checked) MaterialTheme.colors.primary else GreenSecondary,
         animationSpec = tween(200)
     )
+
     Card(
-        border = BorderStroke(width = 1.dp, color = animateColorBorder),
+        border = BorderStroke(width = if(checked) 4.dp else 1.dp, color = animateColorBorder),
         shape = RoundedCornerShape(16.dp),
         modifier = modifier
             .fillMaxWidth()
@@ -76,7 +78,7 @@ fun AddressChoice(
                             color = MaterialTheme.colors.primary
                         ), shape = CircleShape
                     )
-                    .clickable { clicked = !clicked }
+                    .clickable { onSelected() }
             )
             Box(modifier = Modifier.width(27.dp))
             Column(Modifier.weight(1f)) {
@@ -110,6 +112,6 @@ fun AddressChoice(
 @Composable
 fun AddressChoicePreview(){
     EcoEaseTheme() {
-        AddressChoice(name = "Alamat 1", detail = "Jalan yang lurus lorem ipsum blabalasdasdasd", district = "Candi", city = "Malang", onDelete = {})
+        AddressChoice(name = "Alamat 1", detail = "Jalan yang lurus lorem ipsum blabalasdasdasd", district = "Candi", city = "Malang", onDelete = {}, onSelected = {})
     }
 }
