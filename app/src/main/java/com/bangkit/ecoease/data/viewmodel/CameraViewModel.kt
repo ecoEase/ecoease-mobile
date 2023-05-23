@@ -1,5 +1,6 @@
 package com.bangkit.ecoease.data.viewmodel
 
+import android.graphics.Camera
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,6 +18,7 @@ class CameraViewModel(private val repository: MainRepository): ViewModel() {
     val uiStateImageCaptured: StateFlow<UiState<ImageCaptured>> = _uiStateImageCaptured
 
     fun setImage(imageCaptured: ImageCaptured){
+        Log.d("TAG", "setImage: $imageCaptured")
         _uiStateImageCaptured.value = UiState.Loading
         repository.setCapturedImage(imageCaptured)
     }

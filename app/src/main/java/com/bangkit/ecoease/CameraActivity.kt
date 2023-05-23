@@ -8,7 +8,11 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.MenuItem
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.appcompat.app.ActionBar
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.view.PreviewView
@@ -30,6 +34,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
+import com.bangkit.ecoease.config.ViewModelFactory
+import com.bangkit.ecoease.data.model.ImageCaptured
+import com.bangkit.ecoease.data.viewmodel.CameraViewModel
+import com.bangkit.ecoease.di.Injection
 import com.bangkit.ecoease.helper.createImageCaptureUseCase
 import com.bangkit.ecoease.helper.getOutputDirectory
 import com.bangkit.ecoease.helper.takePhoto
@@ -58,8 +66,15 @@ class CameraActivity : AppCompatActivity() {
 
     private lateinit var cameraExecutor: ExecutorService
 
+    val cameraViewModel: CameraViewModel by viewModels {
+        ViewModelFactory(Injection.provideInjection(this))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val actionBar = supportActionBar
+        actionBar?.setDisplayHomeAsUpEnabled(true)
 
         setContent {
             EcoEaseTheme {
@@ -77,6 +92,15 @@ class CameraActivity : AppCompatActivity() {
                             intent.putExtra("cam-facing", isBackCam)
                             setResult(CAMERA_X_RESULT, intent)
                             finish()
+                        },
+                        // TODO: FIX open gallery through camera bug, data already set but on scan screen its not refreshed 
+                        openGallery = {
+                            val intent = Intent().apply {
+                                action = Intent.ACTION_GET_CONTENT
+                                type = "image/*"
+                            }
+                            val chooser = Intent.createChooser(intent, "Choose a picture")
+                            launcherIntentGallery.launch(chooser)
                         }
                     )
                 }
@@ -84,9 +108,34 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        Log.d("TAG", "onContextItemSelected: ${item.itemId}")
+        when(item.itemId ){
+            android.R.id.home -> {
+                finish()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         cameraExecutor.shutdown()
+    }
+
+    private val launcherIntentGallery = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ){ result ->
+        if(result.resultCode == RESULT_OK){
+            val selectedImage = result.data?.data as Uri
+            selectedImage?.let { uri ->
+                cameraViewModel.setImage(
+                    ImageCaptured(uri = uri, isBackCam = true)
+                )
+                finish()
+            }
+        }
     }
 }
 
@@ -95,6 +144,7 @@ class CameraActivity : AppCompatActivity() {
 @Composable
 fun CameraScreen(
     executor: Executor,
+    openGallery: () -> Unit,
     onSavedImage: (Uri, Boolean) -> Unit
 ) {
     val context = LocalContext.current
@@ -115,7 +165,7 @@ fun CameraScreen(
         permissionsNotAvailableContent = {
             Log.d("TAG", "CameraScreen: permission error not available")
         }) {
-        CameraScreenContent(context = context, lifecycleOwner = lifecycleOwner, onSavedImage = onSavedImage, executor = executor)
+        CameraScreenContent(context = context, lifecycleOwner = lifecycleOwner, onSavedImage = onSavedImage, executor = executor, openGallery = openGallery)
     }
 }
 
@@ -124,6 +174,7 @@ fun CameraScreenContent(
     modifier: Modifier = Modifier,
     context: Context,
     lifecycleOwner: LifecycleOwner,
+    openGallery: () -> Unit,
     onSavedImage: (Uri, Boolean) -> Unit,
     executor: Executor,
 ) {
@@ -189,7 +240,8 @@ fun CameraScreenContent(
                 iconColor = Color.Black,
                 description = "gallery",
                 icon = Icons.Default.Image,
-                modifier = Modifier
+                modifier = Modifier,
+                onClick = { openGallery() }
             )
         }
     }
@@ -202,6 +254,7 @@ fun PreviewCameraScreen() {
     EcoEaseTheme {
         CameraScreen(
             executor = ContextCompat.getMainExecutor(LocalContext.current),
+            openGallery = {},
             onSavedImage = { _, _ -> }
         )
     }

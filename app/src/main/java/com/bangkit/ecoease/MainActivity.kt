@@ -1,6 +1,7 @@
 package com.bangkit.ecoease
 
 import android.content.Intent
+import android.content.Intent.ACTION_GET_CONTENT
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -56,6 +57,10 @@ val listNoTopBar = listOf(
 class MainActivity : ComponentActivity() {
     private val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     private lateinit var cameraViewModel: CameraViewModel
+
+    companion object{
+        val INTENT_GALLERY_RESULT = 201
+    }
 
     // TODO: move all business logic in viewmodel
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -150,6 +155,14 @@ class MainActivity : ComponentActivity() {
                                     openCamera = {
                                         val intent = Intent(this@MainActivity, CameraActivity::class.java)
                                         launcherIntentCameraX.launch(intent)
+                                    },
+                                    openGallery = {
+                                        val intent = Intent().apply {
+                                            action = ACTION_GET_CONTENT
+                                            type = "image/*"
+                                        }
+                                        val chooser = Intent.createChooser(intent, "Choose a picture")
+                                        launcherIntentGallery.launch(chooser)
                                     }
                                 )
                             }
@@ -232,10 +245,10 @@ class MainActivity : ComponentActivity() {
 
     private val launcherIntentCameraX = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
-    ) {
-        if (it.resultCode == CAMERA_X_RESULT) {
-            val imageUri = it.data?.getStringExtra("picture")
-            val isBackCam = it.data?.getBooleanExtra("cam-facing", true)
+    ) {result ->
+        if (result.resultCode == CAMERA_X_RESULT) {
+            val imageUri = result.data?.getStringExtra("picture")
+            val isBackCam = result.data?.getBooleanExtra("cam-facing", true)
             imageUri?.let {stringUri ->
                 isBackCam?.let { isBackCam ->
                     cameraViewModel.setImage(
@@ -248,6 +261,20 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    private val launcherIntentGallery = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ){ result ->
+        if(result.resultCode == RESULT_OK){
+            val selectedImage = result.data?.data as Uri
+            selectedImage?.let { uri ->
+                cameraViewModel.setImage(
+                    ImageCaptured(uri = uri, isBackCam = true)
+                )
+            }
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         cameraExecutor.shutdown()
