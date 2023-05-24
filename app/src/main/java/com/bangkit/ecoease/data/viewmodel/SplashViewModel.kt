@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bangkit.ecoease.data.repository.MainRepository
-import com.bangkit.ecoease.helper.generateUUID
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,16 +30,6 @@ class SplashViewModel(private val repository: MainRepository): ViewModel() {
     fun finishedOnBoard(){
         viewModelScope.launch {
             repository.finishOnBoard()
-        }
-    }
-    fun login(){
-        viewModelScope.launch {
-            repository.setToken(generateUUID())
-        }
-    }
-    fun logout(){
-        viewModelScope.launch {
-            repository.setToken("")
         }
     }
 }

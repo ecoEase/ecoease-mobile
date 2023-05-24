@@ -15,8 +15,10 @@ import com.bangkit.ecoease.data.room.model.*
         (Message::class),
         (Garbage::class),
         (User::class),
+        (Order::class),
+        (CrossOrderGarbage::class)
    ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class MainDatabase : RoomDatabase(){
@@ -25,6 +27,8 @@ abstract class MainDatabase : RoomDatabase(){
     abstract fun messageDao(): MessageDao
     abstract fun garbageDao(): GarbageDao
     abstract fun userDao(): UserDao
+    abstract fun orderDao(): OrderDao
+    abstract fun crossOrderGarbageDao(): CrossOrderGarbageDao
 
     companion object{
         @Volatile

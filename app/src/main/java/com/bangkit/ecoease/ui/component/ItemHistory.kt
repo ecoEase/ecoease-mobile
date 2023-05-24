@@ -1,7 +1,6 @@
 package com.bangkit.ecoease.ui.component
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -23,17 +22,14 @@ import com.bangkit.ecoease.R
 import com.bangkit.ecoease.ui.theme.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
-
-enum class StatusItemHistory{
-    NOT_TAKEN, ON_PROCESS, TAKEN, CANCELED
-}
+import com.bangkit.ecoease.data.room.model.StatusOrderItem
 
 @Composable
 fun ItemHistory(
     items: List<String>,
     date: String,
     totalPrice: String,
-    statusItemHistory: StatusItemHistory,
+    statusItemHistory: StatusOrderItem,
     onClickDetail: () -> Unit,
     modifier: Modifier = Modifier
 ){
@@ -41,10 +37,10 @@ fun ItemHistory(
         border = BorderStroke(
             width = 1.dp,
             color = when(statusItemHistory){
-                StatusItemHistory.NOT_TAKEN -> BlueSecondary
-                StatusItemHistory.ON_PROCESS -> GreenSecondary
-                StatusItemHistory.TAKEN -> GreenPrimary
-                StatusItemHistory.CANCELED -> OrangeAccent
+                StatusOrderItem.NOT_TAKEN -> BlueSecondary
+                StatusOrderItem.ON_PROCESS -> GreenSecondary
+                StatusOrderItem.TAKEN -> GreenPrimary
+                StatusOrderItem.CANCELED -> OrangeAccent
             }
         ),
         shape = RoundedCornerShape(16.dp)
@@ -91,7 +87,7 @@ fun ItemHistory(
                 Box(modifier = Modifier.width(16.dp))
                 StatusOrder(statusItemHistory = statusItemHistory)
                 Box(modifier = Modifier.weight(1f))
-                PillWidget(color = MaterialTheme.colors.secondary, text = stringResource(R.string.detail), textColor = MaterialTheme.colors.onBackground, modifier = Modifier.clickable { onClickDetail() })
+                PillWidget(color = MaterialTheme.colors.primary, text = stringResource(R.string.detail), textColor = MaterialTheme.colors.onBackground, modifier = Modifier.clickable { onClickDetail() })
             }
         }
     }
@@ -99,15 +95,15 @@ fun ItemHistory(
 
 @Composable
 fun StatusOrder(
-    statusItemHistory: StatusItemHistory,
+    statusItemHistory: StatusOrderItem,
     modifier: Modifier = Modifier
 ){
     val animatedColor by animateColorAsState(
         targetValue = when(statusItemHistory){
-            StatusItemHistory.NOT_TAKEN -> BlueSecondary
-            StatusItemHistory.ON_PROCESS -> GreenSecondary
-            StatusItemHistory.TAKEN -> GreenPrimary
-            StatusItemHistory.CANCELED -> OrangeAccent
+            StatusOrderItem.NOT_TAKEN -> BlueSecondary
+            StatusOrderItem.ON_PROCESS -> GreenSecondary
+            StatusOrderItem.TAKEN -> GreenPrimary
+            StatusOrderItem.CANCELED -> OrangeAccent
         },
         animationSpec = tween(200)
     )
@@ -115,16 +111,16 @@ fun StatusOrder(
         color = animatedColor,
         text =
             when(statusItemHistory){
-                StatusItemHistory.NOT_TAKEN -> {
+                StatusOrderItem.NOT_TAKEN -> {
                     stringResource(R.string.order_not_taken)
                 }
-                StatusItemHistory.ON_PROCESS -> {
+                StatusOrderItem.ON_PROCESS -> {
                     stringResource(R.string.order_on_process)
                 }
-                StatusItemHistory.TAKEN -> {
+                StatusOrderItem.TAKEN -> {
                     stringResource(R.string.order_taken)
                 }
-                StatusItemHistory.CANCELED -> {
+                StatusOrderItem.CANCELED -> {
                     stringResource(R.string.order_canceled)
                 }
             },
@@ -155,7 +151,7 @@ fun PillWidget(
 fun ItemHistoryPreview(){
     EcoEaseTheme() {
         Column(Modifier.padding(16.dp)) {
-            ItemHistory(items = listOf("test", "test"), statusItemHistory = StatusItemHistory.NOT_TAKEN, date = "20-02-2020", totalPrice = "12000", onClickDetail = { })
+            ItemHistory(items = listOf("test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test", "test",), statusItemHistory = StatusOrderItem.NOT_TAKEN, date = "20-02-2020", totalPrice = "12000", onClickDetail = { })
         }
     }
 }

@@ -70,6 +70,7 @@ class MainActivity : ComponentActivity() {
         val orderViewModel = ViewModelFactory(Injection.provideInjection(this)).create(OrderViewModel::class.java)
         val garbageViewModel = ViewModelFactory(Injection.provideInjection(this)).create(GarbageViewModel::class.java)
         val addressViewModel = ViewModelFactory(Injection.provideInjection(this)).create(AddressViewModel::class.java)
+        val authViewModel = ViewModelFactory(Injection.provideInjection(this)).create(AuthViewModel::class.java)
 
         installSplashScreen().setKeepOnScreenCondition{
             splashViewModel.isLoading.value
@@ -178,17 +179,18 @@ class MainActivity : ComponentActivity() {
                                 OrderHistoryScreen(
                                     orderHistoryState = orderViewModel.orderHistoryState,
                                     loadOrderHistory = { orderViewModel.loadOrderHistory() },
+                                    reloadOrderHistory = { orderViewModel.reloadOrderHistory() },
                                     navHostController = navController
                                 )
                             }
                             composable(Screen.Profile.route){
-                                ProfileScreen(navHostController = navController, logoutAction = { splashViewModel.logout() })
+                                ProfileScreen(navHostController = navController, logoutAction = { authViewModel.logout() })
                             }
                             composable(Screen.Map.route){
                                 MapScreen()
                             }
                             composable(Screen.Auth.route){
-                                AuthScreen(navHostController = navController, loginAction = { splashViewModel.login() })
+                                AuthScreen(navHostController = navController, loginAction = { authViewModel.login() })
                             }
                             composable(Screen.Register.route){
                                 RegisterScreen(navHostController = navController)
@@ -198,11 +200,15 @@ class MainActivity : ComponentActivity() {
                                     navHostController = navController,
                                     orderStateFlow = orderViewModel.orderState,
                                     selectedAddressStateFlow = addressViewModel.selectedAddress,
+                                    listGarbageFlow = garbageViewModel.garbageState,
+                                    loadListGarbage = { garbageViewModel.getAllGarbage() },
+                                    reloadListGarbage = { garbageViewModel.reloadGarbage() },
                                     onLoadSelectedAddress = { addressViewModel.loadSelectedAddress() },
                                     onReloadSelectedAddress = { addressViewModel.reloadSelectedAddress() },
                                     addGarbageOrderSlot = { orderViewModel.addGarbageSlot()},
                                     deleteGarbageSlotAt = { orderViewModel.deleteGarbageAt(it)},
                                     updateGarbageAtIndex = { index, newGarbage -> orderViewModel.updateGarbage(index, newGarbage) },
+                                    onMakeOrder = { listGarbage, totalTransaction -> orderViewModel.makeOrder(listGarbage, totalTransaction) },
                                     onAcceptResetOrder = {resetOrder()}
                                 ) }
                             composable(Screen.ChangeAddress.route){

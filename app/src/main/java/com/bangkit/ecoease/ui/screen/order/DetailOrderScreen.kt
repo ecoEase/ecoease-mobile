@@ -8,20 +8,18 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.model.Garbage
 import com.bangkit.ecoease.data.model.GarbageAdded
+import com.bangkit.ecoease.data.room.model.StatusOrderItem
 import com.bangkit.ecoease.helper.generateUUID
 import com.bangkit.ecoease.ui.component.*
 import com.bangkit.ecoease.ui.theme.DarkGrey
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
-import com.bangkit.ecoease.ui.theme.LightGrey
 
 @Composable
 fun DetailOrderScreen(
@@ -34,7 +32,7 @@ fun DetailOrderScreen(
 
     val garbages = listOf<GarbageAdded>(
         GarbageAdded(
-            garbage = Garbage(id = generateUUID(), imageUrl = "", name = "kaleng", price = 700),
+            garbage = com.bangkit.ecoease.data.room.model.Garbage(id = generateUUID(), imageUrl = "", name = "kaleng", price = 700),
             amount = 2,
             totalPrice = 1400
         )
@@ -50,7 +48,7 @@ fun DetailOrderScreen(
         Text(text = stringResource(R.string.status), style = MaterialTheme.typography.body1.copy(
             color = DarkGrey
         ))
-        StatusOrder(statusItemHistory = StatusItemHistory.NOT_TAKEN)
+        StatusOrder(statusItemHistory = StatusOrderItem.NOT_TAKEN)
         Text(text = stringResource(R.string.address_info), style = MaterialTheme.typography.body1.copy(
             color = DarkGrey
         ))

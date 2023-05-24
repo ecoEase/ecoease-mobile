@@ -5,7 +5,7 @@ data class Order(
     val total: Int
 )
 data class GarbageAdded(
-    val garbage: Garbage,
+    val garbage: com.bangkit.ecoease.data.room.model.Garbage,
     val amount: Int,
     val totalPrice: Int
 )

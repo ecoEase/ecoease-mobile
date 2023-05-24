@@ -1,6 +1,7 @@
 package com.bangkit.ecoease.ui.screen.order
 
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -17,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -24,9 +26,9 @@ import androidx.navigation.NavHostController
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.data.model.Address
-import com.bangkit.ecoease.data.model.Garbage
 import com.bangkit.ecoease.data.model.GarbageAdded
 import com.bangkit.ecoease.data.model.Order
+import com.bangkit.ecoease.data.room.model.Garbage
 import com.bangkit.ecoease.helper.generateUUID
 import com.bangkit.ecoease.helper.toCurrency
 import com.bangkit.ecoease.ui.common.UiState
@@ -41,44 +43,22 @@ fun OrderScreen(
     navHostController: NavHostController,
     modifier: Modifier = Modifier,
     orderStateFlow: StateFlow<Order>,
+    listGarbageFlow: StateFlow<UiState<List<Garbage>>>,
+    loadListGarbage: () -> Unit,
+    reloadListGarbage: () -> Unit,
     addGarbageOrderSlot: () -> Unit = {},
     deleteGarbageSlotAt: (Int) -> Unit = {},
     onAcceptResetOrder: () -> Unit = {},
     onLoadSelectedAddress: () -> Unit,
     onReloadSelectedAddress: () -> Unit,
-    selectedAddressStateFlow: StateFlow<UiState<com.bangkit.ecoease.data.room.model.Address?>>,
+    onMakeOrder: (List<Garbage>, Int) -> Unit,
+    selectedAddressStateFlow: StateFlow<UiState<com.bangkit.ecoease.data.room.model.Address>>,
     updateGarbageAtIndex: (Int, GarbageAdded) -> Unit = { _, _, -> },
 ){
-
+    val context = LocalContext.current
     val orderState by orderStateFlow.collectAsState()
     val lazyListState = rememberLazyListState()
 
-//    val dummyAddress = Address(
-//        id = generateUUID(),
-//        name = "alamat 1",
-//        detail = "jalan yang lurus",
-//        district = "Besuki",
-//        city = "Tulungagung"
-//    )
-
-    val listGarbage = listOf(
-        Garbage(
-            id = generateUUID(),
-            imageUrl = "https://images.unsplash.com/photo-1528190336454-13cd56b45b5a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80",
-            name = "Kantong plastik",
-            price = 200
-        ),Garbage(
-            id = generateUUID(),
-            imageUrl = "https://images.unsplash.com/photo-1528190336454-13cd56b45b5a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80",
-            name = "Botol plastik",
-            price = 300
-        ),Garbage(
-            id = generateUUID(),
-            imageUrl = "https://images.unsplash.com/photo-1528190336454-13cd56b45b5a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80",
-            name = "Kaleng",
-            price = 700
-        ),
-    )
 
     var garbageTypes: MutableList<String> by rememberSaveable{ mutableStateOf(mutableListOf()) }
     var addedForm by rememberSaveable { mutableStateOf(0) }
@@ -120,7 +100,7 @@ fun OrderScreen(
                         onLoadSelectedAddress()
                     }
                     is UiState.Success -> {
-                        if(uiState.data == null){
+                        if(!uiState.data.selected){
                             Text("alamat masih kosong")
                             RoundedButton(text = "pilih alamat",  onClick = { navHostController.navigate(Screen.ChangeAddress.route) })
                         }else{
@@ -173,22 +153,32 @@ fun OrderScreen(
                         val initialGarbagePrice = addedGarbage?.garbage?.price
                         val initialGarbageTotalPrice = addedGarbage?.totalPrice
 
-                        AddGarbageForm(
-                            initSelected = initialGarbageName,
-                            initAmount = initialGarbageAmount,
-                            initPrice = initialGarbagePrice,
-                            initTotalPrice = initialGarbageTotalPrice,
-                            listGarbage = listGarbage,
-                            onDelete = {
-                                garbageTypes = garbageTypes.filter { element -> element != it} as MutableList<String>
-                                deleteGarbageSlotAt(index)
-                            },
-                            onUpdate = { newUpdateGarbageData ->
-                                updateGarbageAtIndex(index, newUpdateGarbageData)
-                            },
-                            modifier = Modifier
-                                .animateItemPlacement(tween(durationMillis = 100))
-                        )
+                        listGarbageFlow.collectAsState(initial = UiState.Loading).value.let {uiState ->
+                            when(uiState){
+                                is UiState.Loading -> loadListGarbage()
+                                is UiState.Success -> {
+                                    AddGarbageForm(
+                                        initSelected = initialGarbageName,
+                                        initAmount = initialGarbageAmount,
+                                        initPrice = initialGarbagePrice,
+                                        initTotalPrice = initialGarbageTotalPrice,
+                                        listGarbage = uiState.data,
+                                        onDelete = {
+                                            garbageTypes = garbageTypes.filter { element -> element != it} as MutableList<String>
+                                            deleteGarbageSlotAt(index)
+                                        },
+                                        onUpdate = { newUpdateGarbageData ->
+                                            updateGarbageAtIndex(index, newUpdateGarbageData)
+                                        },
+                                        modifier = Modifier
+                                            .animateItemPlacement(tween(durationMillis = 100))
+                                    )
+                                }
+                                is UiState.Error -> ErrorHandler(
+                                    errorText = uiState.errorMessage,
+                                    onReload = { reloadListGarbage() })
+                            }
+                        }
                     }
                 }
             }
@@ -196,15 +186,23 @@ fun OrderScreen(
         BottomSheet(
             label = "Total",
             actionName = "buat order",
-            onActionButtonClicked = { openDialog = true },
+            onActionButtonClicked = {
+                if(orderState.garbageList.contains(null)) {//prevent null value when user make new order
+                    Toast.makeText(context, "Masih ada kolom sampah yg kosong, isi atau hapus kolom terlebih dahulu", Toast.LENGTH_SHORT).show()
+                }else{
+                    openDialog = true
+                }
+            },
             information = "Rp${orderState.total.toCurrency()}",
             isActive = orderState.total > 0,
             modifier = Modifier.align(Alignment.BottomCenter)
         )
         
         DialogBox(text = "Apakah anda sudah yakin?", isOpen = openDialog, onDissmiss = { openDialog = false }, onAccept = {
+
             onAcceptResetOrder()
             navHostController.navigate(Screen.OrderSuccess.route)
+            onMakeOrder(orderState.garbageList.map { it!!.garbage }, orderState.total)
         })
         DialogBox(text = "Apakah anda yakin ingin membatalkan order anda", onDissmiss = { openDialogResetOrder = false }, onAccept = { onAcceptResetOrder() }, isOpen = openDialogResetOrder)
     }

@@ -6,13 +6,15 @@ import com.bangkit.ecoease.data.datastore.DataStorePreferences
 import com.bangkit.ecoease.data.dummy.AddressDummy
 import com.bangkit.ecoease.data.dummy.GarbageDummy
 import com.bangkit.ecoease.data.dummy.OrderHistoryDummy
-import com.bangkit.ecoease.data.room.model.Garbage
+import com.bangkit.ecoease.data.dummy.UserDummy
 import com.bangkit.ecoease.data.model.ImageCaptured
 import com.bangkit.ecoease.data.model.OrderHistory
-import com.bangkit.ecoease.data.room.model.Address
 import com.bangkit.ecoease.data.room.database.MainDatabase
+import com.bangkit.ecoease.data.room.model.*
+import com.bangkit.ecoease.helper.generateUUID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 
 class MainRepository(private val datastore: DataStorePreferences, private val roomDatabase: MainDatabase) {
@@ -35,6 +37,24 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
     suspend fun setToken(newToken: String){
         datastore.setToken(newToken)
     }
+    //USER
+    suspend fun setUser(){
+        try {
+            val response = UserDummy.get()
+            roomDatabase.userDao().deleteAll()
+            roomDatabase.userDao().addUser(response)
+        }catch (e: Exception){
+            throw e
+        }
+    }
+    suspend fun resetUser(){
+        try {
+            roomDatabase.userDao().deleteAll()
+        }catch (e: Exception){
+            throw e
+        }
+    }
+    fun getUser() : Flow<User> = flowOf(roomDatabase.userDao().getUser())
     //GARBAGE
     suspend fun getAllGarbage(): Flow<List<Garbage>>{
         try {
@@ -52,7 +72,10 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
         return flowOf(roomDatabase.garbageDao().getAllGarbage())
     }
     //ORDER HISTORY
-    fun getAllOrderHistories(): Flow<List<OrderHistory>> = flowOf(OrderHistoryDummy.getOrderHistories())
+    fun getAllOrderHistories(userId: String): Flow<List<OrderWithGarbage>> {
+//            flowOf(OrderHistoryDummy.getOrderHistories())
+        return flowOf(roomDatabase.orderDao().getAllOrderFromUser(userId))
+    }
     //Address
     suspend fun getSavedAddress(): Flow<List<Address>>{
         try {
@@ -77,7 +100,6 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
         AddressDummy.listSavedAddress.remove(address)//this dummy will simulate data from api
         roomDatabase.addressDao().deleteAddress(address)
     }
-
     suspend fun getSelectedAddress(): Flow<Address?>{
         var response: Flow<Address?>
         try {
@@ -87,7 +109,6 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
         }
         return response
     }
-
     suspend fun saveSelectedAddress(address: Address){
         //call api update selected address
 
@@ -111,6 +132,28 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
         }
         roomDatabase.addressDao().updateBatchAddresses(resetSelectedAddresses)
         roomDatabase.addressDao().updateAddress(updatedAddressStatus)
+    }
+    //ORDER
+    suspend fun addNewOrder(garbage: List<Garbage>, user: User, address: Address, totalTransaction: Int){
+        try {
+            val id = generateUUID()
+            val order = Order(
+                id = id,
+                status = StatusOrderItem.NOT_TAKEN,
+                totalTransaction = totalTransaction,
+                userId = user.id,
+                mitraId = "",
+                locationId = generateUUID(),
+                addressId = address.id,
+                created = "now"
+            )
+            roomDatabase.orderDao().addOrder(order)
+            garbage.forEach { item -> roomDatabase.crossOrderGarbageDao().addCrossOrderGarbage(
+                CrossOrderGarbage(orderId = id, garbageId = item.id)
+            ) }
+        }catch (e: Exception){
+            Log.d("TAG", "addNewOrder: $e")
+        }
     }
 
     companion object{

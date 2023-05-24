@@ -22,7 +22,7 @@ interface AddressDao{
     @Query("SELECT * FROM address WHERE id = :id")
     fun getAddress(id: String): Address
 
-    @Query("SELECT * FROM address WHERE selected = true LIMIT 1")
+    @Query("SELECT * FROM address WHERE selected = 1 LIMIT 1")
     fun getSelectedAddress(): Address?
 
     @Query("DELETE FROM address")

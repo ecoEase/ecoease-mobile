@@ -19,8 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.bangkit.ecoease.R
-import com.bangkit.ecoease.data.model.Garbage
 import com.bangkit.ecoease.data.model.GarbageAdded
+import com.bangkit.ecoease.data.room.model.Garbage
 import com.bangkit.ecoease.helper.toCurrency
 import com.bangkit.ecoease.ui.theme.BluePrimary
 import com.bangkit.ecoease.ui.theme.DarkGrey

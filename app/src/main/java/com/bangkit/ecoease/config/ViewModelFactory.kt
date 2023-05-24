@@ -10,11 +10,12 @@ class ViewModelFactory(private val repository: MainRepository): ViewModelProvide
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return when{
-            modelClass.isAssignableFrom(CameraViewModel::class.java) -> CameraViewModel(repository) as T
-            modelClass.isAssignableFrom(OrderViewModel::class.java) -> OrderViewModel(repository) as T
             modelClass.isAssignableFrom(AddressViewModel::class.java) -> AddressViewModel(repository) as T
-            modelClass.isAssignableFrom(SplashViewModel::class.java) -> SplashViewModel(repository) as T
+            modelClass.isAssignableFrom(AuthViewModel::class.java) -> AuthViewModel(repository) as T
+            modelClass.isAssignableFrom(CameraViewModel::class.java) -> CameraViewModel(repository) as T
             modelClass.isAssignableFrom(GarbageViewModel::class.java) -> GarbageViewModel(repository) as T
+            modelClass.isAssignableFrom(OrderViewModel::class.java) -> OrderViewModel(repository) as T
+            modelClass.isAssignableFrom(SplashViewModel::class.java) -> SplashViewModel(repository) as T
             else -> throw java.lang.IllegalArgumentException("Unknown ViewModel class ${modelClass.name}")
         }
     }
