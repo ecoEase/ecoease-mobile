@@ -1,5 +1,6 @@
 package com.bangkit.ecoease.ui.screen
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -21,6 +22,7 @@ import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.Banner
 import com.bangkit.ecoease.ui.component.CardPrice
 import com.bangkit.ecoease.ui.component.ErrorHandler
+import com.bangkit.ecoease.utils.rememberWindowInfo
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable
@@ -31,6 +33,10 @@ fun DashboardScreen(
     navHostController: NavHostController,
     modifier: Modifier = Modifier
 ){
+    val windowInfo = rememberWindowInfo()
+
+    Log.d("Dashboard Screen", "DashboardScreen: $windowInfo")
+
     Column(
         modifier = modifier
             .fillMaxSize()

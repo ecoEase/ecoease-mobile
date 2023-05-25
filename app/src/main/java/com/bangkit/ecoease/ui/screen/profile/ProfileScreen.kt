@@ -20,6 +20,8 @@ import com.bangkit.ecoease.ui.component.AvatarSize
 import com.bangkit.ecoease.ui.component.DialogBox
 import com.bangkit.ecoease.ui.component.TextReadOnly
 import com.bangkit.ecoease.ui.theme.BluePrimary
+import com.bangkit.ecoease.utils.WindowInfo
+import com.bangkit.ecoease.utils.rememberWindowInfo
 
 @Composable
 fun ProfileScreen(
@@ -28,6 +30,26 @@ fun ProfileScreen(
     modifier: Modifier = Modifier
 ){
     var openDialog by remember{ mutableStateOf(false) }
+    val windowInfo = rememberWindowInfo()
+    when(windowInfo.screenWidthInfo){
+        is WindowInfo.WindowType.Compact -> ProfileScreenPortraitContent(
+            openLogoutDialog = { openDialog = true },
+        )
+        else -> ProfileScreenLandscapeContent(
+            openLogoutDialog = { openDialog = true },
+        )
+    }
+    DialogBox(text = stringResource(R.string.logout_confirm), onDissmiss = { openDialog = false }, isOpen = openDialog, onAccept = {
+        logoutAction()
+        navHostController.navigate(Screen.Auth.route)
+    })
+}
+
+@Composable
+fun ProfileScreenPortraitContent(
+    openLogoutDialog: () -> Unit,
+    modifier: Modifier = Modifier,
+){
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -48,12 +70,56 @@ fun ProfileScreen(
         TextReadOnly(label = "No Telp.", text = "082132351498")
         TextReadOnly(label = "Password", text = "082132351498")
         LogoutButton(action = {
-            openDialog = true
+            openLogoutDialog()
         })
-        DialogBox(text = stringResource(R.string.logout_confirm), onDissmiss = { openDialog = false }, isOpen = openDialog, onAccept = {
-            logoutAction()
-            navHostController.navigate(Screen.Auth.route)
-        })
+    }
+}
+
+
+@Composable
+fun ProfileScreenLandscapeContent(
+    openLogoutDialog: () -> Unit,
+    modifier: Modifier = Modifier,
+){
+    Row(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 32.dp)
+//        horizontalAlignment = Alignment.CenterHorizontally,
+//        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Column(
+            modifier = modifier
+                .weight(1f)
+                .padding(horizontal = 32.dp)
+                .padding(top = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Avatar(
+                imageUrl = "https://images.unsplash.com/photo-1528190336454-13cd56b45b5a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80",
+                size = AvatarSize.LARGE
+            )
+            Text(text = "Maya", style = MaterialTheme.typography.h4)
+            Text(text = "maya@gmail.com", style = MaterialTheme.typography.caption.copy(
+                color = BluePrimary
+            ))
+        }
+        Column(
+            modifier = modifier
+                .weight(1f)
+                .padding(horizontal = 32.dp)
+                .padding(top = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            TextReadOnly(label = "Nama", text = "Maya")
+            TextReadOnly(label = "No Telp.", text = "082132351498")
+            TextReadOnly(label = "Password", text = "082132351498")
+            LogoutButton(action = {
+                openLogoutDialog()
+            })
+        }
     }
 }
 

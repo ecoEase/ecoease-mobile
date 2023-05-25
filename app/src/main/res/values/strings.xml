@@ -39,4 +39,5 @@
     <string name="scan_message">Silahkan foto sampah kamu terlebih dahulu.</string>
     <string name="start_scan">mulai scan</string>
     <string name="restart_scan">scan ulang</string>
+    <string name="no_order_history">Belum ada riwayat order.</string>
 </resources>

@@ -28,6 +28,7 @@ import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.data.model.ImageCaptured
 import com.bangkit.ecoease.data.viewmodel.*
 import com.bangkit.ecoease.di.Injection
+import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.*
 import com.bangkit.ecoease.ui.screen.*
 import com.bangkit.ecoease.ui.screen.chat.ChatRoomScreen
@@ -38,6 +39,7 @@ import com.bangkit.ecoease.ui.screen.order.OrderHistoryScreen
 import com.bangkit.ecoease.ui.screen.order.OrderScreen
 import com.bangkit.ecoease.ui.screen.order.OrderSuccessScreen
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -228,11 +230,23 @@ class MainActivity : ComponentActivity() {
                             composable(Screen.OrderSuccess.route){
                                 OrderSuccessScreen(navHostController = navController)
                             }
-                            composable(Screen.DetailOrder.route){
-                                DetailOrderScreen(navHostController = navController)
+                            composable(
+                                route = Screen.DetailOrder.route,
+                                arguments = listOf(navArgument("orderId"){type = NavType.StringType})
+                            ){
+                                val orderId = it.arguments?.getString("orderId") ?: ""
+                                DetailOrderScreen(
+                                    navHostController = navController,
+                                    orderId = orderId,
+                                    orderDetailStateFlow = orderViewModel.detailOrderState,
+                                    onLoadDetailOrder = { id -> orderViewModel.loadDetailOrder(id) },
+                                    onReloadDetailOrder = { orderViewModel.reloadDetailOrder() },
+                                    onUpdateOrderStatus = { order, status -> orderViewModel.updateOrder(order, status) },
+                                    updateOrderStatusState = MutableStateFlow(UiState.Loading),
+                                )
                             }
                             composable(Screen.UsersChats.route){
-                                UsersChatsScreen(navHostController = navController)
+                                UsersChatsScreen(navHostController = navController, onLoadChatRooms = {})
                             }
                             composable(
                                 route = "${Screen.ChatRoom.route}?roomId={roomId}",

@@ -15,10 +15,12 @@ sealed class Screen(val route: String, val icon: ImageVector){
     object Auth : Screen(route = "auth", icon = Icons.Default.Login)
     object Register : Screen(route = "register", icon = Icons.Default.AppRegistration)
     object Order : Screen(route = "order", icon = Icons.Default.Reorder)
-    object DetailOrder : Screen(route = "detail order", icon = Icons.Default.Reorder)
-    object ChangeAddress : Screen(route = "change address", icon = Icons.Default.Reorder)
-    object OrderSuccess : Screen(route = "order success", icon = Icons.Default.Reorder)
-    object UsersChats : Screen(route = "users chats", icon = Icons.Default.Chat)
+    object DetailOrder : Screen(route = "detail_order/{orderId}", icon = Icons.Default.Reorder){
+        fun createRoute(orderId: String) = "detail_order/$orderId"
+    }
+    object ChangeAddress : Screen(route = "change_address", icon = Icons.Default.Reorder)
+    object OrderSuccess : Screen(route = "order_success", icon = Icons.Default.Reorder)
+    object UsersChats : Screen(route = "users_chats", icon = Icons.Default.Chat)
     object ChatRoom : Screen(route = "chat room", icon = Icons.Default.Chat){
         private var title: String? = null
         fun setTitle(newTitle: String?){

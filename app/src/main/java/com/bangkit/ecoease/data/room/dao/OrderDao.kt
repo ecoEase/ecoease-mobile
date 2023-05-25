@@ -26,4 +26,8 @@ interface OrderDao {
     @Transaction
     @Query("SELECT * FROM orders WHERE mitra_id = :mitraId")
     fun getAllOrderFromMitra(mitraId: String) : List<OrderWithGarbage>
+
+    @Transaction
+    @Query("SELECT * FROM orders WHERE id = :id")
+    fun getDetailOrder(id: String) : OrderWithGarbage
 }

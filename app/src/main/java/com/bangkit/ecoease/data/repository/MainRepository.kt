@@ -7,11 +7,13 @@ import com.bangkit.ecoease.data.dummy.AddressDummy
 import com.bangkit.ecoease.data.dummy.GarbageDummy
 import com.bangkit.ecoease.data.dummy.OrderHistoryDummy
 import com.bangkit.ecoease.data.dummy.UserDummy
+import com.bangkit.ecoease.data.firebase.FireBaseRealtimeDatabase
 import com.bangkit.ecoease.data.model.ImageCaptured
 import com.bangkit.ecoease.data.model.OrderHistory
 import com.bangkit.ecoease.data.room.database.MainDatabase
 import com.bangkit.ecoease.data.room.model.*
 import com.bangkit.ecoease.helper.generateUUID
+import com.google.android.gms.tasks.Task
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -85,7 +87,7 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
                roomDatabase.addressDao().addAddress(address)
            }
         }catch (e: Exception){
-            Log.d(TAG, "getSavedAddress: ${e.message}")
+            Log.d("TAG", "getSavedAddress: ${e.message}")
             if(roomDatabase.addressDao().getAllAddress().isEmpty()){
                 throw e
             }
@@ -154,6 +156,42 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
         }catch (e: Exception){
             Log.d("TAG", "addNewOrder: $e")
         }
+    }
+    suspend fun updateOrderStatus(order: Order, statusOrderItem: StatusOrderItem): Flow<Boolean>{
+        try {
+            roomDatabase.orderDao().updateOrder(order.copy(status = statusOrderItem))
+            return flowOf(true)
+        }catch (e: Exception){
+            throw e
+        }
+    }
+
+    // TODO: UPDATE ALL REPOSITORY METHOD WHEN API IS READY
+    suspend fun getOrderDetail(orderId: String): Flow<OrderWithGarbage> {
+        try {
+            //fetch api
+            //delete all local data
+            //insert to local
+        }catch (e: Exception){
+            throw e
+        }
+        return flowOf(roomDatabase.orderDao().getDetailOrder(orderId))
+    }
+    //Chat
+    suspend fun getChatRooms(referenceTask: Task<List<String>>): Flow<List<String>>{
+//        val reference = FireBaseRealtimeDatabase.getAllRoomsKey()
+        var response: List<String> = listOf()
+        referenceTask.addOnCompleteListener{
+            if(it.isSuccessful){
+                Log.d("UsersChat", "UsersChatsScreen: ${ it.result}")
+                response = it.result
+            }
+            if(it.isCanceled){
+                throw Exception(it.exception?.message)
+            }
+        }
+
+        return flowOf(response)
     }
 
     companion object{

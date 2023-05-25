@@ -11,14 +11,14 @@ object FireBaseRealtimeDatabase{
     private val db: FirebaseDatabase = FirebaseDatabase.getInstance (BuildConfig.firebase_realtime_db_url)
     private val listRooms = mutableListOf<String>()
     fun createMessageRef(ref: String): DatabaseReference = db.reference.child(ref)
-    fun getAllRoomsKey(): Task<List<String?>>{
-        val taskCompletionSource = TaskCompletionSource<List<String?>>()
+    fun getAllRoomsKey(): Task<List<String>>{
+        val taskCompletionSource = TaskCompletionSource<List<String>>()
         db.reference.get().addOnCompleteListener{ task ->
             if(task.isSuccessful){
                 val result = task.result
                 result?.let {
                     val final = result.children.map { snapshot ->
-                        snapshot.key
+                        snapshot.key ?: ""
                     }
                     taskCompletionSource.setResult(final)
                 }

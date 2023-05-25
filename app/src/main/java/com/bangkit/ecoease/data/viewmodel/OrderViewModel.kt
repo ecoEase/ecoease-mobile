@@ -10,6 +10,7 @@ import com.bangkit.ecoease.data.repository.MainRepository
 import com.bangkit.ecoease.data.room.model.Address
 import com.bangkit.ecoease.data.room.model.Garbage
 import com.bangkit.ecoease.data.room.model.OrderWithGarbage
+import com.bangkit.ecoease.data.room.model.StatusOrderItem
 import com.bangkit.ecoease.ui.common.UiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -19,9 +20,13 @@ class OrderViewModel(private val repository: MainRepository): ViewModel() {
     private val garbage = MutableStateFlow<MutableList<GarbageAdded?>>(mutableListOf())
     private val _orderState = MutableStateFlow(Order(garbageList = listOf(), total = 0))
     private val _orderHistoryState = MutableStateFlow<UiState<List<OrderWithGarbage>>>(UiState.Loading)
+    private val _updateOrderStatusState = MutableStateFlow<UiState<Boolean>>(UiState.Loading)
+    private val _detailOrderState = MutableStateFlow<UiState<OrderWithGarbage>>(UiState.Loading)
 
     val orderState: StateFlow<Order> = _orderState
     val orderHistoryState: StateFlow<UiState<List<OrderWithGarbage>>> = _orderHistoryState
+    val updateOrderStatusState: StateFlow<UiState<Boolean>> = _updateOrderStatusState
+    val detailOrderState: StateFlow<UiState<OrderWithGarbage>> = _detailOrderState
 
     private fun calculateCurrentOrder(){
         val currentTotal = garbage.value.map { garbage ->
@@ -36,6 +41,7 @@ class OrderViewModel(private val repository: MainRepository): ViewModel() {
         _orderState.value = Order(garbageList = listOf(), total = 0)
     }
 
+    // TODO: FIX the  duplicate garbage order
     fun addGarbageSlot(){
         garbage.value.add(null)
         calculateCurrentOrder()
@@ -78,9 +84,6 @@ class OrderViewModel(private val repository: MainRepository): ViewModel() {
             try {
                 //get user data
                 val user = repository.getUser()
-//                Log.d(OrderViewModel::class.java.simpleName, "user: ${user.first()}")
-//                Log.d(OrderViewModel::class.java.simpleName, "list garbage: $listGarbage")
-//                Log.d(OrderViewModel::class.java.simpleName, "total: $totalTransaction")
                 //get address
                 val selectedAddress = repository.getSelectedAddress()
                 //add new order
@@ -95,6 +98,39 @@ class OrderViewModel(private val repository: MainRepository): ViewModel() {
                 }
             }catch (e: Exception){
                 Log.d("TAG", "makeOrder: ${e.message}")
+            }
+        }
+    }
+
+    fun loadDetailOrder(orderId: String){
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                repository.getOrderDetail(orderId).catch {
+                    _detailOrderState.value = UiState.Error(it.message.toString())
+                }.collect{data ->
+                    _detailOrderState.value = UiState.Success(data)
+                }
+            }catch (e: Exception){
+                _detailOrderState.value = UiState.Error(e.message.toString())
+            }
+        }
+    }
+
+    fun reloadDetailOrder(){
+        _detailOrderState.value = UiState.Loading
+    }
+
+    fun updateOrder(order: com.bangkit.ecoease.data.room.model.Order, statusOrderItem: StatusOrderItem){
+        viewModelScope.launch(Dispatchers.IO){
+            try {
+                repository.updateOrderStatus(order = order, statusOrderItem = statusOrderItem).catch {
+                    _updateOrderStatusState.value = UiState.Error(it.message.toString())
+                }.collect{
+                    _updateOrderStatusState.value = UiState.Success(it)
+                }
+            }catch (e: Exception){
+                Log.d("TAG", "updateOrder: ${e.message}")
+                _updateOrderStatusState.value = UiState.Error(e.message.toString())
             }
         }
     }

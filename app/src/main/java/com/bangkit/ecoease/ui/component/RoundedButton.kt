@@ -29,6 +29,7 @@ fun RoundedButton(
     type: RoundedButtonType = RoundedButtonType.PRIMARY,
     onClick: () -> Unit = {},
     trailIcon: ImageVector? = null,
+    enabled: Boolean = true,
     modifier: Modifier = Modifier
 ){
     Button(
@@ -37,6 +38,7 @@ fun RoundedButton(
             .clip(RoundedCornerShape(32.dp))
             .widthIn(min = 100.dp)
         ,
+        enabled = enabled,
         shape = RoundedCornerShape(32.dp),
         colors = ButtonDefaults.buttonColors(
             backgroundColor = if (type == RoundedButtonType.PRIMARY) MaterialTheme.colors.primary else MaterialTheme.colors.secondary,
