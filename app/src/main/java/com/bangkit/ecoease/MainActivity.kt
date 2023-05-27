@@ -73,6 +73,7 @@ class MainActivity : ComponentActivity() {
         val garbageViewModel = ViewModelFactory(Injection.provideInjection(this)).create(GarbageViewModel::class.java)
         val addressViewModel = ViewModelFactory(Injection.provideInjection(this)).create(AddressViewModel::class.java)
         val authViewModel = ViewModelFactory(Injection.provideInjection(this)).create(AuthViewModel::class.java)
+        val userViewModel = ViewModelFactory(Injection.provideInjection(this)).create(UserViewModel::class.java)
 
         installSplashScreen().setKeepOnScreenCondition{
             splashViewModel.isLoading.value
@@ -186,7 +187,13 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             composable(Screen.Profile.route){
-                                ProfileScreen(navHostController = navController, logoutAction = { authViewModel.logout() })
+                                ProfileScreen(
+                                    navHostController = navController,
+                                    userStateFlow = userViewModel.user,
+                                    onLoadUser = { userViewModel.getUser() },
+                                    onReloadUser = { userViewModel.reloadUser() },
+                                    logoutAction = { authViewModel.logout() }
+                                )
                             }
                             composable(Screen.Map.route){
                                 MapScreen()
@@ -246,7 +253,10 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             composable(Screen.UsersChats.route){
-                                UsersChatsScreen(navHostController = navController, onLoadChatRooms = {})
+                                UsersChatsScreen(
+                                    navHostController = navController,
+                                    onLoadChatRooms = {}
+                                )
                             }
                             composable(
                                 route = "${Screen.ChatRoom.route}?roomId={roomId}",

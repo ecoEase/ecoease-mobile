@@ -48,6 +48,7 @@ fun BottomSheet(
                     fontWeight = FontWeight.Bold
                 ))
             }
+            Spacer(modifier = Modifier.weight(1f))
             RoundedButton(text = actionName, onClick = onActionButtonClicked, type = RoundedButtonType.SECONDARY, modifier = Modifier.align(Alignment.End))
         }
     }

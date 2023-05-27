@@ -38,20 +38,46 @@ data class Order(
     @ColumnInfo(name = "created")
     val created: String,
 ) : Parcelable
+//data class GarbageWithQty(
+//    @Embedded
+//    val garbage: Garbage,
+//// TODO: amount of order problem
+//    @Relation(
+//        parentColumn = "id",
+//        entityColumn = "garbageId",
+//    )
+//    val orderInfo: CrossOrderGarbage,
+//)
+//
+//data class OrderWithGarbage(
+//    @Embedded
+//    val order: Order,
+//
+//    @Relation(
+//        parentColumn = "id",
+//        entity = Garbage::class,
+//        entityColumn = "id",
+//        associateBy = Junction(
+//            value = CrossOrderGarbage::class,
+//            parentColumn = "orderId",
+//            entityColumn = "garbageId"
+//        )
+//    )
+//    val items: List<GarbageWithQty>
+//)
 
-data class OrderWithGarbage(
+
+data class GarbageTransactionWithDetail(
+    @Embedded
+    val orderInfo: CrossOrderGarbage,
+
+    @Relation(parentColumn = "garbageId", entity = Garbage::class, entityColumn = "id")
+    val garbage: Garbage
+)
+data class OrderWithDetailTransaction(
     @Embedded
     val order: Order,
 
-    @Relation(
-        parentColumn = "id",
-        entity = Garbage::class,
-        entityColumn = "id",
-        associateBy = Junction(
-            value = CrossOrderGarbage::class,
-            parentColumn = "orderId",
-            entityColumn = "garbageId"
-        )
-    )
-    val garbage: List<Garbage>
+    @Relation(parentColumn = "id", entity = CrossOrderGarbage::class, entityColumn = "orderId")
+    val items: List<GarbageTransactionWithDetail>,
 )

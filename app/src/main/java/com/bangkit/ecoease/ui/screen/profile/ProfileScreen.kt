@@ -2,6 +2,7 @@ package com.bangkit.ecoease.ui.screen
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -15,29 +16,45 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.Screen
-import com.bangkit.ecoease.ui.component.Avatar
-import com.bangkit.ecoease.ui.component.AvatarSize
-import com.bangkit.ecoease.ui.component.DialogBox
-import com.bangkit.ecoease.ui.component.TextReadOnly
+import com.bangkit.ecoease.data.room.model.User
+import com.bangkit.ecoease.ui.common.UiState
+import com.bangkit.ecoease.ui.component.*
 import com.bangkit.ecoease.ui.theme.BluePrimary
 import com.bangkit.ecoease.utils.WindowInfo
 import com.bangkit.ecoease.utils.rememberWindowInfo
+import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun ProfileScreen(
+    userStateFlow: StateFlow<UiState<User>>,
     logoutAction: () -> Unit,
+    onLoadUser: () -> Unit,
+    onReloadUser: () -> Unit,
     navHostController: NavHostController,
     modifier: Modifier = Modifier
 ){
     var openDialog by remember{ mutableStateOf(false) }
     val windowInfo = rememberWindowInfo()
-    when(windowInfo.screenWidthInfo){
-        is WindowInfo.WindowType.Compact -> ProfileScreenPortraitContent(
-            openLogoutDialog = { openDialog = true },
-        )
-        else -> ProfileScreenLandscapeContent(
-            openLogoutDialog = { openDialog = true },
-        )
+    userStateFlow.collectAsState(initial = UiState.Loading).value.let { uiState ->
+        when(uiState){
+            is UiState.Loading -> {
+                CircularProgressIndicator()
+                onLoadUser()
+            }
+            is UiState.Success -> {
+                when(windowInfo.screenWidthInfo){
+                    is WindowInfo.WindowType.Compact -> ProfileScreenPortraitContent(
+                        openLogoutDialog = { openDialog = true },
+                    )
+                    else -> ProfileScreenLandscapeContent(
+                        openLogoutDialog = { openDialog = true },
+                    )
+                }
+            }
+            is UiState.Error -> {
+                ErrorHandler(errorText = uiState.errorMessage, onReload = { onReloadUser() })
+            }
+        }
     }
     DialogBox(text = stringResource(R.string.logout_confirm), onDissmiss = { openDialog = false }, isOpen = openDialog, onAccept = {
         logoutAction()

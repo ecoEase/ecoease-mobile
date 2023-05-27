@@ -2,10 +2,9 @@ package com.bangkit.ecoease.ui.screen.order
 
 import android.util.Log
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
@@ -21,11 +20,15 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.Screen
+import com.bangkit.ecoease.data.room.model.OrderWithDetailTransaction
 import com.bangkit.ecoease.data.room.model.OrderWithGarbage
+import com.bangkit.ecoease.helper.toCurrency
 import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.ErrorHandler
 import com.bangkit.ecoease.ui.component.ItemHistory
 import com.bangkit.ecoease.ui.theme.DarkGrey
+import com.bangkit.ecoease.utils.WindowInfo
+import com.bangkit.ecoease.utils.rememberWindowInfo
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -33,7 +36,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun OrderHistoryScreen(
-    orderHistoryState: StateFlow<UiState<List<OrderWithGarbage>>>,
+    orderHistoryState: StateFlow<UiState<List<OrderWithDetailTransaction>>>,
     loadOrderHistory: () -> Unit,
     reloadOrderHistory: () -> Unit,
     navHostController: NavHostController,
@@ -50,6 +53,7 @@ fun OrderHistoryScreen(
         refreshing = false
     }
     val pullRefreshState = rememberPullRefreshState(refreshing, ::refresh)
+    val windowInfo = rememberWindowInfo()
 
     Box(modifier = modifier
         .fillMaxSize()
@@ -68,20 +72,21 @@ fun OrderHistoryScreen(
                         color = DarkGrey
                     ))
 
-                    LazyColumn(
+                    LazyVerticalGrid(
+                        columns =  GridCells.Fixed( if(windowInfo.screenWidthInfo == WindowInfo.WindowType.Compact) 1 else 2),
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(horizontal = 32.dp)
                         ,
                         contentPadding = PaddingValues(top = 32.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ){
                         items(uiState.data){ item ->
-
                             ItemHistory(
-                                items = item.garbage.map { it.name },
+                                items = item.items.map { it.garbage.name},
                                 date = item.order.created,
-                                totalPrice = item.order.totalTransaction.toString(),
+                                totalPrice = item.order.totalTransaction.toCurrency(),
                                 statusItemHistory = item.order.status,
                                 onClickDetail = { navHostController.navigate(Screen.DetailOrder.createRoute(item.order.id))
                                 }

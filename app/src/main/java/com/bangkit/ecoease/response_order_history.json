@@ -1,0 +1,123 @@
+[
+  {
+    "items": [
+      {
+        "garbage": {
+          "id": "35def5b2-5dad-4f14-a395-2955ab0a9697",
+          "imageUrl": "https://images.unsplash.com/photo-1528190336454-13cd56b45b5a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80",
+          "name": "Botol Kaca",
+          "price": 800
+        },
+        "orderInfo": {
+          "garbageId": "35def5b2-5dad-4f14-a395-2955ab0a9697",
+          "orderId": "2981729d-527c-420c-8b86-a9bc169dedd5",
+          "qty": 4
+        }
+      }
+    ],
+    "order": {
+      "addressId": "a67f6405-54ed-4844-8e4b-f82b9c30596f",
+      "created": "now",
+      "id": "2981729d-527c-420c-8b86-a9bc169dedd5",
+      "locationId": "1edff129-1a97-4a31-8916-8d13d354ce9b",
+      "mitraId": "",
+      "status": "NOT_TAKEN",
+      "totalTransaction": 800,
+      "userId": "7af782b4-778b-4bff-9843-87bdcf898fb9"
+    }
+  },
+  {
+    "items": [
+      {
+        "garbage": {
+          "id": "35def5b2-5dad-4f14-a395-2955ab0a9693",
+          "imageUrl": "https://images.unsplash.com/photo-1528190336454-13cd56b45b5a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80",
+          "name": "Kaleng",
+          "price": 500
+        },
+        "orderInfo": {
+          "garbageId": "35def5b2-5dad-4f14-a395-2955ab0a9693",
+          "orderId": "73f5790b-72f0-46a7-907a-116863bf1ab0",
+          "qty": 8
+        }
+      },
+      {
+        "garbage": {
+          "id": "35def5b2-5dad-4f14-a395-2955ab0a9694",
+          "imageUrl": "https://images.unsplash.com/photo-1528190336454-13cd56b45b5a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80",
+          "name": "Botol Plastik",
+          "price": 300
+        },
+        "orderInfo": {
+          "garbageId": "35def5b2-5dad-4f14-a395-2955ab0a9694",
+          "orderId": "73f5790b-72f0-46a7-907a-116863bf1ab0",
+          "qty": 6
+        }
+      }
+    ],
+    "order": {
+      "addressId": "a67f6405-54ed-4844-8e4b-f82b9c30596f",
+      "created": "now",
+      "id": "73f5790b-72f0-46a7-907a-116863bf1ab0",
+      "locationId": "b6f71329-d63c-4a0d-a1e4-6eb73d263c3b",
+      "mitraId": "",
+      "status": "NOT_TAKEN",
+      "totalTransaction": 1600,
+      "userId": "7af782b4-778b-4bff-9843-87bdcf898fb9"
+    }
+  },
+  {
+    "items": [
+      {
+        "garbage": {
+          "id": "35def5b2-5dad-4f14-a395-2955ab0a9693",
+          "imageUrl": "https://images.unsplash.com/photo-1528190336454-13cd56b45b5a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80",
+          "name": "Kaleng",
+          "price": 500
+        },
+        "orderInfo": {
+          "garbageId": "35def5b2-5dad-4f14-a395-2955ab0a9693",
+          "orderId": "036822e1-f2d9-4eba-b6a5-1c18efe07289",
+          "qty": 6
+        }
+      }
+    ],
+    "order": {
+      "addressId": "a67f6405-54ed-4844-8e4b-f82b9c30596f",
+      "created": "now",
+      "id": "036822e1-f2d9-4eba-b6a5-1c18efe07289",
+      "locationId": "68ca9d6f-1a52-4847-9f93-71bb056fff3c",
+      "mitraId": "",
+      "status": "NOT_TAKEN",
+      "totalTransaction": 500,
+      "userId": "7af782b4-778b-4bff-9843-87bdcf898fb9"
+    }
+  },
+  {
+    "items": [
+      {
+        "garbage": {
+          "id": "35def5b2-5dad-4f14-a395-2955ab0a9697",
+          "imageUrl": "https://images.unsplash.com/photo-1528190336454-13cd56b45b5a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80",
+          "name": "Botol Kaca",
+          "price": 800
+        },
+        "orderInfo": {
+          "garbageId": "35def5b2-5dad-4f14-a395-2955ab0a9697",
+          "orderId": "82bd12fe-8de9-4f62-bc75-b25dab7ac9fc",
+          "qty": 3
+        }
+      }
+    ],
+    "order": {
+      "addressId": "a67f6405-54ed-4844-8e4b-f82b9c30596f",
+      "created": "now",
+      "id": "82bd12fe-8de9-4f62-bc75-b25dab7ac9fc",
+      "locationId": "a6862dbf-eb54-4c3c-a7d1-33bec12da0e3",
+      "mitraId": "",
+      "status": "NOT_TAKEN",
+      "totalTransaction": 800,
+      "userId": "7af782b4-778b-4bff-9843-87bdcf898fb9"
+    }
+  }
+]

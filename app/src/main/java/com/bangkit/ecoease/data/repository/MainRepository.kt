@@ -14,10 +14,13 @@ import com.bangkit.ecoease.data.room.database.MainDatabase
 import com.bangkit.ecoease.data.room.model.*
 import com.bangkit.ecoease.helper.generateUUID
 import com.google.android.gms.tasks.Task
+import com.google.gson.Gson
+import com.google.gson.JsonArray
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlin.random.Random
 
 class MainRepository(private val datastore: DataStorePreferences, private val roomDatabase: MainDatabase) {
     private var capturedImageUri: ImageCaptured? = null
@@ -74,8 +77,13 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
         return flowOf(roomDatabase.garbageDao().getAllGarbage())
     }
     //ORDER HISTORY
-    fun getAllOrderHistories(userId: String): Flow<List<OrderWithGarbage>> {
+    fun getAllOrderHistories(userId: String): Flow<List<OrderWithDetailTransaction>> {
 //            flowOf(OrderHistoryDummy.getOrderHistories())
+        val orderWithDetailTransaction = roomDatabase.orderDao().getAllOrdersWithTransaction()
+        val gson =  Gson()
+        val json = gson.toJsonTree(orderWithDetailTransaction)
+
+        Log.d("TAG", "getAllOrderHistories: $json")
         return flowOf(roomDatabase.orderDao().getAllOrderFromUser(userId))
     }
     //Address
@@ -151,7 +159,7 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
             )
             roomDatabase.orderDao().addOrder(order)
             garbage.forEach { item -> roomDatabase.crossOrderGarbageDao().addCrossOrderGarbage(
-                CrossOrderGarbage(orderId = id, garbageId = item.id)
+                CrossOrderGarbage(orderId = id, garbageId = item.id, qty = Random.nextInt(1, 10))
             ) }
         }catch (e: Exception){
             Log.d("TAG", "addNewOrder: $e")
@@ -167,7 +175,7 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
     }
 
     // TODO: UPDATE ALL REPOSITORY METHOD WHEN API IS READY
-    suspend fun getOrderDetail(orderId: String): Flow<OrderWithGarbage> {
+    suspend fun getOrderDetail(orderId: String): Flow<OrderWithDetailTransaction> {
         try {
             //fetch api
             //delete all local data
@@ -175,6 +183,7 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
         }catch (e: Exception){
             throw e
         }
+
         return flowOf(roomDatabase.orderDao().getDetailOrder(orderId))
     }
     //Chat

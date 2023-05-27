@@ -74,7 +74,7 @@ fun ItemHistory(
                     ),
                     modifier = Modifier.align(Alignment.CenterVertically)
                 )
-                Text(text = totalPrice)
+                Text(text = "Rp$totalPrice")
             }
             Row {
                 Text(

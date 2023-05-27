@@ -7,10 +7,7 @@ import com.bangkit.ecoease.data.model.GarbageAdded
 import com.bangkit.ecoease.data.model.Order
 import com.bangkit.ecoease.data.model.OrderHistory
 import com.bangkit.ecoease.data.repository.MainRepository
-import com.bangkit.ecoease.data.room.model.Address
-import com.bangkit.ecoease.data.room.model.Garbage
-import com.bangkit.ecoease.data.room.model.OrderWithGarbage
-import com.bangkit.ecoease.data.room.model.StatusOrderItem
+import com.bangkit.ecoease.data.room.model.*
 import com.bangkit.ecoease.ui.common.UiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -19,14 +16,14 @@ import kotlinx.coroutines.launch
 class OrderViewModel(private val repository: MainRepository): ViewModel() {
     private val garbage = MutableStateFlow<MutableList<GarbageAdded?>>(mutableListOf())
     private val _orderState = MutableStateFlow(Order(garbageList = listOf(), total = 0))
-    private val _orderHistoryState = MutableStateFlow<UiState<List<OrderWithGarbage>>>(UiState.Loading)
+    private val _orderHistoryState = MutableStateFlow<UiState<List<OrderWithDetailTransaction>>>(UiState.Loading)
     private val _updateOrderStatusState = MutableStateFlow<UiState<Boolean>>(UiState.Loading)
-    private val _detailOrderState = MutableStateFlow<UiState<OrderWithGarbage>>(UiState.Loading)
+    private val _detailOrderState = MutableStateFlow<UiState<OrderWithDetailTransaction>>(UiState.Loading)
 
     val orderState: StateFlow<Order> = _orderState
-    val orderHistoryState: StateFlow<UiState<List<OrderWithGarbage>>> = _orderHistoryState
+    val orderHistoryState: StateFlow<UiState<List<OrderWithDetailTransaction>>> = _orderHistoryState
     val updateOrderStatusState: StateFlow<UiState<Boolean>> = _updateOrderStatusState
-    val detailOrderState: StateFlow<UiState<OrderWithGarbage>> = _detailOrderState
+    val detailOrderState: StateFlow<UiState<OrderWithDetailTransaction>> = _detailOrderState
 
     private fun calculateCurrentOrder(){
         val currentTotal = garbage.value.map { garbage ->

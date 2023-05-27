@@ -10,22 +10,15 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.model.GarbageAdded
-import com.bangkit.ecoease.data.room.model.Garbage
-import com.bangkit.ecoease.data.room.model.Order
-import com.bangkit.ecoease.data.room.model.OrderWithGarbage
-import com.bangkit.ecoease.data.room.model.StatusOrderItem
+import com.bangkit.ecoease.data.room.model.*
 import com.bangkit.ecoease.helper.generateUUID
 import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.*
 import com.bangkit.ecoease.ui.theme.DarkGrey
-import com.bangkit.ecoease.ui.theme.EcoEaseTheme
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable
@@ -33,7 +26,7 @@ fun DetailOrderScreen(
     navHostController: NavHostController,
     orderId: String,
     onLoadDetailOrder: (String) -> Unit,
-    orderDetailStateFlow: StateFlow<UiState<OrderWithGarbage>>,
+    orderDetailStateFlow: StateFlow<UiState<OrderWithDetailTransaction>>,
     onReloadDetailOrder: () -> Unit,
     onUpdateOrderStatus: (Order, StatusOrderItem) -> Unit,
     updateOrderStatusState: StateFlow<UiState<Boolean>>,
@@ -57,7 +50,7 @@ fun DetailOrderScreen(
                 onLoadDetailOrder(orderId)
             }
             is UiState.Success-> {
-                OrderDetailContent(listGarbage = uiState.data.garbage, onUpdateOrderStatus = onUpdateOrderStatus, order = uiState.data.order)
+                OrderDetailContent(listGarbage = uiState.data.items, onUpdateOrderStatus = onUpdateOrderStatus, order = uiState.data.order)
             }
             is UiState.Error -> {
                 ErrorHandler(errorText = uiState.errorMessage, onReload = {
@@ -72,7 +65,7 @@ fun DetailOrderScreen(
 fun OrderDetailContent(
     order: Order,
     onUpdateOrderStatus: (Order, StatusOrderItem) -> Unit,
-    listGarbage: List<Garbage>,
+    listGarbage: List<GarbageTransactionWithDetail>,
     modifier: Modifier = Modifier,
 ){
     var openDialog by remember{
@@ -99,7 +92,7 @@ fun OrderDetailContent(
         ))
         LazyColumn(modifier = Modifier.weight(1f)){
             items(listGarbage){
-                DetailCardGarbage(garbageName = it.name, amount = 1, price = it.price, total = 100)
+                DetailCardGarbage(garbageName = it.garbage.name, amount = it.orderInfo.qty, price = it.garbage.price, total = 100)
             }
         }
         if(order.status == StatusOrderItem.NOT_TAKEN){

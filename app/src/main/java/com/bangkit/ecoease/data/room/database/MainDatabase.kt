@@ -18,7 +18,7 @@ import com.bangkit.ecoease.data.room.model.*
         (Order::class),
         (CrossOrderGarbage::class)
    ],
-    version = 3,
+    version = 5,
     exportSchema = false
 )
 abstract class MainDatabase : RoomDatabase(){

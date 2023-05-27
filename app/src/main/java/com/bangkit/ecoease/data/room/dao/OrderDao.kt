@@ -2,6 +2,7 @@ package com.bangkit.ecoease.data.room.dao
 
 import androidx.room.*
 import com.bangkit.ecoease.data.room.model.Order
+import com.bangkit.ecoease.data.room.model.OrderWithDetailTransaction
 import com.bangkit.ecoease.data.room.model.OrderWithGarbage
 
 @Dao
@@ -20,14 +21,22 @@ interface OrderDao {
     fun getAllOrders() : List<OrderWithGarbage>
 
     @Transaction
+    @Query("SELECT * FROM orders")
+    fun getAllOrdersWithTransaction() : List<OrderWithDetailTransaction>
+
+    @Transaction
     @Query("SELECT * FROM orders WHERE user_id = :userId")
-    fun getAllOrderFromUser(userId: String) : List<OrderWithGarbage>
+    fun getAllOrderFromUser(userId: String) : List<OrderWithDetailTransaction>
 
     @Transaction
     @Query("SELECT * FROM orders WHERE mitra_id = :mitraId")
-    fun getAllOrderFromMitra(mitraId: String) : List<OrderWithGarbage>
+    fun getAllOrderFromMitra(mitraId: String) : List<OrderWithDetailTransaction>
 
     @Transaction
     @Query("SELECT * FROM orders WHERE id = :id")
-    fun getDetailOrder(id: String) : OrderWithGarbage
+    fun getDetailOrder(id: String) : OrderWithDetailTransaction
+
+//    @Transaction
+//    @Query("SELECT * FROM orders WHERE id = :id")
+//    fun getDetailOrderTransaction(id: String) : OrderWithDetailTransaction
 }
