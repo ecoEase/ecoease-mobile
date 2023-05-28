@@ -139,20 +139,24 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
         roomDatabase.addressDao().updateAddress(updatedAddressStatus)
     }
     //ORDER
-    suspend fun addNewOrder(garbage: List<GarbageAdded>, user: User, address: Address, totalTransaction: Long){
+    suspend fun addNewOrder(garbage: List<GarbageAdded>, user: User, address: Address, totalTransaction: Long, location: android.location.Location?){
         try {
             val id = generateUUID()
+            val locationId = generateUUID()
             val order = Order(
                 id = id,
                 status = StatusOrderItem.NOT_TAKEN,
                 totalTransaction = totalTransaction,
                 userId = user.id,
                 mitraId = "",
-                locationId = generateUUID(),
+                locationId = locationId,
                 addressId = address.id,
                 created = "now"
             )
             roomDatabase.orderDao().addOrder(order)
+            location?.let{
+                roomDatabase.locationDao().addLocation(Location(id = locationId, latitude = location.latitude, longitude = location.longitude))
+            }
             garbage.forEach { item -> roomDatabase.detailTransactionDao().addDetailTransaction(
                 DetailTransaction(orderId = id, garbageId = item.garbage.id, qty = item.amount, total = item.totalPrice)
             ) }

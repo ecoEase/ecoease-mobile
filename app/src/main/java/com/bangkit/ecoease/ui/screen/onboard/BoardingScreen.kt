@@ -140,7 +140,11 @@ fun BoardingNavigation(
                 Button(
                     onClick = {
                         onFinish()
-                        navController.navigate(Screen.Auth.route)
+                        navController.navigate(Screen.Auth.route){
+                            popUpTo(Screen.Onboard.route) {
+                                inclusive = true
+                            }
+                        }
                     },
                     shape = RoundedCornerShape(20.dp),
                     border = BorderStroke(2.dp, Color.White),

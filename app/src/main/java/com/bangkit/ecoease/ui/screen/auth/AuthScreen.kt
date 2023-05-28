@@ -56,7 +56,12 @@ fun AuthScreen(
         TextInput(label = "Password", value = password, onValueChange = { it -> password = it})
         RoundedButton(text = "login", modifier = Modifier.fillMaxWidth(), onClick = {
             loginAction()
-            navHostController.navigate(Screen.Home.route)
+            //if login success
+            navHostController.navigate(Screen.Home.route){
+                popUpTo(Screen.Auth.route) {
+                    inclusive = true
+                }
+            }
         })
         Text("atau")
         Text("buat akun baru", modifier = Modifier.clickable { navHostController.navigate(Screen.Register.route) })

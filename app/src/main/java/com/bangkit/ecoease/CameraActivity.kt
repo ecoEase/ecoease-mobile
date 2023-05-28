@@ -19,6 +19,7 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
@@ -42,6 +43,7 @@ import com.bangkit.ecoease.helper.createImageCaptureUseCase
 import com.bangkit.ecoease.helper.getOutputDirectory
 import com.bangkit.ecoease.helper.takePhoto
 import com.bangkit.ecoease.ui.component.FloatingButton
+import com.bangkit.ecoease.ui.component.RoundedButton
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
 import com.bangkit.ecoease.ui.theme.LightTosca
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -136,10 +138,15 @@ fun CameraScreen(
     PermissionsRequired(
         multiplePermissionsState = permissionsState,
         permissionsNotGrantedContent = {
-            Log.d("TAG", "CameraScreen: permission error not not granted")
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(text = "To run this feature, this app require those permission.")
+                RoundedButton(text = "re-request permission", trailIcon = Icons.Default.Replay, onClick = { permissionsState.launchMultiplePermissionRequest() })
+            }
         },
         permissionsNotAvailableContent = {
-            Log.d("TAG", "CameraScreen: permission error not available")
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(text = "Required permission is not available in your device 😢")
+            }
         }) {
         CameraScreenContent(context = context, lifecycleOwner = lifecycleOwner, onSavedImage = onSavedImage, executor = executor)
     }

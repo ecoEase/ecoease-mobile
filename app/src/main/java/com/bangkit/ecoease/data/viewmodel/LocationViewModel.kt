@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModel
 import com.bangkit.ecoease.data.repository.MainRepository
@@ -18,22 +19,26 @@ class LocationViewModel(private val repository: MainRepository) : ViewModel() {
     private val _lastLocationStateFlow: MutableStateFlow<UiState<Location>> = MutableStateFlow(UiState.Loading)
     val lastLocationStateFlow: StateFlow<UiState<Location>> = _lastLocationStateFlow
 
-    // TODO: fix last location 
     fun getLastLocation(){
         if (ActivityCompat.checkSelfPermission(
                 repository.context,
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+            ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
                 repository.context,
                 Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
+            ) == PackageManager.PERMISSION_GRANTED
         ) {
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                Log.d("TAG", "getLastLocation: $location")
                 if(location == null) _lastLocationStateFlow.value = UiState.Error("Location is null!")
                 else  _lastLocationStateFlow.value = UiState.Success(location)
             }
         }else {
             _lastLocationStateFlow.value = UiState.Error("Location permission not granted!")
         }
+    }
+
+    fun reloadLastLocation(){
+        _lastLocationStateFlow.value = UiState.Loading
     }
 }

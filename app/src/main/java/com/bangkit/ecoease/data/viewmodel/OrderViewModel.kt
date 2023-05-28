@@ -66,14 +66,14 @@ class OrderViewModel(private val repository: MainRepository): ViewModel() {
                     _orderHistoryState.value = UiState.Success(result)
                 }
             }catch (e: Exception){
-                    _orderHistoryState.value = UiState.Error("error: ${e.message}")
+                _orderHistoryState.value = UiState.Error("error: ${e.message}")
             }
         }
     }
     fun reloadOrderHistory(){
         _orderHistoryState.value = UiState.Loading
     }
-    fun makeOrder(listGarbage: List<GarbageAdded>, totalTransaction: Long){
+    fun makeOrder(listGarbage: List<GarbageAdded>, totalTransaction: Long, location: android.location.Location?){
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 //get user data
@@ -81,13 +81,14 @@ class OrderViewModel(private val repository: MainRepository): ViewModel() {
                 //get address
                 val selectedAddress = repository.getSelectedAddress()
                 //add new order
-                selectedAddress.first()?.let {
+                selectedAddress.first()?.let { address ->
 
                     repository.addNewOrder(
                         listGarbage,
                         user.first(),
-                        it,
-                        totalTransaction
+                        address,
+                        totalTransaction,
+                        location
                     )
                 }
             }catch (e: Exception){

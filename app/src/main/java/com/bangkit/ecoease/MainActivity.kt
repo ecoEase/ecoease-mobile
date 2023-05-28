@@ -225,7 +225,7 @@ class MainActivity : ComponentActivity() {
                                     addGarbageOrderSlot = { orderViewModel.addGarbageSlot()},
                                     deleteGarbageSlotAt = { orderViewModel.deleteGarbageAt(it)},
                                     updateGarbageAtIndex = { index, newGarbage -> orderViewModel.updateGarbage(index, newGarbage) },
-                                    onMakeOrder = { listGarbage, totalTransaction -> orderViewModel.makeOrder(listGarbage, totalTransaction) },
+                                    onMakeOrder = { listGarbage, totalTransaction, location -> orderViewModel.makeOrder(listGarbage, totalTransaction, location) },
                                     onAcceptResetOrder = {resetOrder()}
                                 ) }
                             composable(Screen.ChangeAddress.route){
