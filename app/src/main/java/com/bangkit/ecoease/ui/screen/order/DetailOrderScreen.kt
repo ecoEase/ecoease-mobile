@@ -50,7 +50,7 @@ fun DetailOrderScreen(
                 onLoadDetailOrder(orderId)
             }
             is UiState.Success-> {
-                OrderDetailContent(listGarbage = uiState.data.items, onUpdateOrderStatus = onUpdateOrderStatus, order = uiState.data.order)
+                OrderDetailContent(listGarbage = uiState.data.items, onUpdateOrderStatus = onUpdateOrderStatus, order = uiState.data.order, address = uiState.data.address, mitra = uiState.data.mitra)
             }
             is UiState.Error -> {
                 ErrorHandler(errorText = uiState.errorMessage, onReload = {
@@ -64,6 +64,8 @@ fun DetailOrderScreen(
 @Composable
 fun OrderDetailContent(
     order: Order,
+    address: Address,
+    mitra: Mitra?,
     onUpdateOrderStatus: (Order, StatusOrderItem) -> Unit,
     listGarbage: List<GarbageTransactionWithDetail>,
     modifier: Modifier = Modifier,
@@ -85,14 +87,21 @@ fun OrderDetailContent(
         Text(text = stringResource(R.string.address_info), style = MaterialTheme.typography.body1.copy(
             color = DarkGrey
         ))
-        DetailAddressCard(name = order.addressId, detail = "jalan yg lurus", city = "Tulungagung")
-        Box(modifier = Modifier.height(30.dp))
+        DetailAddressCard(name = address.name, detail = address.detail, city = address.city)
+        Spacer(modifier = Modifier.height(30.dp))
         Text(text = stringResource(R.string.detail), style = MaterialTheme.typography.body1.copy(
             color = DarkGrey
         ))
-        LazyColumn(modifier = Modifier.weight(1f)){
+        mitra?.let {
+            Spacer(modifier = Modifier.height(30.dp))
+            Text(text = stringResource(R.string.pick_by), style = MaterialTheme.typography.body1.copy(
+                color = DarkGrey
+            ))
+            Text(text = it.firstName, style = MaterialTheme.typography.body1)
+        }
+        LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)){
             items(listGarbage){
-                DetailCardGarbage(garbageName = it.garbage.name, amount = it.orderInfo.qty, price = it.garbage.price, total = 100)
+                DetailCardGarbage(garbageName = it.garbage.name, amount = it.orderInfo.qty, price = it.garbage.price, total = it.orderInfo.total)
             }
         }
         if(order.status == StatusOrderItem.NOT_TAKEN){
@@ -102,7 +111,6 @@ fun OrderDetailContent(
                 enabled = true,
                 onClick = {
                     openDialog = true
-    //                onUpdateOrderStatus()
                 },
                 modifier = Modifier.fillMaxWidth()
             )

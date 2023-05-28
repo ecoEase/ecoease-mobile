@@ -1,28 +1,23 @@
 package com.bangkit.ecoease.data.repository
 
+import android.content.Context
 import android.util.Log
-import androidx.room.ColumnInfo
 import com.bangkit.ecoease.data.datastore.DataStorePreferences
 import com.bangkit.ecoease.data.dummy.AddressDummy
 import com.bangkit.ecoease.data.dummy.GarbageDummy
-import com.bangkit.ecoease.data.dummy.OrderHistoryDummy
 import com.bangkit.ecoease.data.dummy.UserDummy
-import com.bangkit.ecoease.data.firebase.FireBaseRealtimeDatabase
+import com.bangkit.ecoease.data.model.GarbageAdded
 import com.bangkit.ecoease.data.model.ImageCaptured
-import com.bangkit.ecoease.data.model.OrderHistory
 import com.bangkit.ecoease.data.room.database.MainDatabase
 import com.bangkit.ecoease.data.room.model.*
 import com.bangkit.ecoease.helper.generateUUID
 import com.google.android.gms.tasks.Task
 import com.google.gson.Gson
-import com.google.gson.JsonArray
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import kotlin.random.Random
 
-class MainRepository(private val datastore: DataStorePreferences, private val roomDatabase: MainDatabase) {
+class MainRepository(private val datastore: DataStorePreferences, private val roomDatabase: MainDatabase, val context: Context) {
     private var capturedImageUri: ImageCaptured? = null
     //CAMERA
     fun setCapturedImage(imageCapture: ImageCaptured){
@@ -144,7 +139,7 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
         roomDatabase.addressDao().updateAddress(updatedAddressStatus)
     }
     //ORDER
-    suspend fun addNewOrder(garbage: List<Garbage>, user: User, address: Address, totalTransaction: Int){
+    suspend fun addNewOrder(garbage: List<GarbageAdded>, user: User, address: Address, totalTransaction: Long){
         try {
             val id = generateUUID()
             val order = Order(
@@ -158,8 +153,8 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
                 created = "now"
             )
             roomDatabase.orderDao().addOrder(order)
-            garbage.forEach { item -> roomDatabase.crossOrderGarbageDao().addCrossOrderGarbage(
-                CrossOrderGarbage(orderId = id, garbageId = item.id, qty = Random.nextInt(1, 10))
+            garbage.forEach { item -> roomDatabase.detailTransactionDao().addDetailTransaction(
+                DetailTransaction(orderId = id, garbageId = item.garbage.id, qty = item.amount, total = item.totalPrice)
             ) }
         }catch (e: Exception){
             Log.d("TAG", "addNewOrder: $e")
@@ -209,8 +204,8 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
         @Volatile
         private var INSTANCE: MainRepository? = null
 
-        fun getInstance(datastore: DataStorePreferences, roomDatabase: MainDatabase): MainRepository = INSTANCE ?: synchronized(this){
-            MainRepository(datastore, roomDatabase).apply {
+        fun getInstance(datastore: DataStorePreferences, roomDatabase: MainDatabase, context: Context): MainRepository = INSTANCE ?: synchronized(this){
+            MainRepository(datastore, roomDatabase, context).apply {
                 INSTANCE = this
             }
         }

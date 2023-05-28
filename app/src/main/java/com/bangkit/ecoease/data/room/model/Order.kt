@@ -21,7 +21,7 @@ data class Order(
     val status: StatusOrderItem,
 
     @ColumnInfo(name = "total_transaction")
-    val totalTransaction: Int,
+    val totalTransaction: Long,
 
     @ColumnInfo(name = "user_id")
     val userId: String,
@@ -38,38 +38,10 @@ data class Order(
     @ColumnInfo(name = "created")
     val created: String,
 ) : Parcelable
-//data class GarbageWithQty(
-//    @Embedded
-//    val garbage: Garbage,
-//// TODO: amount of order problem
-//    @Relation(
-//        parentColumn = "id",
-//        entityColumn = "garbageId",
-//    )
-//    val orderInfo: CrossOrderGarbage,
-//)
-//
-//data class OrderWithGarbage(
-//    @Embedded
-//    val order: Order,
-//
-//    @Relation(
-//        parentColumn = "id",
-//        entity = Garbage::class,
-//        entityColumn = "id",
-//        associateBy = Junction(
-//            value = CrossOrderGarbage::class,
-//            parentColumn = "orderId",
-//            entityColumn = "garbageId"
-//        )
-//    )
-//    val items: List<GarbageWithQty>
-//)
-
 
 data class GarbageTransactionWithDetail(
     @Embedded
-    val orderInfo: CrossOrderGarbage,
+    val orderInfo: DetailTransaction,
 
     @Relation(parentColumn = "garbageId", entity = Garbage::class, entityColumn = "id")
     val garbage: Garbage
@@ -78,6 +50,18 @@ data class OrderWithDetailTransaction(
     @Embedded
     val order: Order,
 
-    @Relation(parentColumn = "id", entity = CrossOrderGarbage::class, entityColumn = "orderId")
+    @Relation(parentColumn = "id", entity = DetailTransaction::class, entityColumn = "orderId")
     val items: List<GarbageTransactionWithDetail>,
+
+    @Relation(parentColumn = "user_id", entity = User::class, entityColumn = "id")
+    val user: User,
+
+    @Relation(parentColumn = "address_id", entity = Address::class, entityColumn = "id")
+    val address: Address,
+
+    @Relation(parentColumn = "location_id", entity = Location::class, entityColumn = "id")
+    val location: Location?,
+
+    @Relation(parentColumn = "mitra_id", entity = Mitra::class, entityColumn = "id")
+    val mitra: Mitra?,
 )

@@ -3,8 +3,6 @@ package com.bangkit.ecoease.data.room.dao
 import androidx.room.*
 import com.bangkit.ecoease.data.room.model.Order
 import com.bangkit.ecoease.data.room.model.OrderWithDetailTransaction
-import com.bangkit.ecoease.data.room.model.OrderWithGarbage
-
 @Dao
 interface OrderDao {
     @Insert
@@ -18,7 +16,7 @@ interface OrderDao {
 
     @Transaction
     @Query("SELECT * FROM orders")
-    fun getAllOrders() : List<OrderWithGarbage>
+    fun getAllOrders() : List<OrderWithDetailTransaction>
 
     @Transaction
     @Query("SELECT * FROM orders")

@@ -92,15 +92,6 @@ class CameraActivity : AppCompatActivity() {
                             intent.putExtra("cam-facing", isBackCam)
                             setResult(CAMERA_X_RESULT, intent)
                             finish()
-                        },
-                        // TODO: FIX open gallery through camera bug, data already set but on scan screen its not refreshed 
-                        openGallery = {
-                            val intent = Intent().apply {
-                                action = Intent.ACTION_GET_CONTENT
-                                type = "image/*"
-                            }
-                            val chooser = Intent.createChooser(intent, "Choose a picture")
-                            launcherIntentGallery.launch(chooser)
                         }
                     )
                 }
@@ -123,20 +114,6 @@ class CameraActivity : AppCompatActivity() {
         super.onDestroy()
         cameraExecutor.shutdown()
     }
-
-    private val launcherIntentGallery = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ){ result ->
-        if(result.resultCode == RESULT_OK){
-            val selectedImage = result.data?.data as Uri
-            selectedImage?.let { uri ->
-                cameraViewModel.setImage(
-                    ImageCaptured(uri = uri, isBackCam = true)
-                )
-                finish()
-            }
-        }
-    }
 }
 
 
@@ -144,7 +121,6 @@ class CameraActivity : AppCompatActivity() {
 @Composable
 fun CameraScreen(
     executor: Executor,
-    openGallery: () -> Unit,
     onSavedImage: (Uri, Boolean) -> Unit
 ) {
     val context = LocalContext.current
@@ -165,7 +141,7 @@ fun CameraScreen(
         permissionsNotAvailableContent = {
             Log.d("TAG", "CameraScreen: permission error not available")
         }) {
-        CameraScreenContent(context = context, lifecycleOwner = lifecycleOwner, onSavedImage = onSavedImage, executor = executor, openGallery = openGallery)
+        CameraScreenContent(context = context, lifecycleOwner = lifecycleOwner, onSavedImage = onSavedImage, executor = executor)
     }
 }
 
@@ -174,7 +150,6 @@ fun CameraScreenContent(
     modifier: Modifier = Modifier,
     context: Context,
     lifecycleOwner: LifecycleOwner,
-    openGallery: () -> Unit,
     onSavedImage: (Uri, Boolean) -> Unit,
     executor: Executor,
 ) {
@@ -235,14 +210,14 @@ fun CameraScreenContent(
             )
 
             // TODO: make open gallery functionality
-            FloatingButton(
-                backgroundColor = LightTosca,
-                iconColor = Color.Black,
-                description = "gallery",
-                icon = Icons.Default.Image,
-                modifier = Modifier,
-                onClick = { openGallery() }
-            )
+//            FloatingButton(
+//                backgroundColor = LightTosca,
+//                iconColor = Color.Black,
+//                description = "gallery",
+//                icon = Icons.Default.Image,
+//                modifier = Modifier,
+//                onClick = {  }
+//            )
         }
     }
 }
@@ -254,7 +229,6 @@ fun PreviewCameraScreen() {
     EcoEaseTheme {
         CameraScreen(
             executor = ContextCompat.getMainExecutor(LocalContext.current),
-            openGallery = {},
             onSavedImage = { _, _ -> }
         )
     }

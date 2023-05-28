@@ -37,7 +37,6 @@ class OrderViewModel(private val repository: MainRepository): ViewModel() {
         garbage.value = mutableListOf()
         _orderState.value = Order(garbageList = listOf(), total = 0)
     }
-
     // TODO: FIX the  duplicate garbage order
     fun addGarbageSlot(){
         garbage.value.add(null)
@@ -71,12 +70,10 @@ class OrderViewModel(private val repository: MainRepository): ViewModel() {
             }
         }
     }
-
     fun reloadOrderHistory(){
         _orderHistoryState.value = UiState.Loading
     }
-
-    fun makeOrder(listGarbage: List<Garbage>, totalTransaction: Int){
+    fun makeOrder(listGarbage: List<GarbageAdded>, totalTransaction: Long){
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 //get user data

@@ -21,7 +21,6 @@ import androidx.navigation.NavHostController
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.data.room.model.OrderWithDetailTransaction
-import com.bangkit.ecoease.data.room.model.OrderWithGarbage
 import com.bangkit.ecoease.helper.toCurrency
 import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.ErrorHandler

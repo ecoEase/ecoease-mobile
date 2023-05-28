@@ -6,14 +6,11 @@ import com.bangkit.ecoease.data.room.model.DetailTransaction
 @Dao
 interface DetailTransactionDao {
     @Insert
-    suspend fun addDetailTransaction(detailTransaction: DetailTransaction)
+    suspend fun addDetailTransaction(orderGarbage: DetailTransaction)
 
     @Delete
-    suspend fun deleteDetailTransaction(detailTransaction: DetailTransaction)
+    suspend fun deleteDetailTransaction(orderGarbage: DetailTransaction)
 
-    @Update
-    suspend fun updateDetailTransaction(detailTransaction: DetailTransaction)
-
-    @Query("DELETE FROM detail_transactions")
-    suspend fun deleteAllDetailTransaction()
+    @Query("DELETE FROM DetailTransaction")
+    fun deleteAllDetailTransaction()
 }

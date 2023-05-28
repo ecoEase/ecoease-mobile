@@ -1,29 +1,24 @@
 package com.bangkit.ecoease.data.room.model
 
 import android.os.Parcelable
-import androidx.annotation.NonNull
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.PrimaryKey
+import androidx.room.ForeignKey
 import kotlinx.parcelize.Parcelize
 
+//this is junction table between order and garbage tables
 @Parcelize
-@Entity(tableName = "detail_transactions")
+@Entity(
+    primaryKeys = ["orderId", "garbageId"],
+    foreignKeys = [
+        ForeignKey(entity = Order::class, parentColumns = ["id"], childColumns = ["orderId"]),
+        ForeignKey(entity = Garbage::class, parentColumns = ["id"], childColumns = ["garbageId"])
+    ]
+)
 data class DetailTransaction(
-    @PrimaryKey
-    @NonNull
-    @ColumnInfo(name = "id")
-    val id: String,
-
-    @ColumnInfo(name = "order_id")
     val orderId: String,
-
-    @ColumnInfo(name = "garbage_id")
+    @ColumnInfo(index = true)
     val garbageId: String,
-
-    @ColumnInfo(name = "qty")
-    val qty: Long,
-
-    @ColumnInfo(name = "total")
+    val qty: Int,
     val total: Long,
-): Parcelable
+) : Parcelable

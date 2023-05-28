@@ -40,4 +40,8 @@
     <string name="start_scan">mulai scan</string>
     <string name="restart_scan">scan ulang</string>
     <string name="no_order_history">Belum ada riwayat order.</string>
+    <string name="empty_address">alamat masih kosong</string>
+    <string name="choose_address">pilih alamat</string>
+    <string name="make_order">buat order</string>
+    <string name="pick_by">diambil oleh</string>
 </resources>

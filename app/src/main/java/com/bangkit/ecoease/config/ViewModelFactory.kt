@@ -17,6 +17,7 @@ class ViewModelFactory(private val repository: MainRepository): ViewModelProvide
             modelClass.isAssignableFrom(OrderViewModel::class.java) -> OrderViewModel(repository) as T
             modelClass.isAssignableFrom(SplashViewModel::class.java) -> SplashViewModel(repository) as T
             modelClass.isAssignableFrom(UserViewModel::class.java) -> UserViewModel(repository) as T
+            modelClass.isAssignableFrom(LocationViewModel::class.java) -> LocationViewModel(repository) as T
             else -> throw java.lang.IllegalArgumentException("Unknown ViewModel class ${modelClass.name}")
         }
     }

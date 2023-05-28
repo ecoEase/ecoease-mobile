@@ -9,6 +9,6 @@ object Injection {
     fun provideInjection(context: Context): MainRepository{
         val datastore = DataStorePreferences.getInstances(context)
         val roomDatabase = MainDatabase.getInstance(context)
-        return MainRepository.getInstance(datastore, roomDatabase)
+        return MainRepository.getInstance(datastore, roomDatabase, context)
     }
 }

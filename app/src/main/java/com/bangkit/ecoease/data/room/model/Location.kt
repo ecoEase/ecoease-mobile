@@ -8,19 +8,16 @@ import androidx.room.PrimaryKey
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-@Entity(tableName = "garbage")
-data class Garbage(
+@Entity(tableName = "locations")
+data class Location(
     @PrimaryKey
     @NonNull
     @ColumnInfo(name = "id")
     val id: String,
 
-    @ColumnInfo(name = "image_url")
-    val imageUrl: String,
+    @ColumnInfo(name = "latitude")
+    val latitude: Double,
 
-    @ColumnInfo(name = "name")
-    val name: String,
-
-    @ColumnInfo(name = "price")
-    val price: Long
+    @ColumnInfo(name = "longitude")
+    val longitude: Double,
 ) : Parcelable

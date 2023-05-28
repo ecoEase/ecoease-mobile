@@ -1,9 +1,9 @@
 package com.bangkit.ecoease.ui.screen.order
 
+import android.location.Location
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
@@ -28,25 +28,26 @@ import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.data.model.GarbageAdded
 import com.bangkit.ecoease.data.model.Order
-import com.bangkit.ecoease.data.room.model.Address
 import com.bangkit.ecoease.data.room.model.Garbage
 import com.bangkit.ecoease.helper.generateUUID
+import com.bangkit.ecoease.helper.getLastLocation
 import com.bangkit.ecoease.helper.toCurrency
 import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.*
 import com.bangkit.ecoease.ui.theme.LightGrey
 import com.bangkit.ecoease.utils.WindowInfo
 import com.bangkit.ecoease.utils.rememberWindowInfo
+import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OrderScreen(
     navHostController: NavHostController,
     modifier: Modifier = Modifier,
     orderStateFlow: StateFlow<Order>,
     listGarbageFlow: StateFlow<UiState<List<Garbage>>>,
+    lastLocationStateFlow: StateFlow<UiState<Location>>,
+    loadLastLocation: () -> Unit,
     loadListGarbage: () -> Unit,
     reloadListGarbage: () -> Unit,
     addGarbageOrderSlot: () -> Unit = {},
@@ -54,7 +55,7 @@ fun OrderScreen(
     onAcceptResetOrder: () -> Unit = {},
     onLoadSelectedAddress: () -> Unit,
     onReloadSelectedAddress: () -> Unit,
-    onMakeOrder: (List<Garbage>, Int) -> Unit,
+    onMakeOrder: (List<GarbageAdded>, Long) -> Unit,
     selectedAddressStateFlow: StateFlow<UiState<com.bangkit.ecoease.data.room.model.Address>>,
     updateGarbageAtIndex: (Int, GarbageAdded) -> Unit,
 ){
@@ -70,29 +71,13 @@ fun OrderScreen(
     var isAddressNull by remember{ mutableStateOf(true) }
 
     LaunchedEffect(garbageSlot.toList()){ lazyListState.animateScrollToItem(garbageSlot.size) }
-    DisposableEffect(navHostController){
-        val listener = NavController.OnDestinationChangedListener { controller, destination, _ ->
-            Log.d("TAG", "OrderScreen: screen will change $destination")
-        }
-        navHostController.addOnDestinationChangedListener(listener)
-        onDispose {
-            navHostController.removeOnDestinationChangedListener(listener)
-        }
-    }
     BackHandler(orderState.total > 0) {//handle physical back button
         openDialogResetOrder = true
     }
 
-    fun onAddGarbageOrderSlotHandler(){
-        addGarbageOrderSlot()//add new slot garbage in viewmodel
-        addedForm += 1
-        garbageSlot.add(generateUUID())
-    }
     fun deleteGarbageSlotAtHandler(index: Int, name: String){
-        Log.d("TAG", "deleteGarbageSlotAtHandler: $garbageSlot")
         garbageSlot.removeAt(index)
 //        garbageSlot = garbageSlot.filter { element -> element != name} as MutableList<String>
-        Log.d("TAG", "deleteGarbageSlotAtHandler: $garbageSlot")
         deleteGarbageSlotAt(index)
     }
     fun onMakeOrderHandler(){
@@ -103,11 +88,13 @@ fun OrderScreen(
         }
     }
 
-    val addressNotNull = selectedAddressStateFlow.collectAsState().value.let {
-        when (it) {
-            is UiState.Success  -> it.data.selected
-            else -> false
+    lastLocationStateFlow.collectAsState(initial = UiState.Loading).value.let { uiState ->
+        when(uiState){
+            is UiState.Success -> Log.d("TAG", "lastLocation: $uiState.data")
+            is UiState.Loading -> loadLastLocation()
+            is UiState.Error -> Log.d("TAG", "lastLocation: ${uiState.errorMessage}")
         }
+
     }
 
     when{
@@ -135,8 +122,8 @@ fun OrderScreen(
                 }
             )
             BottomSheet(
-                label = "Total",
-                actionName = "buat order",
+                label = stringResource(R.string.total),
+                actionName = stringResource(R.string.make_order),
                 onActionButtonClicked = ::onMakeOrderHandler,
                 information = "Rp${orderState.total.toCurrency()}",
                 isActive = orderState.total > 0,
@@ -189,7 +176,7 @@ fun OrderScreen(
     DialogBox(text = "Apakah anda sudah yakin?", isOpen = openDialog, onDissmiss = { openDialog = false }, onAccept = {
         onAcceptResetOrder()
         navHostController.navigate(Screen.OrderSuccess.route)
-        onMakeOrder(orderState.garbageList.map { it!!.garbage }, orderState.total)
+        onMakeOrder(orderState.garbageList.map { it!! }, orderState.total)
     })
     DialogBox(text = "Apakah anda yakin ingin membatalkan order anda", onDissmiss = { openDialogResetOrder = false }, onAccept = { onAcceptResetOrder() }, isOpen = openDialogResetOrder)
 }
@@ -223,94 +210,91 @@ fun OrderScreenContent(
         ,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-//        AnimatedVisibility(visible = isGarbageFormVisible) {
-            LazyColumn(
-                state = lazyListState,
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(bottom = if(isPotrait) 136.dp else 0.dp)
-            ){
-                item{
-                    Text(text = stringResource(R.string.address))
-                    selectedAddressStateFlow.collectAsState(initial = UiState.Loading).value.let { uiState ->
-                        when(uiState){
-                            is UiState.Loading -> {
-                                CircularProgressIndicator()
-                                onLoadSelectedAddress()
-                            }
-                            is UiState.Success -> {
-                                if(!uiState.data.selected){
-                                    Text("alamat masih kosong")
-                                    RoundedButton(text = "pilih alamat",  onClick = { navHostController.navigate(Screen.ChangeAddress.route) })
-                                }else{
-                                    AddressCard(
-                                        name = uiState.data.name,
-                                        detail = uiState.data.detail,
-                                        district = uiState.data.district,
-                                        city = uiState.data.city,
-                                        onClickChange = { navHostController.navigate(Screen.ChangeAddress.route) }
-                                    )
-                                }
-                            }
-                            is UiState.Error -> ErrorHandler(errorText = uiState.errorMessage, onReload = { onReloadSelectedAddress() })
+        LazyColumn(
+            state = lazyListState,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(bottom = if(isPotrait) 136.dp else 0.dp)
+        ){
+            item{
+                Text(text = stringResource(R.string.address))
+                selectedAddressStateFlow.collectAsState(initial = UiState.Loading).value.let { uiState ->
+                    when(uiState){
+                        is UiState.Loading -> {
+                            CircularProgressIndicator()
+                            onLoadSelectedAddress()
                         }
-                    }
-
-                    Row(modifier = Modifier
-                        .fillMaxWidth()
-                        .drawBehind {
-                            val borderSize = 1.dp.toPx()
-                            drawLine(
-                                color = LightGrey,
-                                start = Offset(0f, size.height),
-                                end = Offset(size.width, size.height),
-                                strokeWidth = borderSize
-                            )
-                        },
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = stringResource(R.string.garbage))
-                        RoundedButton(text = stringResource(R.string.add), onClick = { onAddGarbageOrderSlot() })
-                    }
-                }
-                items(garbageSlot.toList(), key = { it }){ name ->
-                    val index = garbageSlot.toList().indexOf(name)
-                    //populate the addGarbageForm with stateflow order when there is data from it
-                    val addedGarbage = if(orderState.garbageList.isNotEmpty()) orderState.garbageList[index] else null
-                    val initialGarbageName = addedGarbage?.garbage?.name
-                    val initialGarbageAmount = addedGarbage?.amount
-                    val initialGarbagePrice = addedGarbage?.garbage?.price
-                    val initialGarbageTotalPrice = addedGarbage?.totalPrice
-
-                    listGarbageFlow.collectAsState(initial = UiState.Loading).value.let {uiState ->
-                        when(uiState){
-                            is UiState.Loading -> loadListGarbage()
-                            is UiState.Success -> {
-                                AddGarbageForm(
-                                    initSelected = initialGarbageName,
-                                    initAmount = initialGarbageAmount,
-                                    initPrice = initialGarbagePrice,
-                                    initTotalPrice = initialGarbageTotalPrice,
-                                    listGarbage = uiState.data,
-                                    onDelete = {
-                                        Log.d("TAG", "OrderScreenContent: ${garbageSlot.size}")
-                                        deleteGarbageSlotAt(index, name)
-                                    },
-                                    onUpdate = { newUpdateGarbageData ->
-                                        updateGarbageAtIndex(index, newUpdateGarbageData)
-                                    },
-                                    modifier = Modifier
-                                        .animateItemPlacement(tween(durationMillis = 100))
+                        is UiState.Success -> {
+                            if(!uiState.data.selected){
+                                Text(stringResource(R.string.empty_address))
+                                RoundedButton(text = stringResource(R.string.choose_address),  onClick = { navHostController.navigate(Screen.ChangeAddress.route) })
+                            }else{
+                                AddressCard(
+                                    name = uiState.data.name,
+                                    detail = uiState.data.detail,
+                                    district = uiState.data.district,
+                                    city = uiState.data.city,
+                                    onClickChange = { navHostController.navigate(Screen.ChangeAddress.route) }
                                 )
                             }
-                            is UiState.Error -> ErrorHandler(
-                                errorText = uiState.errorMessage,
-                                onReload = { reloadListGarbage() })
                         }
+                        is UiState.Error -> ErrorHandler(errorText = uiState.errorMessage, onReload = { onReloadSelectedAddress() })
+                    }
+                }
+
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .drawBehind {
+                        val borderSize = 1.dp.toPx()
+                        drawLine(
+                            color = LightGrey,
+                            start = Offset(0f, size.height),
+                            end = Offset(size.width, size.height),
+                            strokeWidth = borderSize
+                        )
+                    },
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = stringResource(R.string.garbage))
+                    RoundedButton(text = stringResource(R.string.add), onClick = { onAddGarbageOrderSlot() })
+                }
+            }
+            items(garbageSlot.toList(), key = { it }){ name ->
+                val index = garbageSlot.toList().indexOf(name)
+                //populate the addGarbageForm with stateflow order when there is data from it
+                val addedGarbage = if(orderState.garbageList.isNotEmpty()) orderState.garbageList[index] else null
+                val initialGarbageName = addedGarbage?.garbage?.name
+                val initialGarbageAmount = addedGarbage?.amount
+                val initialGarbagePrice = addedGarbage?.garbage?.price
+                val initialGarbageTotalPrice = addedGarbage?.totalPrice
+
+                listGarbageFlow.collectAsState(initial = UiState.Loading).value.let {uiState ->
+                    when(uiState){
+                        is UiState.Loading -> loadListGarbage()
+                        is UiState.Success -> {
+                            AddGarbageForm(
+                                initSelected = initialGarbageName,
+                                initAmount = initialGarbageAmount,
+                                initPrice = initialGarbagePrice,
+                                initTotalPrice = initialGarbageTotalPrice,
+                                listGarbage = uiState.data,
+                                onDelete = {
+                                    deleteGarbageSlotAt(index, name)
+                                },
+                                onUpdate = { newUpdateGarbageData ->
+                                    updateGarbageAtIndex(index, newUpdateGarbageData)
+                                },
+                                modifier = Modifier
+                                    .animateItemPlacement(tween(durationMillis = 100))
+                            )
+                        }
+                        is UiState.Error -> ErrorHandler(
+                            errorText = uiState.errorMessage,
+                            onReload = { reloadListGarbage() })
                     }
                 }
             }
-//        }
+        }
     }
 }
 

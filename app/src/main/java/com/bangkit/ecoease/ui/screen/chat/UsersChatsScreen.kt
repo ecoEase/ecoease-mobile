@@ -79,7 +79,8 @@ fun UsersChatsScreen(
                                 .clickable {
                                     roomId?.let { id ->
                                         Screen.ChatRoom.setTitle(id)
-                                        navHostController.navigate("${Screen.ChatRoom.route}?roomId=$id")
+                                        val roomChatRoute = Screen.ChatRoom.createRoute(id)
+                                        navHostController.navigate(roomChatRoute)
                                     }
                                 },
                             horizontalArrangement = Arrangement.spacedBy(16.dp))

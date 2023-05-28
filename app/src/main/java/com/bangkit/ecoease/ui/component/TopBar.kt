@@ -23,21 +23,25 @@ fun TopBar(
     onTapNavButton: () -> Unit = {},
     onTapAvatar: () -> Unit = {},
     avatarUrl: String = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=464&q=80",
-){
+) {
     TopAppBar(
         backgroundColor = MaterialTheme.colors.background,
         elevation = 0.dp,
-        title ={
-            when{
-                currentRoute?.substringBefore("?") == Screen.ChatRoom.route -> ChatRoomTitle(avatarUrl = avatarUrl, title = Screen.ChatRoom.getTitle()?.let { text ->  text.replaceFirstChar { it.uppercase() }}  ?: "")
+        title = {
+            when {
+                currentRoute?.substringBefore("?") == Screen.ChatRoom.route -> ChatRoomTitle(
+                    avatarUrl = avatarUrl,
+                    title = Screen.ChatRoom.getTitle()
+                        ?.let { text -> text.replaceFirstChar { it.uppercase() } } ?: "")
                 currentRoute != Screen.Home.route -> Text(
-                    text = currentRoute?.let { text ->  text.replaceFirstChar { it.uppercase() }}  ?: "",
+                    text = currentRoute?.let { text -> if (text == Screen.DetailOrder.route) "Detail order" else text.replaceFirstChar { it.uppercase() } }
+                        ?.replace("_", " ") ?: "",
                     textAlign = TextAlign.Center,
                 )
             }
         },
         actions = {
-            if(isUseAvatar) Avatar(
+            if (isUseAvatar) Avatar(
                 imageUrl = avatarUrl,
                 size = AvatarSize.EXTRA_SMALL,
                 modifier = Modifier
@@ -45,7 +49,14 @@ fun TopBar(
                     .clickable { onTapAvatar() }
             )
         },
-        navigationIcon = { if(isUseNavButton) IconButton(onClick = onTapNavButton ) { Icon(Icons.Filled.ArrowBack, "backIcon")}},
+        navigationIcon = {
+            if (isUseNavButton) IconButton(onClick = onTapNavButton) {
+                Icon(
+                    Icons.Filled.ArrowBack,
+                    "backIcon"
+                )
+            }
+        },
     )
 }
 
@@ -55,14 +66,8 @@ fun ChatRoomTitle(
     title: String,
     modifier: Modifier = Modifier,
 ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        Avatar(
-            imageUrl = avatarUrl,
-            size = AvatarSize.EXTRA_SMALL,
-        )
-        Text(
-            text = title,
-            textAlign = TextAlign.Center,
-        )
+    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        Avatar(imageUrl = avatarUrl, size = AvatarSize.EXTRA_SMALL,)
+        Text(text = title, textAlign = TextAlign.Center)
     }
 }

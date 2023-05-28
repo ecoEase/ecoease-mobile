@@ -40,8 +40,6 @@ fun AddressChoice(
     onSelected: () -> Unit,
     modifier: Modifier = Modifier
 ){
-    // TODO: fix the checked radio state, it still checked when other card choice is selected probably change to stateless component
-//    var checked by remember{ mutableStateOf(checked) }
     var openDialog by remember{ mutableStateOf(false) }
 
     val animateColorRadio by animateColorAsState(

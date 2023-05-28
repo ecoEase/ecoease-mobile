@@ -39,6 +39,9 @@ import com.bangkit.ecoease.ui.screen.order.OrderHistoryScreen
 import com.bangkit.ecoease.ui.screen.order.OrderScreen
 import com.bangkit.ecoease.ui.screen.order.OrderSuccessScreen
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -60,12 +63,14 @@ class MainActivity : ComponentActivity() {
     private val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     private lateinit var cameraViewModel: CameraViewModel
 
+
     companion object{
         val INTENT_GALLERY_RESULT = 201
     }
 
     // TODO: move all business logic in viewmodel
     override fun onCreate(savedInstanceState: Bundle?) {
+
         val splashViewModel = ViewModelFactory(Injection.provideInjection(this)).create(SplashViewModel::class.java)
         super.onCreate(savedInstanceState)
         cameraViewModel = ViewModelFactory(Injection.provideInjection(this)).create(CameraViewModel::class.java)
@@ -74,6 +79,7 @@ class MainActivity : ComponentActivity() {
         val addressViewModel = ViewModelFactory(Injection.provideInjection(this)).create(AddressViewModel::class.java)
         val authViewModel = ViewModelFactory(Injection.provideInjection(this)).create(AuthViewModel::class.java)
         val userViewModel = ViewModelFactory(Injection.provideInjection(this)).create(UserViewModel::class.java)
+        val locationViewModel = ViewModelFactory(Injection.provideInjection(this)).create(LocationViewModel::class.java)
 
         installSplashScreen().setKeepOnScreenCondition{
             splashViewModel.isLoading.value
@@ -209,8 +215,10 @@ class MainActivity : ComponentActivity() {
                                     navHostController = navController,
                                     orderStateFlow = orderViewModel.orderState,
                                     selectedAddressStateFlow = addressViewModel.selectedAddress,
+                                    lastLocationStateFlow = locationViewModel.lastLocationStateFlow,
                                     listGarbageFlow = garbageViewModel.garbageState,
                                     loadListGarbage = { garbageViewModel.getAllGarbage() },
+                                    loadLastLocation = { locationViewModel.getLastLocation() },
                                     reloadListGarbage = { garbageViewModel.reloadGarbage() },
                                     onLoadSelectedAddress = { addressViewModel.loadSelectedAddress() },
                                     onReloadSelectedAddress = { addressViewModel.reloadSelectedAddress() },
@@ -259,7 +267,7 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             composable(
-                                route = "${Screen.ChatRoom.route}?roomId={roomId}",
+                                route = Screen.ChatRoom.route,
                                 arguments = listOf(navArgument("roomId"){type = NavType.StringType})
                             ){
                                 val roomId = it.arguments?.getString("roomId") ?: "ref"

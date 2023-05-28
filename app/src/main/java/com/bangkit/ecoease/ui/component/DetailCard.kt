@@ -19,8 +19,8 @@ import com.bangkit.ecoease.ui.theme.LightGrey
 fun DetailCardGarbage(
     garbageName: String,
     amount: Int,
-    price: Int,
-    total: Int,
+    price: Long,
+    total: Long,
     modifier: Modifier = Modifier
 ){
    CardContainer(modifier = modifier) {

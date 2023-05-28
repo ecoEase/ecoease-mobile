@@ -34,8 +34,8 @@ fun AddGarbageForm(
     onUpdate: (GarbageAdded) -> Unit,
     initSelected: String? = null,
     initAmount: Int? = null,
-    initPrice: Int? = null,
-    initTotalPrice: Int? = null,
+    initPrice: Long? = null,
+    initTotalPrice: Long? = null,
     modifier: Modifier = Modifier
 ){
     var selectedGarbageIndex: Int by rememberSaveable{ mutableStateOf(-1) }
