@@ -202,7 +202,10 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             composable(Screen.Map.route){
-                                MapScreen()
+                                MapScreen(
+                                    availableOrderStateFlow = orderViewModel.availableOrders,
+                                    loadAvailableOrders = { orderViewModel.loadAvailableOrder() }
+                                )
                             }
                             composable(Screen.Auth.route){
                                 AuthScreen(navHostController = navController, loginAction = { authViewModel.login() })

@@ -19,11 +19,13 @@ class OrderViewModel(private val repository: MainRepository): ViewModel() {
     private val _orderHistoryState = MutableStateFlow<UiState<List<OrderWithDetailTransaction>>>(UiState.Loading)
     private val _updateOrderStatusState = MutableStateFlow<UiState<Boolean>>(UiState.Loading)
     private val _detailOrderState = MutableStateFlow<UiState<OrderWithDetailTransaction>>(UiState.Loading)
+    private val _availableOrders = MutableStateFlow<UiState<List<OrderWithDetailTransaction>>>(UiState.Loading)
 
     val orderState: StateFlow<Order> = _orderState
     val orderHistoryState: StateFlow<UiState<List<OrderWithDetailTransaction>>> = _orderHistoryState
     val updateOrderStatusState: StateFlow<UiState<Boolean>> = _updateOrderStatusState
     val detailOrderState: StateFlow<UiState<OrderWithDetailTransaction>> = _detailOrderState
+    val availableOrders: StateFlow<UiState<List<OrderWithDetailTransaction>>> = _availableOrders
 
     private fun calculateCurrentOrder(){
         val currentTotal = garbage.value.map { garbage ->
@@ -96,7 +98,6 @@ class OrderViewModel(private val repository: MainRepository): ViewModel() {
             }
         }
     }
-
     fun loadDetailOrder(orderId: String){
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -110,11 +111,9 @@ class OrderViewModel(private val repository: MainRepository): ViewModel() {
             }
         }
     }
-
     fun reloadDetailOrder(){
         _detailOrderState.value = UiState.Loading
     }
-
     fun updateOrder(order: com.bangkit.ecoease.data.room.model.Order, statusOrderItem: StatusOrderItem){
         viewModelScope.launch(Dispatchers.IO){
             try {
@@ -127,6 +126,19 @@ class OrderViewModel(private val repository: MainRepository): ViewModel() {
                 Log.d("TAG", "updateOrder: ${e.message}")
                 _updateOrderStatusState.value = UiState.Error(e.message.toString())
             }
+        }
+    }
+    fun loadAvailableOrder(){
+        try {
+            viewModelScope.launch(Dispatchers.IO) {
+                repository.getAvailableOrder().catch {
+                    _availableOrders.value = UiState.Error("error: ${it.message}")
+                }.collect{
+                    _availableOrders.value = UiState.Success(it)
+                }
+            }
+        }catch (e: Exception){
+            _availableOrders.value = UiState.Error("error: ${e.message}")
         }
     }
 }

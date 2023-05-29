@@ -139,18 +139,16 @@ fun OrderScreen(
 
         lastLocationStateFlow.collectAsState(initial = UiState.Loading).value.let { uiState ->
             when (uiState) {
-                is UiState.Success -> {
-                    Toast.makeText(context, "${uiState.data}", Toast.LENGTH_SHORT).show()
-                    location = uiState.data
-                }
+                is UiState.Success -> location = uiState.data
                 is UiState.Loading -> loadLastLocation()
-                is UiState.Error -> {
-                    Log.d("TAG", "lastLocation: ${uiState.errorMessage}")
-                }
+                is UiState.Error -> Toast.makeText(context, "error: ${uiState.errorMessage}", Toast.LENGTH_SHORT).show()
             }
         }
 
-        ScreenModeContainer(windowType = windowInfo.screenWidthInfo, content = {
+        ScreenModeContainer(
+            modifier = modifier,
+            windowType = windowInfo.screenWidthInfo,
+            content = {
             OrderScreenContent(
                 navHostController = navHostController,
                 isPotrait = true,

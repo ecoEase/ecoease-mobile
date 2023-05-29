@@ -20,7 +20,7 @@ import com.bangkit.ecoease.data.room.model.*
         (Mitra::class),
         (Location::class),
    ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class MainDatabase : RoomDatabase(){

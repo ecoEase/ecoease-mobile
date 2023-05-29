@@ -3,6 +3,8 @@ package com.bangkit.ecoease.data.room.dao
 import androidx.room.*
 import com.bangkit.ecoease.data.room.model.Order
 import com.bangkit.ecoease.data.room.model.OrderWithDetailTransaction
+import com.bangkit.ecoease.data.room.model.StatusOrderItem
+
 @Dao
 interface OrderDao {
     @Insert
@@ -34,6 +36,9 @@ interface OrderDao {
     @Query("SELECT * FROM orders WHERE id = :id")
     fun getDetailOrder(id: String) : OrderWithDetailTransaction
 
+    @Transaction
+    @Query("SELECT * FROM orders WHERE status = :status")
+    fun getAvailableOrderWithTransactions(status: StatusOrderItem = StatusOrderItem.NOT_TAKEN) : List<OrderWithDetailTransaction>
 //    @Transaction
 //    @Query("SELECT * FROM orders WHERE id = :id")
 //    fun getDetailOrderTransaction(id: String) : OrderWithDetailTransaction

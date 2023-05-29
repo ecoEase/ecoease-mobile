@@ -172,7 +172,14 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
             throw e
         }
     }
-
+    suspend fun getAvailableOrder(): Flow<List<OrderWithDetailTransaction>>{
+        try {
+            // TODO: fetch data from api
+        }catch (e: Exception){
+            throw e
+        }
+        return flowOf(roomDatabase.orderDao().getAvailableOrderWithTransactions())
+    }
     // TODO: UPDATE ALL REPOSITORY METHOD WHEN API IS READY
     suspend fun getOrderDetail(orderId: String): Flow<OrderWithDetailTransaction> {
         try {
