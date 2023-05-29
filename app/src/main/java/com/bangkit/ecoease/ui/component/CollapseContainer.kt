@@ -25,11 +25,11 @@ import com.bangkit.ecoease.ui.theme.LightTosca
 fun CollapseContainer(
     label: String,
     modifier: Modifier = Modifier,
+    expanded: Boolean,
+    onToggle: () -> Unit,
     content: @Composable () -> Unit = {},
 ){
-    var expanded by remember{
-        mutableStateOf(false)
-    }
+
     val animateBotPadding by animateDpAsState(
         targetValue = if (expanded) 16.dp else 0.dp,
         animationSpec = tween(200)
@@ -56,7 +56,7 @@ fun CollapseContainer(
                     contentDescription = "expand icon",
                     modifier = Modifier
                         .rotate(90f)
-                        .clickable { expanded = !expanded }
+                        .clickable{ onToggle() }
                 )
             }
             AnimatedVisibility(visible = expanded) {
@@ -74,7 +74,7 @@ fun CollapseContainer(
 @Composable
 fun CollapseContainerPreview(){
     EcoEaseTheme() {
-        CollapseContainer(label = "Tambah alamat"){
+        CollapseContainer(label = "Tambah alamat", expanded = true, onToggle = {}){
             TextInput(label = "lorem", value = "", onValueChange = {})
             TextInput(label = "lorem", value = "", onValueChange = {})
         }

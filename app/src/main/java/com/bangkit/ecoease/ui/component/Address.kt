@@ -21,7 +21,8 @@ fun AddressCard(
     onClickChange: () -> Unit,
     modifier: Modifier = Modifier
 ){
-        CollapseContainer(label = name, modifier = modifier){
+        var expandedContainer by remember{ mutableStateOf(false) }
+        CollapseContainer(label = name, modifier = modifier, expanded = expandedContainer, onToggle = { expandedContainer = !expandedContainer }){
             Box(modifier = Modifier.height(8.dp))
             Text(text = detail, style = MaterialTheme.typography.body2)
             Box(modifier = Modifier.height(4.dp))
