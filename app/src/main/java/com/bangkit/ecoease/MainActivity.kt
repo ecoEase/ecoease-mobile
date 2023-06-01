@@ -203,6 +203,7 @@ class MainActivity : ComponentActivity() {
                             }
                             composable(Screen.Map.route){
                                 MapScreen(
+                                    navHostController = navController,
                                     availableOrderStateFlow = orderViewModel.availableOrders,
                                     loadAvailableOrders = { orderViewModel.loadAvailableOrder() }
                                 )

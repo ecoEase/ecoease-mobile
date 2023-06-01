@@ -20,21 +20,12 @@ class LocationViewModel(private val repository: MainRepository) : ViewModel() {
     val lastLocationStateFlow: StateFlow<UiState<Location>> = _lastLocationStateFlow
 
     fun getLastLocation(){
-        if (ActivityCompat.checkSelfPermission(
-                repository.context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                repository.context,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                Log.d("TAG", "getLastLocation: $location")
-                if(location == null) _lastLocationStateFlow.value = UiState.Error("Location is null!")
-                else  _lastLocationStateFlow.value = UiState.Success(location)
-            }
-        }else {
-            _lastLocationStateFlow.value = UiState.Error("Location permission not granted!")
+        try {
+            fusedLocationClient.getLastLocation(context = repository.context, onSuccess = { location ->
+                _lastLocationStateFlow.value = UiState.Success(location)
+            })
+        }catch (e: Exception){
+            _lastLocationStateFlow.value = UiState.Error("error: ${e.message}")
         }
     }
 
