@@ -39,9 +39,6 @@ import com.bangkit.ecoease.ui.screen.order.OrderHistoryScreen
 import com.bangkit.ecoease.ui.screen.order.OrderScreen
 import com.bangkit.ecoease.ui.screen.order.OrderSuccessScreen
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
-import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -80,6 +77,7 @@ class MainActivity : ComponentActivity() {
         val authViewModel = ViewModelFactory(Injection.provideInjection(this)).create(AuthViewModel::class.java)
         val userViewModel = ViewModelFactory(Injection.provideInjection(this)).create(UserViewModel::class.java)
         val locationViewModel = ViewModelFactory(Injection.provideInjection(this)).create(LocationViewModel::class.java)
+        val registerViewModel = ViewModelFactory(Injection.provideInjection(this)).create(RegisterViewModel::class.java)
 
         installSplashScreen().setKeepOnScreenCondition{
             splashViewModel.isLoading.value
@@ -213,14 +211,25 @@ class MainActivity : ComponentActivity() {
                                     navHostController = navController,
                                     emailValidation = authViewModel.emailValidation,
                                     passwordValidation = authViewModel.passwordValidation,
-                                    validateEmail = { authViewModel.validateEmail() },
-                                    validatePassword = { authViewModel.validatePassword() },
+                                    validateEmail = { authViewModel.validateEmailInput() },
+                                    validatePassword = { authViewModel.validatePasswordInput() },
                                     loginAction = { onSuccess ->  authViewModel.login(onSuccess) },
                                     isLoginValid = authViewModel.isLoginValid.collectAsState().value
                                 )
                             }
                             composable(Screen.Register.route){
-                                RegisterScreen(navHostController = navController)
+                                RegisterScreen(
+                                    navHostController = navController,
+                                    nameValidation = registerViewModel.nameValidation,
+                                    emailValidation = registerViewModel.emailValidation,
+                                    phoneNumberValidation = registerViewModel.phoneNumberValidation,
+                                    passwordValidation = registerViewModel.passwordValidation,
+                                    validateNameInput = { registerViewModel.validateNameInput() },
+                                    validateEmailInput = { registerViewModel.validateEmailInput() },
+                                    validatePhoneNumberInput = { registerViewModel.validatePhoneNumberInput() },
+                                    validatePasswordInput = { registerViewModel.validatePasswordInput() },
+                                    onRegister = { onSuccess -> registerViewModel.register(onSuccess) }
+                                )
                             }
                             composable(Screen.Order.route){
                                 OrderScreen(
@@ -243,13 +252,20 @@ class MainActivity : ComponentActivity() {
                             composable(Screen.ChangeAddress.route){
                                 ChangeAddressScreen(
                                     navHostController = navController,
+                                    nameValidation = addressViewModel.addressNameValidation,
+                                    cityValidation = addressViewModel.cityValidation,
+                                    districtValidation = addressViewModel.districtValidation,
+                                    detailValidation = addressViewModel.detailValidation,
+                                    validateName = {addressViewModel.validateNameInput()},
+                                    validateDetail = {addressViewModel.validateDetailInput()},
+                                    validateCity = {addressViewModel.validateCityInput()},
+                                    validateDistrict = {addressViewModel.validateDistrictInput()},
                                     onLoadSavedAddress = { addressViewModel.loadSavedAddress() },
                                     onAddNewAddress = { address -> addressViewModel.addNewAddress(address) },
                                     onDeleteAddress = { address -> addressViewModel.deleteAddress(address) },
                                     onSelectedAddress = { address -> addressViewModel.pickSelectedAddress(address) },
                                     onSaveSelectedAddress = { address -> addressViewModel.confirmSelectedAddress(address) },
                                     onReloadSavedAddress = { addressViewModel.reloadSavedAddress() },
-                                    toastMessageState = addressViewModel.message,
                                     savedAddressStateFlow = addressViewModel.savedAddress,
                                     tempSelectedAddressStateFlow = addressViewModel.tempSelectedAddress,
                                 )

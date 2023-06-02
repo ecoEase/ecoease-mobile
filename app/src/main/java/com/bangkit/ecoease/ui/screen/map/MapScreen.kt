@@ -74,6 +74,14 @@ fun MapScreen(
 
     LaunchedEffect(Unit) {
         permissionsState.launchMultiplePermissionRequest()
+        fusedLocationClient.getLastLocation(context,
+            onSuccess = {
+                cameraPositionState.position = CameraPosition.fromLatLngZoom(LatLng(it.latitude, it.longitude), 15f)
+            },
+            onError = {
+                Toast.makeText(context, "$it", Toast.LENGTH_SHORT).show()
+            }
+        )
     }
 
     val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
@@ -91,81 +99,62 @@ fun MapScreen(
         }
         bottomSheetScaffoldState.bottomSheetState.isExpanded
     }
-    PermissionsRequired(
-        multiplePermissionsState = permissionsState,
-        permissionsNotGrantedContent = { },
-        permissionsNotAvailableContent = { }
+    BottomSheetScaffold(
+        scaffoldState = bottomSheetScaffoldState,
+        sheetContent = {
+           DetailOrder(
+                id = id,
+                userName = userName,
+                date = date,
+                detailAddress = detailAddress,
+                district = district,
+                city = city,
+                garbageNames = garbageNames,
+                showCollapseButton = bottomSheetScaffoldState.bottomSheetState.isExpanded,
+                collapseBottomSheet = {
+                    coroutineScope.launch {
+                        bottomSheetScaffoldState.bottomSheetState.collapse()
+                    }
+                },
+                openDetailOrder = { id -> navHostController.navigate(Screen.DetailOrder.createRoute(id)) }
+            )
+        },
+        sheetPeekHeight = if(id.isEmpty()) 0.dp else 64.dp,
+        sheetShape = RoundedCornerShape(topEnd = 30.dp, topStart = 30.dp),
     ) {
-
-        fusedLocationClient.getLastLocation(context,
-            onSuccess = {
-                cameraPositionState.position = CameraPosition.fromLatLngZoom(LatLng(it.latitude, it.longitude), 15f)
-            },
-            onError = {
-                Toast.makeText(context, "$it", Toast.LENGTH_SHORT).show()
-            }
-        )
-
-        BottomSheetScaffold(
-            scaffoldState = bottomSheetScaffoldState,
-            sheetContent = {
-               DetailOrder(
-                    id = id,
-                    userName = userName,
-                    date = date,
-                    detailAddress = detailAddress,
-                    district = district,
-                    city = city,
-                    garbageNames = garbageNames,
-                    showCollapseButton = bottomSheetScaffoldState.bottomSheetState.isExpanded,
-                    collapseBottomSheet = {
-                        coroutineScope.launch {
-                            bottomSheetScaffoldState.bottomSheetState.collapse()
-                        }
-                    },
-                    openDetailOrder = { id -> navHostController.navigate(Screen.DetailOrder.createRoute(id)) }
-                )
-            },
-            sheetPeekHeight = if(id.isEmpty()) 0.dp else 64.dp,
-            sheetShape = RoundedCornerShape(topEnd = 30.dp, topStart = 30.dp),
-        ) {
-            Box(modifier = modifier
-                .fillMaxSize()
-                .pointerInput(Unit) {
-                    detectTapGestures { }
-                }) {
-                GoogleMap(
-                    properties = MapProperties(isMyLocationEnabled = true),
-                    uiSettings = MapUiSettings(
-                        myLocationButtonEnabled = true,
-                        compassEnabled = true
-                    ),
-                    modifier = Modifier.fillMaxSize(),
-                    cameraPositionState = cameraPositionState
-                ){
-                    availableOrderStateFlow.collectAsState(initial = UiState.Loading).value.let { uiState ->
-                        when(uiState){
-                            is UiState.Loading -> loadAvailableOrders()
-                            is UiState.Success -> {
-                                uiState.data.forEach {
-                                    it.location?.let { location ->
-                                        Marker(
-                                            state = MarkerState(position = LatLng(location.latitude, location.longitude)),
-                                            onClick = { _ ->
-                                                if(bottomSheetScaffoldState.bottomSheetState.isCollapsed){
-                                                    coroutineScope.launch { bottomSheetScaffoldState.bottomSheetState.expand() }
-                                                }
-                                                poiClickHandler(it)
-                                                false
-                                            },
-                                            title = it.address.city,
-                                            snippet = "marker in singapore"
-                                        )
-                                    }
+        Box(modifier = modifier
+            .fillMaxSize()) {
+            GoogleMap(
+                properties = MapProperties(isMyLocationEnabled = true),
+                uiSettings = MapUiSettings(
+                    myLocationButtonEnabled = true,
+                    compassEnabled = true
+                ),
+                modifier = Modifier.fillMaxSize(),
+                cameraPositionState = cameraPositionState
+            ){
+                availableOrderStateFlow.collectAsState(initial = UiState.Loading).value.let { uiState ->
+                    when(uiState){
+                        is UiState.Loading -> loadAvailableOrders()
+                        is UiState.Success -> {
+                            uiState.data.forEach {
+                                it.location?.let { location ->
+                                    Marker(
+                                        state = MarkerState(position = LatLng(location.latitude, location.longitude)),
+                                        onClick = { _ ->
+                                            if(bottomSheetScaffoldState.bottomSheetState.isCollapsed){
+                                                coroutineScope.launch { bottomSheetScaffoldState.bottomSheetState.expand() }
+                                            }
+                                            poiClickHandler(it)
+                                            false
+                                        },
+                                        title = it.address.city,
+                                        snippet = "marker in singapore"
+                                    )
                                 }
                             }
-                            is UiState.Error -> Text(text = uiState.errorMessage)
                         }
+                        is UiState.Error -> Text(text = uiState.errorMessage)
                     }
                 }
             }

@@ -12,6 +12,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -64,7 +66,9 @@ fun AuthScreen(
             onValueChange = { emailValidation.updateInputValue(it) },
             isError = emailValidation.isErrorState.collectAsState().value,
             errorMessage = emailValidation.getErrorMessage(),
-            validate = validateEmail
+            validate = validateEmail,
+            keyboardType = KeyboardType.Email,
+            imeAction = ImeAction.Next
         )
         TextInput(
             label = "Password",
@@ -73,7 +77,9 @@ fun AuthScreen(
             isError = passwordValidation.isErrorState.collectAsState().value,
             errorMessage = passwordValidation.getErrorMessage(),
             validate = validatePassword,
-            isPassword = true)
+            isPassword = true,
+            imeAction = ImeAction.Next
+        )
         RoundedButton(text = "login", modifier = Modifier.fillMaxWidth(), onClick = {
             loginAction{
                 //if success move to home screen

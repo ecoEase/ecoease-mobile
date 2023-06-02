@@ -5,6 +5,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
@@ -16,6 +17,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,6 +39,8 @@ fun TextInput(
     errorMessage: String = "Error!",
     placeHolder: String = "",
     validate: () -> Unit = {},
+    keyboardType: KeyboardType = KeyboardType.Text,
+    imeAction: ImeAction = ImeAction.Done
 ){
     val focusRequester = remember{ FocusRequester() }
     val animatedBackgroundColor by animateColorAsState(
@@ -76,6 +81,7 @@ fun TextInput(
                 focusedBorderColor = MaterialTheme.colors.primary,
                 unfocusedBorderColor = BluePrimary,
             ),
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction),
             trailingIcon = {
                 if(isPassword){
                     IconButton(onClick = { peekPassword = !peekPassword }) {

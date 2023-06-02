@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bangkit.ecoease.data.repository.MainRepository
 import com.bangkit.ecoease.data.room.model.Address
+import com.bangkit.ecoease.helper.InputValidation
 import com.bangkit.ecoease.ui.common.UiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -27,11 +28,49 @@ class AddressViewModel(private val repository: MainRepository): ViewModel() {
     private var _tempSelectedAddress: MutableStateFlow<Address> = MutableStateFlow(emptyAddress)
     private var _selectedAddress: MutableStateFlow<UiState<Address>> = MutableStateFlow(UiState.Loading)
     private var _message: MutableStateFlow<String> = MutableStateFlow("")
+    //input validation
+    val addressNameValidation = InputValidation("",  false, "")
+    val cityValidation = InputValidation("",  false, "")
+    val districtValidation = InputValidation("", false, "")
+    val detailValidation = InputValidation("", false, "")
 
     val savedAddress: StateFlow<UiState<List<Address>>> = _savedAddress
     val tempSelectedAddress: StateFlow<Address> = _tempSelectedAddress
     val selectedAddress: StateFlow<UiState<Address>> = _selectedAddress
     val message: StateFlow<String> = _message
+
+    fun validateNameInput(){
+        addressNameValidation.setErrorMessage(
+            when {
+                addressNameValidation.inputValue.value.isEmpty() -> "Nama alamat harus diisi!"
+                else -> ""
+            }
+        )
+    }
+    fun validateCityInput(){
+        cityValidation.setErrorMessage(
+            when {
+                cityValidation.inputValue.value.isEmpty() -> "Kota alamat harus diisi!"
+                else -> ""
+            }
+        )
+    }
+    fun validateDistrictInput(){
+        districtValidation.setErrorMessage(
+            when {
+                districtValidation.inputValue.value.isEmpty() -> "Kecamatan alamat harus diisi!"
+                else -> ""
+            }
+        )
+    }
+    fun validateDetailInput(){
+        detailValidation.setErrorMessage(
+            when {
+                detailValidation.inputValue.value.isEmpty() -> "Detail alamat harus diisi!"
+                else -> ""
+            }
+        )
+    }
     fun loadSavedAddress(){
         viewModelScope.launch(Dispatchers.IO) {
             delay(200)
@@ -42,7 +81,6 @@ class AddressViewModel(private val repository: MainRepository): ViewModel() {
             }
         }
     }
-
     fun loadSelectedAddress(){
         viewModelScope.launch(Dispatchers.IO) {
             delay(200)
@@ -53,41 +91,46 @@ class AddressViewModel(private val repository: MainRepository): ViewModel() {
             }
         }
     }
-
     fun reloadSelectedAddress(){
         _selectedAddress.value = UiState.Loading
     }
-
     fun pickSelectedAddress(address: Address){
         _tempSelectedAddress.value = address
     }
-
     fun confirmSelectedAddress(address: Address){
         viewModelScope.launch(Dispatchers.IO) {
             repository.saveSelectedAddress(address)
         }
     }
-
     fun addNewAddress(address: Address){
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val user = repository.getUser()
-                val newAddress = address.copy(id = user.first().id)
-                repository.addAddress(newAddress)
-                _savedAddress.value = UiState.Loading//trigger loading so in ui it will call the loadSavedAddress method
-            }catch (e: Exception){
-                Log.d("TAG", "addNewAddress: ${e.message}")
+        run {
+            validateNameInput()
+            validateCityInput()
+            validateDetailInput()
+            validateDistrictInput()
+        }//validate first
+        val isAllInputValid = listOf(addressNameValidation, cityValidation, districtValidation, detailValidation).all { !it.isErrorState.value }
+        if(isAllInputValid){
+            viewModelScope.launch(Dispatchers.IO) {
+                try {
+                    val user = repository.getUser()
+                    val newAddress = address.copy(id = user.first().id)
+                    repository.addAddress(newAddress)
+                    _savedAddress.value = UiState.Loading//trigger loading so in ui it will call the loadSavedAddress method
+                }catch (e: Exception){
+                    Log.d("TAG", "addNewAddress: ${e.message}")
+                }
             }
+        }else{
+            throw Exception("Fields must be valid")
         }
     }
-
     fun deleteAddress(address: Address){
         viewModelScope.launch(Dispatchers.IO) {
             repository.deleteAddress(address)
             _savedAddress.value = UiState.Loading//trigger loading so in ui it will call the loadSavedAddress method
         }
     }
-
     fun reloadSavedAddress() {
         _savedAddress.value = UiState.Loading
     }

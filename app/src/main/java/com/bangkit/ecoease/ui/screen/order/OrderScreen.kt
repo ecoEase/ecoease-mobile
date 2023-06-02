@@ -123,15 +123,7 @@ fun OrderScreen(
 
     PermissionsRequired(
         multiplePermissionsState = permissionState,
-        permissionsNotGrantedContent = {
-//            openDialogLocationPermission = true
-//            DialogBox(text = "Anda perlu mengaktifkan lokasi untuk bisa membuat pesanan!", isOpen = openDialogLocationPermission, onDissmiss = {
-//                navHostController.popBackStack()
-//            }, onAccept = {
-//                openDialogLocationPermission = false
-//                permissionState.launchMultiplePermissionRequest()
-//            })
-        },
+        permissionsNotGrantedContent = { },
         permissionsNotAvailableContent = {
             Column { Text(text = "Maaf perangkat anda tidak dapat mengakses fitur ini") }
         }) {

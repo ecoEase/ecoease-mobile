@@ -16,11 +16,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.room.model.Address
+import com.bangkit.ecoease.helper.InputValidation
 import com.bangkit.ecoease.helper.generateUUID
 import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.theme.DarkGrey
@@ -31,6 +33,14 @@ import kotlinx.coroutines.flow.StateFlow
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ChangeAddressScreen(
+    nameValidation: InputValidation,
+    detailValidation: InputValidation,
+    districtValidation: InputValidation,
+    cityValidation: InputValidation,
+    validateName: () -> Unit,
+    validateDetail: () -> Unit,
+    validateDistrict: () -> Unit,
+    validateCity: () -> Unit,
     savedAddressStateFlow: StateFlow<UiState<List<Address>>>,
     tempSelectedAddressStateFlow: StateFlow<Address?>,
     onLoadSavedAddress: () -> Unit,
@@ -39,25 +49,20 @@ fun ChangeAddressScreen(
     onSelectedAddress: (Address) -> Unit,
     onSaveSelectedAddress: (Address) -> Unit,
     onReloadSavedAddress: () -> Unit,
-    toastMessageState: StateFlow<String>,
     navHostController: NavHostController,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     var expandContainer: Boolean by rememberSaveable { mutableStateOf(false) }
-    var name: String by rememberSaveable { mutableStateOf("") }
-    var detail: String by rememberSaveable { mutableStateOf("") }
-    var district: String by rememberSaveable { mutableStateOf("") }
-    var city: String by rememberSaveable { mutableStateOf("") }
     var selectedIndex: Int by rememberSaveable { mutableStateOf(-1) }
 
     val windowInfo = rememberWindowInfo()
 
     fun resetFieldHandler() {
-        name = ""
-        detail = ""
-        district = ""
-        city = ""
+        nameValidation.updateInputValue("")
+        cityValidation.updateInputValue("")
+        detailValidation.updateInputValue("")
+        districtValidation.updateInputValue("")
     }
 
     ScreenModeContainer(
@@ -78,14 +83,14 @@ fun ChangeAddressScreen(
                     NewAddressForm(
                         expanded = expandContainer,
                         onToggle = { expandContainer = !expandContainer },
-                        name = name,
-                        onNameChange = { name = it },
-                        city = city,
-                        onCityChange = { city = it },
-                        district = district,
-                        onDistrictChange = { district = it },
-                        detail = detail,
-                        onDetailChange = { detail = it },
+                        name = nameValidation,
+                        city = cityValidation,
+                        district = districtValidation,
+                        detail = detailValidation,
+                        validateName = validateName,
+                        validateDetail = validateDetail,
+                        validateDistrict = validateDistrict,
+                        validateCity = validateCity,
                         resetFieldHandler = { resetFieldHandler() },
                         onAddNewAddress = { onAddNewAddress(it) },
                         context = context
@@ -168,18 +173,18 @@ fun ChangeAddressScreen(
 fun NewAddressForm(
     expanded: Boolean,
     onToggle: () -> Unit,
-    name: String,
-    onNameChange: (String) -> Unit,
-    city: String,
-    onCityChange: (String) -> Unit,
-    district: String,
-    onDistrictChange: (String) -> Unit,
-    detail: String,
-    onDetailChange: (String) -> Unit,
+    name: InputValidation,
+    city: InputValidation,
+    district: InputValidation,
+    detail: InputValidation,
+    validateName: () -> Unit,
+    validateDetail: () -> Unit,
+    validateDistrict: () -> Unit,
+    validateCity: () -> Unit,
     resetFieldHandler: () -> Unit,
-    onAddNewAddress: (Address) -> Unit,
     context: Context,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onAddNewAddress: (Address) -> Unit
 ) {
     CollapseContainer(
         modifier = modifier,
@@ -189,21 +194,38 @@ fun NewAddressForm(
     ) {
         TextInput(
             label = stringResource(R.string.address_name),
-            value = name,
-            onValueChange = { onNameChange(it) })
+            value = name.inputValue.collectAsState().value,
+            onValueChange = { name.updateInputValue(it) },
+            errorMessage = name.getErrorMessage(),
+            isError = name.isErrorState.collectAsState().value,
+            validate = validateName,
+            imeAction = ImeAction.Next
+        )
         TextInput(
             label = stringResource(R.string.address_city),
-            value = city,
-            onValueChange = { onCityChange(it) })
+            value = city.inputValue.collectAsState().value,
+            onValueChange = { city.updateInputValue(it) },
+            errorMessage = city.getErrorMessage(),
+            isError = city.isErrorState.collectAsState().value,
+            validate = validateCity,
+            imeAction = ImeAction.Next)
         TextInput(
             label = stringResource(R.string.address_district),
-            value = district,
-            onValueChange = { onDistrictChange(it) })
+            value = district.inputValue.collectAsState().value,
+            onValueChange = { district.updateInputValue(it) },
+            errorMessage = district.getErrorMessage(),
+            isError = district.isErrorState.collectAsState().value,
+            validate = validateDistrict,
+            imeAction = ImeAction.Next)
         TextInput(
             label = stringResource(R.string.address_detail),
             isTextArea = true,
-            value = detail,
-            onValueChange = { onDetailChange(it) })
+            value = detail.inputValue.collectAsState().value,
+            onValueChange = { detail.updateInputValue(it) },
+            errorMessage = detail.getErrorMessage(),
+            isError = detail.isErrorState.collectAsState().value,
+            validate = validateDetail,
+            imeAction = ImeAction.Next)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -219,10 +241,10 @@ fun NewAddressForm(
                     try {
                         val newAddress = Address(
                             id = generateUUID(),
-                            name = name,
-                            detail = detail,
-                            district = district,
-                            city = city,
+                            name = name.inputValue.value,
+                            detail = detail.inputValue.value,
+                            district = district.inputValue.value,
+                            city = city.inputValue.value,
                             selected = false,
                         )
                         onAddNewAddress(newAddress)

@@ -10,11 +10,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class AuthViewModel(private val repository: MainRepository) : ViewModel() {
+class RegisterViewModel(private val repository: MainRepository) : ViewModel() {
+    val nameValidation: InputValidation = InputValidation("",false, "")
+    val phoneNumberValidation: InputValidation = InputValidation("",false, "")
     val emailValidation: InputValidation = InputValidation("",false, "")
     val passwordValidation: InputValidation = InputValidation("",false, "")
-    private var _isLoginValid: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isLoginValid: StateFlow<Boolean> = _isLoginValid
 
     fun validateEmailInput(){
         val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\$"
@@ -35,27 +35,36 @@ class AuthViewModel(private val repository: MainRepository) : ViewModel() {
             }
         )
     }
-    fun login(onSuccess: () -> Unit){
+    fun validatePhoneNumberInput(){
+        phoneNumberValidation.setErrorMessage(
+            when {
+                phoneNumberValidation.inputValue.value.isEmpty() -> "Nomor telepon harus diisi!"
+                phoneNumberValidation.inputValue.value.length < 11 -> "Nomor telepon minimal harus 11 karakter!"
+                phoneNumberValidation.inputValue.value.length > 13 -> "Nomor telepon maximal harus 13 karakter!"
+                else -> ""
+            }
+        )
+    }
+    fun validateNameInput(){
+        nameValidation.setErrorMessage(
+            when {
+                nameValidation.inputValue.value.isEmpty() -> "Nama  harus diisi!"
+                else -> ""
+            }
+        )
+    }
+    fun register(onSuccess: () -> Unit){
         run{
+            validateNameInput()
+            validatePhoneNumberInput()
             validateEmailInput()
             validatePasswordInput()
         }
-        val isAllInputValid = listOf(emailValidation, passwordValidation).all { !it.isErrorState.value }
+        val isAllInputValid = listOf(nameValidation, emailValidation, phoneNumberValidation, passwordValidation).all { !it.isErrorState.value }
         if(isAllInputValid){
-            // TODO: add auth api
+            // TODO: add register api
             onSuccess()
-            viewModelScope.launch(Dispatchers.IO) {
-                repository.setUser()
-                repository.setToken(generateUUID())
-            }
         }
 
-    }
-    fun logout(){
-        viewModelScope.launch(Dispatchers.IO) {
-            // TODO: change this code below to reset user when logout
-            repository.resetUser()
-            repository.setToken("")
-        }
     }
 }

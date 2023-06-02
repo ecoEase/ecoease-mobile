@@ -26,8 +26,8 @@ class LocationViewModel(private val repository: MainRepository) : ViewModel() {
                 onSuccess = { location ->
                     _lastLocationStateFlow.value = UiState.Success(location)
                 },
-                onError = { errorMessage ->
-                    _lastLocationStateFlow.value = UiState.Error("error: $errorMessage")
+                onError = { error ->
+                    _lastLocationStateFlow.value = UiState.Error("error: $error")
                 }
             )
         }catch (e: Exception){
