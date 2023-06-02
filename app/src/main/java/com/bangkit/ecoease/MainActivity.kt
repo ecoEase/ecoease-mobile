@@ -209,7 +209,15 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             composable(Screen.Auth.route){
-                                AuthScreen(navHostController = navController, loginAction = { authViewModel.login() })
+                                AuthScreen(
+                                    navHostController = navController,
+                                    emailValidation = authViewModel.emailValidation,
+                                    passwordValidation = authViewModel.passwordValidation,
+                                    validateEmail = { authViewModel.validateEmail() },
+                                    validatePassword = { authViewModel.validatePassword() },
+                                    loginAction = { onSuccess ->  authViewModel.login(onSuccess) },
+                                    isLoginValid = authViewModel.isLoginValid.collectAsState().value
+                                )
                             }
                             composable(Screen.Register.route){
                                 RegisterScreen(navHostController = navController)

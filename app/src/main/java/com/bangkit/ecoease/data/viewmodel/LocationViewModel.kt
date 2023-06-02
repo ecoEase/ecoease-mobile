@@ -21,10 +21,17 @@ class LocationViewModel(private val repository: MainRepository) : ViewModel() {
 
     fun getLastLocation(){
         try {
-            fusedLocationClient.getLastLocation(context = repository.context, onSuccess = { location ->
-                _lastLocationStateFlow.value = UiState.Success(location)
-            })
+            fusedLocationClient.getLastLocation(
+                context = repository.context,
+                onSuccess = { location ->
+                    _lastLocationStateFlow.value = UiState.Success(location)
+                },
+                onError = { errorMessage ->
+                    _lastLocationStateFlow.value = UiState.Error("error: $errorMessage")
+                }
+            )
         }catch (e: Exception){
+            Log.d("TAG", "getLastLocation: $e")
             _lastLocationStateFlow.value = UiState.Error("error: ${e.message}")
         }
     }

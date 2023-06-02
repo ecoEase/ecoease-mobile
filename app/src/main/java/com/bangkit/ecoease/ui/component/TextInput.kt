@@ -1,13 +1,23 @@
 package com.bangkit.ecoease.ui.component
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bangkit.ecoease.ui.theme.BluePrimary
@@ -21,43 +31,75 @@ fun TextInput(
     label: String? = null,
     isTextArea: Boolean = false,
     modifier: Modifier = Modifier,
+    isPassword: Boolean = false,
+    isError: Boolean = false,
+    errorMessage: String = "Error!",
     placeHolder: String = "",
+    validate: () -> Unit = {},
 ){
-
-    val animatedBackgrounColor by animateColorAsState(
+    val focusRequester = remember{ FocusRequester() }
+    val animatedBackgroundColor by animateColorAsState(
         targetValue = if(value.isNotEmpty()) LightTosca.copy(alpha = 0.3f) else MaterialTheme.colors.background,
         animationSpec = tween(200)
     )
+    var peekPassword by remember { mutableStateOf(false) }
+    var isFocused by remember{ mutableStateOf(false) }
+    var isInputted by remember{ mutableStateOf(false) }
 
-    OutlinedTextField(
-        modifier =
-            if(isTextArea) {
-                modifier
-                    .fillMaxWidth()
-                    .height(124.dp)
-            } else {
-                modifier.fillMaxWidth()}
-        ,
-        singleLine = !isTextArea,
-        value = value,
-        label = { if(label != null) Text(label) },
-        placeholder = { Text(text = placeHolder) },
-        onValueChange = onValueChange,
-        shape = RoundedCornerShape(32.dp),
-        colors = TextFieldDefaults.outlinedTextFieldColors(
-            backgroundColor = animatedBackgrounColor,
-            textColor = MaterialTheme.colors.onBackground,
-            focusedLabelColor = MaterialTheme.colors.onBackground,
-            focusedBorderColor = MaterialTheme.colors.primary,
-            unfocusedBorderColor = BluePrimary,
+    Column {
+        OutlinedTextField(
+            modifier =
+            modifier
+                .fillMaxWidth()
+                .apply {
+                    if (isTextArea) height(124.dp)
+                }
+                .focusRequester(focusRequester)
+                .onFocusChanged {
+                    isFocused = it.isFocused
+                }
+            ,
+            singleLine = !isTextArea,
+            value = value,
+            label = { if(label != null) Text(label) },
+            placeholder = { Text(text = placeHolder) },
+            onValueChange = {
+                onValueChange(it)
+                validate()
+            },
+            shape = RoundedCornerShape(32.dp),
+            visualTransformation = if(isPassword && !peekPassword) PasswordVisualTransformation() else VisualTransformation.None,
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                backgroundColor = animatedBackgroundColor,
+                textColor = MaterialTheme.colors.onBackground,
+                focusedLabelColor = MaterialTheme.colors.onBackground,
+                focusedBorderColor = MaterialTheme.colors.primary,
+                unfocusedBorderColor = BluePrimary,
+            ),
+            trailingIcon = {
+                if(isPassword){
+                    IconButton(onClick = { peekPassword = !peekPassword }) {
+                        Icon(imageVector = if(peekPassword) Icons.Default.Visibility else Icons.Default.VisibilityOff, contentDescription = "password peek icon")
+                    }
+                }
+            },
+            isError = isError
         )
-    )
+        AnimatedVisibility(visible = isError) {
+            Text(errorMessage, style = MaterialTheme.typography.caption.copy(
+                color = Color.Red
+            ), modifier = Modifier.padding(start = 16.dp))
+        }
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun TextInputPreview(){
     EcoEaseTheme {
-        TextInput(label = "Label", value = "", onValueChange = {})
+        Column() {
+            TextInput(label = "Label", value = "", onValueChange = {})
+            TextInput(label = "Label", value = "", onValueChange = {}, isError = true)
+        }
     }
 }

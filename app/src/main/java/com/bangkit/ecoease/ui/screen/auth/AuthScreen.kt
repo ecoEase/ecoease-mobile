@@ -1,5 +1,6 @@
 package com.bangkit.ecoease.ui.screen
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,6 +18,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.Screen
+import com.bangkit.ecoease.helper.InputValidation
 import com.bangkit.ecoease.ui.component.RoundedButton
 import com.bangkit.ecoease.ui.component.TextInput
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
@@ -24,12 +26,16 @@ import com.bangkit.ecoease.ui.theme.EcoEaseTheme
 
 @Composable
 fun AuthScreen(
-    loginAction: () -> Unit,
+    emailValidation: InputValidation,
+    passwordValidation: InputValidation,
+    validateEmail: () -> Unit,
+    validatePassword: () -> Unit,
+    loginAction: (onSuccess: () -> Unit) -> Unit,
+    isLoginValid: Boolean,
     navHostController: NavHostController,
     modifier: Modifier = Modifier
 ){
-    var email by rememberSaveable{ mutableStateOf("") }
-    var password by rememberSaveable{ mutableStateOf("") }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -52,14 +58,29 @@ fun AuthScreen(
             Text(text = stringResource(id = R.string.app_name), style = MaterialTheme.typography.h5)
         }
         Text("Login")
-        TextInput(label = "Email", value = email, onValueChange = { it -> email = it})
-        TextInput(label = "Password", value = password, onValueChange = { it -> password = it})
+        TextInput(
+            label = "Email",
+            value = emailValidation.inputValue.collectAsState().value,
+            onValueChange = { emailValidation.updateInputValue(it) },
+            isError = emailValidation.isErrorState.collectAsState().value,
+            errorMessage = emailValidation.getErrorMessage(),
+            validate = validateEmail
+        )
+        TextInput(
+            label = "Password",
+            value = passwordValidation.inputValue.collectAsState().value,
+            onValueChange = { passwordValidation.updateInputValue(it) },
+            isError = passwordValidation.isErrorState.collectAsState().value,
+            errorMessage = passwordValidation.getErrorMessage(),
+            validate = validatePassword,
+            isPassword = true)
         RoundedButton(text = "login", modifier = Modifier.fillMaxWidth(), onClick = {
-            loginAction()
-            //if login success
-            navHostController.navigate(Screen.Home.route){
-                popUpTo(Screen.Auth.route) {
-                    inclusive = true
+            loginAction{
+                //if success move to home screen
+                navHostController.navigate(Screen.Home.route){
+                    popUpTo(Screen.Auth.route) {
+                        inclusive = true
+                    }
                 }
             }
         })
@@ -72,6 +93,6 @@ fun AuthScreen(
 @Composable
 fun AuthScreenPreview(){
     EcoEaseTheme {
-        AuthScreen(navHostController = rememberNavController(), loginAction = {})
+//        AuthScreen(navHostController = rememberNavController(), loginAction = {})
     }
 }

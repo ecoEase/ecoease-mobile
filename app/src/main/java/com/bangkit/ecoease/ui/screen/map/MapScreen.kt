@@ -2,6 +2,7 @@ package com.bangkit.ecoease.ui.screen
 
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -96,9 +97,14 @@ fun MapScreen(
         permissionsNotAvailableContent = { }
     ) {
 
-        fusedLocationClient.getLastLocation(context, onSuccess = {
-            cameraPositionState.position = CameraPosition.fromLatLngZoom(LatLng(it.latitude, it.longitude), 15f)
-        })
+        fusedLocationClient.getLastLocation(context,
+            onSuccess = {
+                cameraPositionState.position = CameraPosition.fromLatLngZoom(LatLng(it.latitude, it.longitude), 15f)
+            },
+            onError = {
+                Toast.makeText(context, "$it", Toast.LENGTH_SHORT).show()
+            }
+        )
 
         BottomSheetScaffold(
             scaffoldState = bottomSheetScaffoldState,

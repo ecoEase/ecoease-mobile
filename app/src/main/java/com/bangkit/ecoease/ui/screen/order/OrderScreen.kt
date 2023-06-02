@@ -31,7 +31,6 @@ import com.bangkit.ecoease.data.model.GarbageAdded
 import com.bangkit.ecoease.data.model.Order
 import com.bangkit.ecoease.data.room.model.Garbage
 import com.bangkit.ecoease.helper.generateUUID
-import com.bangkit.ecoease.helper.getLastLocation
 import com.bangkit.ecoease.helper.toCurrency
 import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.*

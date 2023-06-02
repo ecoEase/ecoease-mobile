@@ -7,7 +7,8 @@ import android.location.Location
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 
-fun FusedLocationProviderClient.getLastLocation(context: Context, onSuccess: (Location) -> Unit){
+fun FusedLocationProviderClient.getLastLocation(context: Context, onSuccess: (Location) -> Unit, onError: (String) -> Unit){
+
     if (ActivityCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_FINE_LOCATION
@@ -17,10 +18,10 @@ fun FusedLocationProviderClient.getLastLocation(context: Context, onSuccess: (Lo
         ) == PackageManager.PERMISSION_GRANTED
     ) {
         this.lastLocation.addOnSuccessListener { location ->
-            if(location == null) throw NullPointerException("Location is null!")
+            if(location == null) onError("Location is null!")
             onSuccess(location)
         }
     }else {
-        throw SecurityException("Location permission not granted!")
+        onError("Location permission not granted!")
     }
 }
