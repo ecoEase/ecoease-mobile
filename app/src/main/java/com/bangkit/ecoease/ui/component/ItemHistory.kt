@@ -38,8 +38,9 @@ fun ItemHistory(
             width = 1.dp,
             color = when(statusItemHistory){
                 StatusOrderItem.NOT_TAKEN -> BlueSecondary
+                StatusOrderItem.TAKEN -> DarkTosca
                 StatusOrderItem.ON_PROCESS -> GreenSecondary
-                StatusOrderItem.TAKEN -> GreenPrimary
+                StatusOrderItem.FINISHED-> GreenPrimary
                 StatusOrderItem.CANCELED -> OrangeAccent
             }
         ),
@@ -101,8 +102,9 @@ fun StatusOrder(
     val animatedColor by animateColorAsState(
         targetValue = when(statusItemHistory){
             StatusOrderItem.NOT_TAKEN -> BlueSecondary
+            StatusOrderItem.TAKEN -> DarkTosca
             StatusOrderItem.ON_PROCESS -> GreenSecondary
-            StatusOrderItem.TAKEN -> GreenPrimary
+            StatusOrderItem.FINISHED -> GreenPrimary
             StatusOrderItem.CANCELED -> OrangeAccent
         },
         animationSpec = tween(200)
@@ -114,11 +116,14 @@ fun StatusOrder(
                 StatusOrderItem.NOT_TAKEN -> {
                     stringResource(R.string.order_not_taken)
                 }
+                StatusOrderItem.TAKEN -> {
+                    stringResource(R.string.order_taken)
+                }
                 StatusOrderItem.ON_PROCESS -> {
                     stringResource(R.string.order_on_process)
                 }
-                StatusOrderItem.TAKEN -> {
-                    stringResource(R.string.order_taken)
+                StatusOrderItem.FINISHED -> {
+                    stringResource(R.string.finished)
                 }
                 StatusOrderItem.CANCELED -> {
                     stringResource(R.string.order_canceled)

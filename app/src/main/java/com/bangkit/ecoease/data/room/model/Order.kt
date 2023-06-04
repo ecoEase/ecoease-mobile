@@ -6,7 +6,7 @@ import androidx.room.*
 import kotlinx.parcelize.Parcelize
 
 enum class StatusOrderItem{
-    NOT_TAKEN, ON_PROCESS, TAKEN, CANCELED
+    NOT_TAKEN, TAKEN, ON_PROCESS, FINISHED, CANCELED
 }
 
 @Parcelize

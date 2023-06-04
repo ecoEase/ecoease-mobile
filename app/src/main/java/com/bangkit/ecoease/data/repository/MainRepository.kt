@@ -2,6 +2,7 @@ package com.bangkit.ecoease.data.repository
 
 import android.content.Context
 import android.util.Log
+import com.bangkit.ecoease.config.ApiConfig
 import com.bangkit.ecoease.data.datastore.DataStorePreferences
 import com.bangkit.ecoease.data.dummy.AddressDummy
 import com.bangkit.ecoease.data.dummy.GarbageDummy
@@ -19,6 +20,10 @@ import kotlinx.coroutines.flow.flowOf
 
 class MainRepository(private val datastore: DataStorePreferences, private val roomDatabase: MainDatabase, val context: Context) {
     private var capturedImageUri: ImageCaptured? = null
+    // TODO: for testing purpose use dummy this dummy token
+    val dummyToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.avoE0f7ogWu5Wntyh8J8QfkYE6YVHo8AyW7mO_Ztas8"
+    // TODO: add API service for each endpoint
+    private val garbageApiService = ApiConfig.getGarbageApiService()
     //CAMERA
     fun setCapturedImage(imageCapture: ImageCaptured){
         capturedImageUri = imageCapture
@@ -58,6 +63,9 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
     //GARBAGE
     suspend fun getAllGarbage(): Flow<List<Garbage>>{
         try {
+
+            val apiResponse = garbageApiService.get(dummyToken)
+            Log.d("API Service", "getAllGarbage: $apiResponse")
             val response = GarbageDummy.listGarbage
             roomDatabase.garbageDao().deleteAllGarbage()
             response.forEach { garbage ->
@@ -116,7 +124,6 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
     }
     suspend fun saveSelectedAddress(address: Address){
         //call api update selected address
-
         val updatedAddressStatus = Address(
             id = address.id,
             name = address.name,
