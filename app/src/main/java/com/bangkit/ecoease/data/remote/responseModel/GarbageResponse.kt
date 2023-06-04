@@ -1,23 +1,24 @@
 package com.bangkit.ecoease.data.remote.responseModel
 
+import com.bangkit.ecoease.data.room.model.Garbage
 import com.google.gson.annotations.SerializedName
 
 data class GarbageResponse(
 
 	@field:SerializedName("data")
-	val data: List<DataItem?>? = null,
+	val data: List<GarbageItem?>? = null,
 
 	@field:SerializedName("message")
 	val message: String? = null
 )
 
-data class DataItem(
+data class GarbageItem(
 
 	@field:SerializedName("createdAt")
 	val createdAt: String? = null,
 
 	@field:SerializedName("price")
-	val price: Int? = null,
+	val price: Long? = null,
 
 	@field:SerializedName("url_photo")
 	val urlPhoto: String? = null,
@@ -30,4 +31,11 @@ data class DataItem(
 
 	@field:SerializedName("updatedAt")
 	val updatedAt: String? = null
+)
+
+fun GarbageItem.toGarbage(): Garbage = Garbage(
+	id = this.id.orEmpty(),
+	urlPhoto = this.urlPhoto.orEmpty(),
+	type = this.type.orEmpty(),
+	price = this.price ?: 0
 )

@@ -83,7 +83,7 @@ fun OrderHistoryScreen(
                     ){
                         items(uiState.data){ item ->
                             ItemHistory(
-                                items = item.items.map { it.garbage.name},
+                                items = item.items.map { it.garbage.type},
                                 date = item.order.created,
                                 totalPrice = item.order.totalTransaction.toCurrency(),
                                 statusItemHistory = item.order.status,

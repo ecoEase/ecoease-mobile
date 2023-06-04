@@ -9,6 +9,7 @@ import com.bangkit.ecoease.data.dummy.GarbageDummy
 import com.bangkit.ecoease.data.dummy.UserDummy
 import com.bangkit.ecoease.data.model.GarbageAdded
 import com.bangkit.ecoease.data.model.ImageCaptured
+import com.bangkit.ecoease.data.remote.responseModel.toGarbage
 import com.bangkit.ecoease.data.room.database.MainDatabase
 import com.bangkit.ecoease.data.room.model.*
 import com.bangkit.ecoease.helper.generateUUID
@@ -20,8 +21,6 @@ import kotlinx.coroutines.flow.flowOf
 
 class MainRepository(private val datastore: DataStorePreferences, private val roomDatabase: MainDatabase, val context: Context) {
     private var capturedImageUri: ImageCaptured? = null
-    // TODO: for testing purpose use dummy this dummy token
-    val dummyToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.avoE0f7ogWu5Wntyh8J8QfkYE6YVHo8AyW7mO_Ztas8"
     // TODO: add API service for each endpoint
     private val garbageApiService = ApiConfig.getGarbageApiService()
     //CAMERA
@@ -63,13 +62,12 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
     //GARBAGE
     suspend fun getAllGarbage(): Flow<List<Garbage>>{
         try {
+            val token = datastore.getAuthToken().first()
+            val response = garbageApiService.get(token)
 
-            val apiResponse = garbageApiService.get(dummyToken)
-            Log.d("API Service", "getAllGarbage: $apiResponse")
-            val response = GarbageDummy.listGarbage
             roomDatabase.garbageDao().deleteAllGarbage()
-            response.forEach { garbage ->
-                roomDatabase.garbageDao().addGarbage(garbage)
+            response.data?.forEach { garbageItem ->
+                roomDatabase.garbageDao().addGarbage(garbageItem!!.toGarbage())
             }
         }catch (e: Exception){
             if (roomDatabase.garbageDao().getAllGarbage().isEmpty()){

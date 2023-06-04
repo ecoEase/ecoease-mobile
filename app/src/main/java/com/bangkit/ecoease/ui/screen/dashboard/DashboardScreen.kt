@@ -139,7 +139,7 @@ fun DashboardScreenContent(
                         contentPadding = PaddingValues(bottom = 64.dp)
                     ){
                         items(uiState.data){item ->
-                            CardPrice(imageUrl = item.imageUrl, name = item.name, price = "Rp${item.price.toCurrency()}")
+                            CardPrice(imageUrl = item.urlPhoto, name = item.type, price = "Rp${item.price.toCurrency()}")
                         }
                     }
                 }

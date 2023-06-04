@@ -46,7 +46,8 @@ class AuthViewModel(private val repository: MainRepository) : ViewModel() {
             onSuccess()
             viewModelScope.launch(Dispatchers.IO) {
                 repository.setUser()
-                repository.setToken(generateUUID())
+                val dummyToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.avoE0f7ogWu5Wntyh8J8QfkYE6YVHo8AyW7mO_Ztas8"
+                repository.setToken(dummyToken)
             }
         }
 

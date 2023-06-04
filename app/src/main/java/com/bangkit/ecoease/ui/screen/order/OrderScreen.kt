@@ -284,7 +284,7 @@ fun OrderScreenContent(
                 //populate the addGarbageForm with stateflow order when there is data from it
                 val addedGarbage =
                     if (orderState.garbageList.isNotEmpty()) orderState.garbageList[index] else null
-                val initialGarbageName = addedGarbage?.garbage?.name
+                val initialGarbageName = addedGarbage?.garbage?.type
                 val initialGarbageAmount = addedGarbage?.amount
                 val initialGarbagePrice = addedGarbage?.garbage?.price
                 val initialGarbageTotalPrice = addedGarbage?.totalPrice

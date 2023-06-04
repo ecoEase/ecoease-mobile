@@ -95,7 +95,7 @@ fun MapScreen(
             detailAddress = it.address.detail
             district = it.address.district
             city = it.address.city
-            garbageNames = it.items.map { it.garbage.name }.toMutableList()
+            garbageNames = it.items.map { it.garbage.type }.toMutableList()
         }
         bottomSheetScaffoldState.bottomSheetState.isExpanded
     }

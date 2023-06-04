@@ -40,7 +40,7 @@ fun AddGarbageForm(
 ){
     var selectedGarbageIndex: Int by rememberSaveable{ mutableStateOf(-1) }
     var selectedGarbageAmount: Int by rememberSaveable{ mutableStateOf(0) }
-    val listGarbageName = listGarbage.map { it.name }
+    val listGarbageName = listGarbage.map { it.type }
     var totalPrice by rememberSaveable { mutableStateOf(initTotalPrice ?: 0) }
     var price by rememberSaveable{ mutableStateOf(initPrice ?: 0) }
 

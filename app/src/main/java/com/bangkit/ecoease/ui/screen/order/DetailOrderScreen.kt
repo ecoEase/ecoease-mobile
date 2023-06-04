@@ -38,7 +38,7 @@ fun DetailOrderScreen(
 
     val garbages = listOf<GarbageAdded>(
         GarbageAdded(
-            garbage = com.bangkit.ecoease.data.room.model.Garbage(id = generateUUID(), imageUrl = "", name = "kaleng", price = 700),
+            garbage = com.bangkit.ecoease.data.room.model.Garbage(id = generateUUID(), urlPhoto = "", type = "kaleng", price = 700),
             amount = 2,
             totalPrice = 1400
         )
@@ -101,7 +101,7 @@ fun OrderDetailContent(
         }
         LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)){
             items(listGarbage){
-                DetailCardGarbage(garbageName = it.garbage.name, amount = it.orderInfo.qty, price = it.garbage.price, total = it.orderInfo.total)
+                DetailCardGarbage(garbageName = it.garbage.type, amount = it.orderInfo.qty, price = it.garbage.price, total = it.orderInfo.total)
             }
         }
         if(order.status == StatusOrderItem.NOT_TAKEN){

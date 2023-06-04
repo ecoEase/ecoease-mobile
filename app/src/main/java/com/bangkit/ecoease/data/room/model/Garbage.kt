@@ -15,11 +15,11 @@ data class Garbage(
     @ColumnInfo(name = "id")
     val id: String,
 
-    @ColumnInfo(name = "image_url")
-    val imageUrl: String,
+    @ColumnInfo(name = "url_photo")
+    val urlPhoto: String,
 
-    @ColumnInfo(name = "name")
-    val name: String,
+    @ColumnInfo(name = "type")
+    val type: String,
 
     @ColumnInfo(name = "price")
     val price: Long
