@@ -1,20 +1,26 @@
 package com.bangkit.ecoease.data.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bangkit.ecoease.data.model.request.Login
 import com.bangkit.ecoease.data.repository.MainRepository
 import com.bangkit.ecoease.helper.InputValidation
 import com.bangkit.ecoease.helper.generateUUID
+import com.bangkit.ecoease.ui.common.UiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AuthViewModel(private val repository: MainRepository) : ViewModel() {
     val emailValidation: InputValidation = InputValidation("",false, "")
     val passwordValidation: InputValidation = InputValidation("",false, "")
-    private var _isLoginValid: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isLoginValid: StateFlow<Boolean> = _isLoginValid
+    private var _isLoginValid: MutableStateFlow<UiState<Boolean>> = MutableStateFlow(UiState.Success(false))
+    val isLoginValid: StateFlow<UiState<Boolean>> = _isLoginValid
 
     fun validateEmailInput(){
         val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\$"
@@ -42,19 +48,29 @@ class AuthViewModel(private val repository: MainRepository) : ViewModel() {
         }
         val isAllInputValid = listOf(emailValidation, passwordValidation).all { !it.isErrorState.value }
         if(isAllInputValid){
-            // TODO: add auth api
-            onSuccess()
+            _isLoginValid.value = UiState.Loading
             viewModelScope.launch(Dispatchers.IO) {
-                repository.setUser()
-                val dummyToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.avoE0f7ogWu5Wntyh8J8QfkYE6YVHo8AyW7mO_Ztas8"
-                repository.setToken(dummyToken)
+                try {
+                    repository.loginUser(
+                        Login(email = emailValidation.inputValue.value,password = passwordValidation.inputValue.value)
+                    ).catch { error ->
+                        _isLoginValid.value = UiState.Error("error: ${error.message}")
+                    }.collect{
+                        _isLoginValid.value = UiState.Success(true)
+                        withContext(Dispatchers.Main){
+                            onSuccess()
+                        }
+                    }
+                }catch (e: Exception){
+                    Log.d("TAG", "login error: $e")
+                    _isLoginValid.value = UiState.Error("error: ${e.message}")
+                }
             }
         }
 
     }
     fun logout(){
         viewModelScope.launch(Dispatchers.IO) {
-            // TODO: change this code below to reset user when logout
             repository.resetUser()
             repository.setToken("")
         }

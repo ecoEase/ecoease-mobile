@@ -31,6 +31,7 @@ import com.bangkit.ecoease.di.Injection
 import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.*
 import com.bangkit.ecoease.ui.screen.*
+import com.bangkit.ecoease.ui.screen.auth.AuthScreen
 import com.bangkit.ecoease.ui.screen.chat.ChatRoomScreen
 import com.bangkit.ecoease.ui.screen.chat.UsersChatsScreen
 import com.bangkit.ecoease.ui.screen.onboard.OnBoardingScreen
@@ -59,11 +60,7 @@ val listNoTopBar = listOf(
 class MainActivity : ComponentActivity() {
     private val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     private lateinit var cameraViewModel: CameraViewModel
-
-
-    companion object{
-        val INTENT_GALLERY_RESULT = 201
-    }
+    private lateinit var registerViewModel: RegisterViewModel
 
     // TODO: move all business logic in viewmodel
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,13 +68,13 @@ class MainActivity : ComponentActivity() {
         val splashViewModel = ViewModelFactory(Injection.provideInjection(this)).create(SplashViewModel::class.java)
         super.onCreate(savedInstanceState)
         cameraViewModel = ViewModelFactory(Injection.provideInjection(this)).create(CameraViewModel::class.java)
+        registerViewModel = ViewModelFactory(Injection.provideInjection(this)).create(RegisterViewModel::class.java)
+        val authViewModel = ViewModelFactory(Injection.provideInjection(this)).create(AuthViewModel::class.java)
         val orderViewModel = ViewModelFactory(Injection.provideInjection(this)).create(OrderViewModel::class.java)
         val garbageViewModel = ViewModelFactory(Injection.provideInjection(this)).create(GarbageViewModel::class.java)
         val addressViewModel = ViewModelFactory(Injection.provideInjection(this)).create(AddressViewModel::class.java)
-        val authViewModel = ViewModelFactory(Injection.provideInjection(this)).create(AuthViewModel::class.java)
         val userViewModel = ViewModelFactory(Injection.provideInjection(this)).create(UserViewModel::class.java)
         val locationViewModel = ViewModelFactory(Injection.provideInjection(this)).create(LocationViewModel::class.java)
-        val registerViewModel = ViewModelFactory(Injection.provideInjection(this)).create(RegisterViewModel::class.java)
 
         installSplashScreen().setKeepOnScreenCondition{
             splashViewModel.isLoading.value
@@ -112,6 +109,8 @@ class MainActivity : ComponentActivity() {
                                     navController = navController,
                                     isUseNavButton = !isMainRoute,
                                     isUseAvatar = currentRoute == Screen.Home.route,
+                                    userStateFlow = userViewModel.user,
+                                    loadUser = { userViewModel.getUser() },
                                     onTapNavButton = {
                                         if(orderViewModel.orderState.value.total > 0 && currentRoute == Screen.Order.route){
                                             openDialog = true
@@ -213,22 +212,40 @@ class MainActivity : ComponentActivity() {
                                     passwordValidation = authViewModel.passwordValidation,
                                     validateEmail = { authViewModel.validateEmailInput() },
                                     validatePassword = { authViewModel.validatePasswordInput() },
-                                    loginAction = { onSuccess ->  authViewModel.login(onSuccess) },
-                                    isLoginValid = authViewModel.isLoginValid.collectAsState().value
+                                    loginAction = { authViewModel.login(onSuccess = {
+                                        navController.navigate(Screen.Home.route) {
+                                            popUpTo(Screen.Auth.route) {
+                                                inclusive = true
+                                            }
+                                        }
+                                    }) },
+                                    isLoginValid = authViewModel.isLoginValid
                                 )
                             }
                             composable(Screen.Register.route){
                                 RegisterScreen(
                                     navHostController = navController,
-                                    nameValidation = registerViewModel.nameValidation,
+                                    firstnameValidation = registerViewModel.firstnameValidation,
+                                    lastnameValidation = registerViewModel.lastnameValidation,
                                     emailValidation = registerViewModel.emailValidation,
                                     phoneNumberValidation = registerViewModel.phoneNumberValidation,
                                     passwordValidation = registerViewModel.passwordValidation,
-                                    validateNameInput = { registerViewModel.validateNameInput() },
+                                    imageProfile = registerViewModel.uiStateProfileImage,
+                                    loadImageProfile = { registerViewModel.getProfileImageUri() },
+                                    validateFirstnameInput = { registerViewModel.validateFirstnameInput() },
+                                    validateLastnameInput = { registerViewModel.validateLastnameInput() },
                                     validateEmailInput = { registerViewModel.validateEmailInput() },
                                     validatePhoneNumberInput = { registerViewModel.validatePhoneNumberInput() },
                                     validatePasswordInput = { registerViewModel.validatePasswordInput() },
-                                    onRegister = { onSuccess -> registerViewModel.register(onSuccess) }
+                                    onRegister = { photoFile, onSuccess -> registerViewModel.register(photoFile, onSuccess) },
+                                    openGallery = {
+                                        val intent = Intent().apply {
+                                            action = ACTION_GET_CONTENT
+                                            type = "image/*"
+                                        }
+                                        val chooser = Intent.createChooser(intent, "Choose a picture")
+                                        launcherIntentGalleryRegister.launch(chooser)
+                                    }
                                 )
                             }
                             composable(Screen.Order.route){
@@ -264,7 +281,7 @@ class MainActivity : ComponentActivity() {
                                     onAddNewAddress = { address -> addressViewModel.addNewAddress(address) },
                                     onDeleteAddress = { address -> addressViewModel.deleteAddress(address) },
                                     onSelectedAddress = { address -> addressViewModel.pickSelectedAddress(address) },
-                                    onSaveSelectedAddress = { address -> addressViewModel.confirmSelectedAddress(address) },
+                                    onSaveSelectedAddress = { address, onSuccess -> addressViewModel.confirmSelectedAddress(address, onSuccess) },
                                     onReloadSavedAddress = { addressViewModel.reloadSavedAddress() },
                                     savedAddressStateFlow = addressViewModel.savedAddress,
                                     tempSelectedAddressStateFlow = addressViewModel.tempSelectedAddress,
@@ -335,6 +352,18 @@ class MainActivity : ComponentActivity() {
             val selectedImage = result.data?.data as Uri
             selectedImage?.let { uri ->
                 cameraViewModel.setImage(
+                    ImageCaptured(uri = uri, isBackCam = true)
+                )
+            }
+        }
+    }
+    private val launcherIntentGalleryRegister = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ){ result ->
+        if(result.resultCode == RESULT_OK){
+            val selectedImage = result.data?.data as Uri
+            selectedImage?.let { uri ->
+                registerViewModel.setProfileImage(
                     ImageCaptured(uri = uri, isBackCam = true)
                 )
             }

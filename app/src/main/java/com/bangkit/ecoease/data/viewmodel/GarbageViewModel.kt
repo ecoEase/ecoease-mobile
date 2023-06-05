@@ -17,7 +17,6 @@ class GarbageViewModel(private val repository: MainRepository): ViewModel() {
     val garbageState: StateFlow<UiState<List<Garbage>>> = _garbageState
     fun getAllGarbage(){
         viewModelScope.launch(Dispatchers.IO) {
-            delay(200)
             try {
                 repository.getAllGarbage().catch {
                     _garbageState.value = UiState.Error("error ${it.message}")

@@ -44,6 +44,11 @@ fun ProfileScreen(
             is UiState.Success -> {
                 when(windowInfo.screenWidthInfo){
                     is WindowInfo.WindowType.Compact -> ProfileScreenPortraitContent(
+                        email = uiState.data.email,
+                        firstName = uiState.data.firstName,
+                        lastName = uiState.data.lastName,
+                        photoUrl = uiState.data.urlPhotoProfile,
+                        phoneNum = uiState.data.phoneNumber,
                         openLogoutDialog = { openDialog = true },
                     )
                     else -> ProfileScreenLandscapeContent(
@@ -64,6 +69,11 @@ fun ProfileScreen(
 
 @Composable
 fun ProfileScreenPortraitContent(
+    photoUrl: String,
+    firstName: String,
+    lastName: String,
+    email: String,
+    phoneNum: String,
     openLogoutDialog: () -> Unit,
     modifier: Modifier = Modifier,
 ){
@@ -76,16 +86,15 @@ fun ProfileScreenPortraitContent(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Avatar(
-            imageUrl = "https://images.unsplash.com/photo-1528190336454-13cd56b45b5a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80",
+            imageUrl = photoUrl,
             size = AvatarSize.LARGE
         )
-        Text(text = "Maya", style = MaterialTheme.typography.h4)
-        Text(text = "maya@gmail.com", style = MaterialTheme.typography.caption.copy(
+        Text(text = firstName, style = MaterialTheme.typography.h4)
+        Text(text = email, style = MaterialTheme.typography.caption.copy(
             color = BluePrimary
         ))
-        TextReadOnly(label = "Nama", text = "Maya")
-        TextReadOnly(label = "No Telp.", text = "082132351498")
-        TextReadOnly(label = "Password", text = "082132351498")
+        TextReadOnly(label = "Nama", text = "$firstName $lastName")
+        TextReadOnly(label = "No Telp.", text = phoneNum)
         LogoutButton(action = {
             openLogoutDialog()
         })
@@ -102,8 +111,6 @@ fun ProfileScreenLandscapeContent(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 32.dp)
-//        horizontalAlignment = Alignment.CenterHorizontally,
-//        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Column(
             modifier = modifier

@@ -47,7 +47,7 @@ fun ChangeAddressScreen(
     onAddNewAddress: (Address) -> Unit,
     onDeleteAddress: (Address) -> Unit,
     onSelectedAddress: (Address) -> Unit,
-    onSaveSelectedAddress: (Address) -> Unit,
+    onSaveSelectedAddress: (Address, () -> Unit) -> Unit,
     onReloadSavedAddress: () -> Unit,
     navHostController: NavHostController,
     modifier: Modifier = Modifier
@@ -55,7 +55,7 @@ fun ChangeAddressScreen(
     val context = LocalContext.current
     var expandContainer: Boolean by rememberSaveable { mutableStateOf(false) }
     var selectedIndex: Int by rememberSaveable { mutableStateOf(-1) }
-
+    var loadingSelectAddress by rememberSaveable { mutableStateOf(false) }
     val windowInfo = rememberWindowInfo()
 
     fun resetFieldHandler() {
@@ -70,99 +70,102 @@ fun ChangeAddressScreen(
         modifier = modifier,
         content = {
             savedAddressStateFlow.collectAsState(initial = UiState.Loading).value.let { uiState ->
-            LazyColumn(
-                contentPadding = PaddingValues(bottom = 64.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(horizontal = 32.dp)
-                    .padding(top = 52.dp)
-                    .fillMaxWidth()
-            ) {
-                item {
-                    NewAddressForm(
-                        expanded = expandContainer,
-                        onToggle = { expandContainer = !expandContainer },
-                        name = nameValidation,
-                        city = cityValidation,
-                        district = districtValidation,
-                        detail = detailValidation,
-                        validateName = validateName,
-                        validateDetail = validateDetail,
-                        validateDistrict = validateDistrict,
-                        validateCity = validateCity,
-                        resetFieldHandler = { resetFieldHandler() },
-                        onAddNewAddress = { onAddNewAddress(it) },
-                        context = context
-                    )
-                    Spacer(modifier = Modifier.height(32.dp))
-                    Text(text = stringResource(R.string.saved_address))
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-                when (uiState) {
-                    is UiState.Loading -> {
-                        item {
-                            Column(Modifier.fillMaxWidth()) {
-                                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-                                onLoadSavedAddress()
+                LazyColumn(
+                    contentPadding = PaddingValues(bottom = 128.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(horizontal = 32.dp)
+                        .padding(top = 52.dp)
+                        .fillMaxWidth()
+                ) {
+                    item {
+                        NewAddressForm(
+                            expanded = expandContainer,
+                            onToggle = { expandContainer = !expandContainer },
+                            name = nameValidation,
+                            city = cityValidation,
+                            district = districtValidation,
+                            detail = detailValidation,
+                            validateName = validateName,
+                            validateDetail = validateDetail,
+                            validateDistrict = validateDistrict,
+                            validateCity = validateCity,
+                            resetFieldHandler = { resetFieldHandler() },
+                            onAddNewAddress = { onAddNewAddress(it) },
+                            context = context
+                        )
+                        Spacer(modifier = Modifier.height(32.dp))
+                        Text(text = stringResource(R.string.saved_address))
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    when (uiState) {
+                        is UiState.Loading -> {
+                            item {
+                                Column(Modifier.fillMaxWidth()) {
+                                    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+                                    onLoadSavedAddress()
+                                }
                             }
                         }
-                    }
-                    is UiState.Success -> {
-                        items(uiState.data, key = { it.id }) {
-                            val currentIndex =
-                                if (uiState.data.isEmpty()) -1 else uiState.data.indexOf(it)
-                            AddressChoice(
-                                name = it.name,
-                                detail = it.detail,
-                                district = it.district,
-                                city = it.city,
-                                checked = currentIndex == selectedIndex,
-                                onDelete = {
-                                    selectedIndex = -1
-                                    onDeleteAddress(it)
-                                },
-                                onSelected = {
-                                    selectedIndex = currentIndex
-                                    onSelectedAddress(it)
-                                },
-                                modifier = Modifier.animateItemPlacement(tween(durationMillis = 100))
-                            )
-                        }
-                        if (uiState.data.isEmpty()) {
-                            item {
-                                Text(
-                                    text = stringResource(R.string.no_saved_address),
-                                    textAlign = TextAlign.Center,
-                                    style = MaterialTheme.typography.caption.copy(
-                                        color = DarkGrey
-                                    )
+                        is UiState.Success -> {
+                            items(uiState.data, key = { it.id }) {
+                                val currentIndex =
+                                    if (uiState.data.isEmpty()) -1 else uiState.data.indexOf(it)
+                                AddressChoice(
+                                    name = it.name,
+                                    detail = it.detail,
+                                    district = it.district,
+                                    city = it.city,
+                                    checked = currentIndex == selectedIndex,
+                                    onDelete = {
+                                        selectedIndex = -1
+                                        onDeleteAddress(it)
+                                    },
+                                    onSelected = {
+                                        selectedIndex = currentIndex
+                                        onSelectedAddress(it)
+                                    },
+                                    modifier = Modifier.animateItemPlacement(tween(durationMillis = 100))
                                 )
                             }
+                            if (uiState.data.isEmpty()) {
+                                item {
+                                    Text(
+                                        text = stringResource(R.string.no_saved_address),
+                                        textAlign = TextAlign.Center,
+                                        style = MaterialTheme.typography.caption.copy(
+                                            color = DarkGrey
+                                        )
+                                    )
+                                }
+                            }
                         }
-                    }
-                    is UiState.Error -> item {
-                        ErrorHandler(
-                            errorText = uiState.errorMessage,
-                            onReload = { onReloadSavedAddress() })
+                        is UiState.Error -> item {
+                            ErrorHandler(
+                                errorText = uiState.errorMessage,
+                                onReload = { onReloadSavedAddress() })
+                        }
                     }
                 }
             }
-        }
         },
         bottomSheet = {
             BottomSheet(
                 label = "Alamat",
                 actionName = "pilih alamat",
                 onActionButtonClicked = {
-                    tempSelectedAddressStateFlow.value?.let {
-                        navHostController.popBackStack()
-                        onSaveSelectedAddress(it)
+                    tempSelectedAddressStateFlow.value?.let { address ->
+                        loadingSelectAddress = true
+                        onSaveSelectedAddress(address) {
+                            loadingSelectAddress = false
+                            navHostController.popBackStack()
+                        }
                     }
                 },
                 information = if (selectedIndex == -1) "" else tempSelectedAddressStateFlow.value?.name
                     ?: "",
-                isActive = selectedIndex != -1,
+                isActive = selectedIndex != -1 && !loadingSelectAddress,
                 modifier = Modifier.fillMaxSize()
             )
         }
@@ -208,7 +211,8 @@ fun NewAddressForm(
             errorMessage = city.getErrorMessage(),
             isError = city.isErrorState.collectAsState().value,
             validate = validateCity,
-            imeAction = ImeAction.Next)
+            imeAction = ImeAction.Next
+        )
         TextInput(
             label = stringResource(R.string.address_district),
             value = district.inputValue.collectAsState().value,
@@ -216,7 +220,8 @@ fun NewAddressForm(
             errorMessage = district.getErrorMessage(),
             isError = district.isErrorState.collectAsState().value,
             validate = validateDistrict,
-            imeAction = ImeAction.Next)
+            imeAction = ImeAction.Next
+        )
         TextInput(
             label = stringResource(R.string.address_detail),
             isTextArea = true,
@@ -225,7 +230,8 @@ fun NewAddressForm(
             errorMessage = detail.getErrorMessage(),
             isError = detail.isErrorState.collectAsState().value,
             validate = validateDetail,
-            imeAction = ImeAction.Next)
+            imeAction = ImeAction.Next
+        )
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -278,9 +284,10 @@ private fun ScreenModeContainer(
             Column {
                 content()
             }
-            Box(modifier = Modifier
-                .height(120.dp)
-                .align(Alignment.BottomCenter)
+            Box(
+                modifier = Modifier
+                    .height(120.dp)
+                    .align(Alignment.BottomCenter)
             ) {
                 bottomSheet()
             }
@@ -292,9 +299,10 @@ private fun ScreenModeContainer(
             Column(modifier = Modifier.weight(1.4f)) {
                 content()
             }
-            Column(modifier = Modifier
-                .weight(0.6f)
-                .fillMaxHeight()
+            Column(
+                modifier = Modifier
+                    .weight(0.6f)
+                    .fillMaxHeight()
             ) {
                 bottomSheet()
             }

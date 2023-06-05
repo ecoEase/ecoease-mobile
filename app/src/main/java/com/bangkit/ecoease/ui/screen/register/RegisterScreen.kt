@@ -1,5 +1,7 @@
 package com.bangkit.ecoease.ui.screen
 
+import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -8,45 +10,65 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.Screen
+import com.bangkit.ecoease.data.model.ImageCaptured
 import com.bangkit.ecoease.helper.InputValidation
+import com.bangkit.ecoease.helper.toFile
+import com.bangkit.ecoease.ui.common.UiState
+import com.bangkit.ecoease.ui.component.PillWidget
 import com.bangkit.ecoease.ui.component.RoundedButton
 import com.bangkit.ecoease.ui.component.TextInput
-import com.bangkit.ecoease.ui.theme.EcoEaseTheme
+import com.bangkit.ecoease.ui.theme.GreenPrimary
+import kotlinx.coroutines.flow.StateFlow
+import java.io.File
 
 @Composable
 fun RegisterScreen(
-    nameValidation: InputValidation,
+    firstnameValidation: InputValidation,
+    lastnameValidation: InputValidation,
     emailValidation: InputValidation,
     phoneNumberValidation: InputValidation,
     passwordValidation: InputValidation,
-    validateNameInput: () -> Unit,
+    imageProfile: StateFlow<UiState<ImageCaptured>>,
+    validateFirstnameInput: () -> Unit,
+    validateLastnameInput: () -> Unit,
     validateEmailInput: () -> Unit,
     validatePhoneNumberInput: () -> Unit,
     validatePasswordInput: () -> Unit,
+    loadImageProfile: () -> Unit,
     navHostController: NavHostController,
-    onRegister: (onSuccess: () -> Unit) -> Unit,
+    onRegister: (photoFile: File, onSuccess: () -> Unit) -> Unit,
+    openGallery: () -> Unit,
     modifier: Modifier = Modifier
-){
+) {
+    val context = LocalContext.current
+    var imageUri: Uri? by remember { mutableStateOf(null) }
+
+    imageProfile.collectAsState().value.let { uiState ->
+        when(uiState){
+            is UiState.Success -> imageUri = uiState.data.uri
+            is UiState.Error -> Log.d("TAG", "RegisterScreen image profile: ${uiState.errorMessage}")
+            is UiState.Loading -> loadImageProfile()
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(top = 96.dp)
-            .padding(horizontal = 32.dp)
             .verticalScroll(rememberScrollState())
-        ,
+            .padding(top = 32.dp)
+            .padding(horizontal = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
@@ -64,14 +86,24 @@ fun RegisterScreen(
         }
         Text("Registrasi")
         TextInput(
-            label = "Nama",
-            onValueChange = { nameValidation.updateInputValue(it) },
-            value = nameValidation.inputValue.collectAsState().value,
-            isError = nameValidation.isErrorState.collectAsState().value,
-            errorMessage = nameValidation.getErrorMessage(),
-            validate = validateNameInput,
+            label = "Nama Depan",
+            onValueChange = { firstnameValidation.updateInputValue(it) },
+            value = firstnameValidation.inputValue.collectAsState().value,
+            isError = firstnameValidation.isErrorState.collectAsState().value,
+            errorMessage = firstnameValidation.getErrorMessage(),
+            validate = validateFirstnameInput,
             imeAction = ImeAction.Next
         )
+        TextInput(
+            label = "Nama Belakang",
+            onValueChange = { lastnameValidation.updateInputValue(it) },
+            value = lastnameValidation.inputValue.collectAsState().value,
+            isError = lastnameValidation.isErrorState.collectAsState().value,
+            errorMessage = lastnameValidation.getErrorMessage(),
+            validate = validateLastnameInput,
+            imeAction = ImeAction.Next
+        )
+        PickPhotoProfileImage(openGallery = openGallery)
         TextInput(
             label = "Email",
             onValueChange = { emailValidation.updateInputValue(it) },
@@ -102,20 +134,34 @@ fun RegisterScreen(
             validate = validatePasswordInput,
             imeAction = ImeAction.Next
         )
-        RoundedButton(text = "registrasi", modifier = Modifier.fillMaxWidth(), onClick = {
-            onRegister{
+        RoundedButton(text = stringResource(R.string.register), modifier = Modifier.fillMaxWidth(), onClick = {
+            onRegister(imageUri!!.toFile(context)){
                 navHostController.navigate(Screen.Auth.route)
             }
-        })
-        Text("atau")
-        Text("login akun", modifier = Modifier.clickable { navHostController.navigate(Screen.Auth.route) })
+        }, enabled = imageUri != null)
+        Row {
+            Text("atau ")
+            Text(
+                "login akun",
+                modifier = Modifier.clickable { navHostController.navigate(Screen.Auth.route) },
+                style = MaterialTheme.typography.body1.copy(
+                    color = GreenPrimary
+                )
+            )
+        }
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun RegisterScreenPreview(){
-//    EcoEaseTheme {
-//        RegisterScreen(navHostController = rememberNavController())
-//    }
-//}
+@Composable
+private fun PickPhotoProfileImage(
+    openGallery: () -> Unit,
+    modifier: Modifier = Modifier,
+){
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = modifier) {
+        Text(text = "Foto profil")
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            PillWidget(color = GreenPrimary, textColor = Color.White, text = "pilih gambar", modifier = Modifier.clickable { openGallery() })
+            Text("file name here.jpg")
+        }
+    }
+}

@@ -1,49 +1,59 @@
-package com.bangkit.ecoease.ui.screen
+package com.bangkit.ecoease.ui.screen.auth
 
-import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.helper.InputValidation
+import com.bangkit.ecoease.ui.common.UiState
+import com.bangkit.ecoease.ui.component.PillWidget
 import com.bangkit.ecoease.ui.component.RoundedButton
 import com.bangkit.ecoease.ui.component.TextInput
-import com.bangkit.ecoease.ui.theme.EcoEaseTheme
+import com.bangkit.ecoease.ui.theme.GreenPrimary
+import kotlinx.coroutines.flow.StateFlow
 
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun AuthScreen(
     emailValidation: InputValidation,
     passwordValidation: InputValidation,
     validateEmail: () -> Unit,
     validatePassword: () -> Unit,
-    loginAction: (onSuccess: () -> Unit) -> Unit,
-    isLoginValid: Boolean,
+    loginAction: () -> Unit,
+    isLoginValid: StateFlow<UiState<Boolean>>,
     navHostController: NavHostController,
     modifier: Modifier = Modifier
-){
+) {
+    val context = LocalContext.current
+    var enableLogin by remember { mutableStateOf(true) }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(top = 96.dp)
             .padding(horizontal = 32.dp)
-        ,
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
@@ -58,6 +68,19 @@ fun AuthScreen(
                     .size(42.dp),
             )
             Text(text = stringResource(id = R.string.app_name), style = MaterialTheme.typography.h5)
+        }
+        isLoginValid.collectAsState().value.let { uiState ->
+            when (uiState) {
+                is UiState.Loading -> enableLogin = false
+                is UiState.Success -> {
+                    enableLogin = true
+                    // TODO: fix this error navigation after login 
+                }
+                is UiState.Error -> {
+                    enableLogin = true
+                    Text(text = uiState.errorMessage)
+                }
+            }
         }
         Text("Login")
         TextInput(
@@ -78,27 +101,34 @@ fun AuthScreen(
             errorMessage = passwordValidation.getErrorMessage(),
             validate = validatePassword,
             isPassword = true,
-            imeAction = ImeAction.Next
+            imeAction = ImeAction.Done
         )
-        RoundedButton(text = "login", modifier = Modifier.fillMaxWidth(), onClick = {
-            loginAction{
-                //if success move to home screen
-                navHostController.navigate(Screen.Home.route){
-                    popUpTo(Screen.Auth.route) {
-                        inclusive = true
-                    }
-                }
-            }
-        })
-        Text("atau")
-        Text("buat akun baru", modifier = Modifier.clickable { navHostController.navigate(Screen.Register.route) })
+
+        RoundedButton(
+            text = "login",
+            enabled = enableLogin,
+            modifier = Modifier.fillMaxWidth(),
+            onClick = {
+                loginAction()
+                keyboardController?.hide()
+            })
+        Row {
+            Text("atau ")
+            Text(
+                "buat akun baru",
+                modifier = Modifier.clickable { navHostController.navigate(Screen.Register.route) },
+                style = MaterialTheme.typography.body1.copy(
+                    color = GreenPrimary
+                )
+            )
+        }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun AuthScreenPreview(){
-    EcoEaseTheme {
-//        AuthScreen(navHostController = rememberNavController(), loginAction = {})
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun AuthScreenPreview(){
+//    EcoEaseTheme {
+////        AuthScreen(navHostController = rememberNavController(), loginAction = {})
+//    }
+//}

@@ -9,6 +9,7 @@ object UserDummy {
         firstName = "Septa",
         lastName = "Alfauzan",
         email = "xyz@xyz.com",
+        phoneNumber = "000",
         password = "*****",
         urlPhotoProfile = "",
     )

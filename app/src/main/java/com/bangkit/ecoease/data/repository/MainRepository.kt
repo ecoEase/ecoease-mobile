@@ -5,11 +5,13 @@ import android.util.Log
 import com.bangkit.ecoease.config.ApiConfig
 import com.bangkit.ecoease.data.datastore.DataStorePreferences
 import com.bangkit.ecoease.data.dummy.AddressDummy
-import com.bangkit.ecoease.data.dummy.GarbageDummy
-import com.bangkit.ecoease.data.dummy.UserDummy
 import com.bangkit.ecoease.data.model.GarbageAdded
 import com.bangkit.ecoease.data.model.ImageCaptured
+import com.bangkit.ecoease.data.model.request.Login
+import com.bangkit.ecoease.data.model.request.Register
+import com.bangkit.ecoease.data.remote.responseModel.toAddress
 import com.bangkit.ecoease.data.remote.responseModel.toGarbage
+import com.bangkit.ecoease.data.remote.responseModel.toUser
 import com.bangkit.ecoease.data.room.database.MainDatabase
 import com.bangkit.ecoease.data.room.model.*
 import com.bangkit.ecoease.helper.generateUUID
@@ -19,132 +21,196 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 
-class MainRepository(private val datastore: DataStorePreferences, private val roomDatabase: MainDatabase, val context: Context) {
+class MainRepository(
+    private val datastore: DataStorePreferences,
+    private val roomDatabase: MainDatabase,
+    val context: Context
+) {
     private var capturedImageUri: ImageCaptured? = null
+
     // TODO: add API service for each endpoint
     private val garbageApiService = ApiConfig.getGarbageApiService()
+    private val userApiService = ApiConfig.getUserApiService()
+    private val addressApiService = ApiConfig.getAddressApiService()
+
     //CAMERA
-    fun setCapturedImage(imageCapture: ImageCaptured){
+    fun setCapturedImage(imageCapture: ImageCaptured) {
         capturedImageUri = imageCapture
     }
+
     fun getCapturedImage(): Flow<ImageCaptured> {
         Log.d(MainRepository::class.java.simpleName, "getCapturedImageUri: $capturedImageUri")
         return flowOf(capturedImageUri!!)
     }
+
     //ON BOARDING
     suspend fun getIsFinishOnboard(): Boolean = datastore.isFinishReadOnBoard().first()
-    suspend fun finishOnBoard(){
+    suspend fun finishOnBoard() {
         datastore.finishReadOnboard()
     }
+
     //AUTH
     suspend fun getToken(): String = datastore.getAuthToken().first()
-    suspend fun setToken(newToken: String){
+    suspend fun setToken(newToken: String) {
         datastore.setToken(newToken)
     }
+
     //USER
-    suspend fun setUser(){
+    suspend fun registerUser(registerData: Register): Flow<Boolean> {
         try {
-            val response = UserDummy.get()
-            roomDatabase.userDao().deleteAll()
-            roomDatabase.userDao().addUser(response)
-        }catch (e: Exception){
+            // TODO: register bermasalah 
+            Log.d(TAG, "registerUser: ${registerData.photoFile}")
+            val response = userApiService.register(
+                photoFile = registerData.photoFile,
+                firstName = registerData.firstName,
+                lastName = registerData.lastName,
+                email = registerData.email,
+                phoneNumber = registerData.phoneNumber,
+                password = registerData.password,
+            )
+            if (response.data != null) return flowOf(true)
+            throw Exception(response.message)
+        } catch (e: Exception) {
             throw e
         }
     }
-    suspend fun resetUser(){
+
+    suspend fun loginUser(loginData: Login): Flow<String> {
         try {
-            roomDatabase.userDao().deleteAll()
-        }catch (e: Exception){
+            val response = userApiService.login(loginData)
+            response.data?.let {
+                val userData = it
+                roomDatabase.userDao().deleteAll()
+                roomDatabase.userDao().addUser(userData.toUser())
+                setToken(response.token)
+                return flowOf(response.message)
+            }
+            throw Exception(response.message)
+        } catch (e: Exception) {
             throw e
         }
     }
-    fun getUser() : Flow<User> = flowOf(roomDatabase.userDao().getUser())
+
+    suspend fun resetUser() {
+        try {
+            roomDatabase.userDao().deleteAll()
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
+    fun getUser(): Flow<User> = flowOf(roomDatabase.userDao().getUser())
+
     //GARBAGE
-    suspend fun getAllGarbage(): Flow<List<Garbage>>{
+    suspend fun getAllGarbage(): Flow<List<Garbage>> {
         try {
             val token = datastore.getAuthToken().first()
             val response = garbageApiService.get(token)
-
-            roomDatabase.garbageDao().deleteAllGarbage()
-            response.data?.forEach { garbageItem ->
-                roomDatabase.garbageDao().addGarbage(garbageItem!!.toGarbage())
+            if (response.data != null) {
+                roomDatabase.garbageDao().deleteAllGarbage()
+                response.data?.forEach { garbageItem ->
+                    roomDatabase.garbageDao().addGarbage(garbageItem!!.toGarbage())
+                }
             }
-        }catch (e: Exception){
-            if (roomDatabase.garbageDao().getAllGarbage().isEmpty()){
+        } catch (e: Exception) {
+            if (roomDatabase.garbageDao().getAllGarbage().isEmpty()) {
                 Log.d(TAG, "getAllGarbage: e")
                 throw e
             }
         }
         return flowOf(roomDatabase.garbageDao().getAllGarbage())
     }
+
     //ORDER HISTORY
     fun getAllOrderHistories(userId: String): Flow<List<OrderWithDetailTransaction>> {
 //            flowOf(OrderHistoryDummy.getOrderHistories())
         val orderWithDetailTransaction = roomDatabase.orderDao().getAllOrdersWithTransaction()
-        val gson =  Gson()
+        val gson = Gson()
         val json = gson.toJsonTree(orderWithDetailTransaction)
 
         Log.d("TAG", "getAllOrderHistories: $json")
         return flowOf(roomDatabase.orderDao().getAllOrderFromUser(userId))
     }
+
     //Address
-    suspend fun getSavedAddress(): Flow<List<Address>>{
+    suspend fun getSavedAddress(): Flow<List<Address>> {
         try {
-           val response = AddressDummy.listSavedAddress
-           roomDatabase.addressDao().deleteAllAddress()
-           response.forEach { address ->
-               roomDatabase.addressDao().addAddress(address)
-           }
-        }catch (e: Exception){
+            val token = datastore.getAuthToken().first()
+            val userId = roomDatabase.userDao().getUser().id
+            val response = addressApiService.getSavedAddress(token = token, userId = userId)
+            roomDatabase.addressDao().deleteAllAddress()
+
+            if (response.data == null) throw Exception("data address is null")
+
+            response.data.forEach { addressItem ->
+                roomDatabase.addressDao().addAddress(addressItem.toAddress())
+            }
+        } catch (e: Exception) {
             Log.d("TAG", "getSavedAddress: ${e.message}")
-            if(roomDatabase.addressDao().getAllAddress().isEmpty()){
+            if (roomDatabase.addressDao().getAllAddress().isEmpty()) {
                 throw e
             }
         }
         return flowOf(roomDatabase.addressDao().getAllAddress())
     }
-    suspend fun addAddress(address: Address){
-        AddressDummy.listSavedAddress.add(address)//this dummy will simulate data from api
-        roomDatabase.addressDao().addAddress(address)
+
+    suspend fun addAddress(address: Address) {
+        try {
+            val token = datastore.getAuthToken().first()
+            val userId = roomDatabase.userDao().getUser().id
+
+            addressApiService.addNewAddress(token, com.bangkit.ecoease.data.model.request.Address(
+                name = address.name,
+                city = address.city,
+                district = address.district,
+                detail = address.detail,
+                user_id = userId,
+            ))
+
+            roomDatabase.addressDao().addAddress(address)
+        }catch (e: Exception){
+            throw e
+        }
     }
-    suspend fun deleteAddress(address: Address){
+
+    suspend fun deleteAddress(address: Address) {
         AddressDummy.listSavedAddress.remove(address)//this dummy will simulate data from api
         roomDatabase.addressDao().deleteAddress(address)
     }
-    suspend fun getSelectedAddress(): Flow<Address?>{
+
+    suspend fun getSelectedAddress(): Flow<Address?> {
         var response: Flow<Address?>
         try {
             response = flowOf(roomDatabase.addressDao().getSelectedAddress())
-        }catch (e: Exception){
+        } catch (e: Exception) {
             throw e
         }
         return response
     }
-    suspend fun saveSelectedAddress(address: Address){
-        //call api update selected address
-        val updatedAddressStatus = Address(
-            id = address.id,
-            name = address.name,
-            district = address.district,
-            city = address.city,
-            detail = address.detail,
-            selected = true
-        )
-        //update all saved address selected value to false
-        val resetSelectedAddresses = roomDatabase.addressDao().getAllAddress().map { item ->  Address(
-                id = item.id,
-                name = item.name,
-                district = item.district,
-                city = item.city,
-                detail = item.detail,
-                selected = false
-            )
+
+    suspend fun saveSelectedAddress(address: Address) {
+        try {
+
+            val token = datastore.getAuthToken().first()
+            val response = addressApiService.selectUseAddress(token, address.id)
+            if (response.data == null) throw Exception("data address is null")
+
+            response.data.forEach { addressItem ->
+                roomDatabase.addressDao().addAddress(addressItem.toAddress())
+            }
+        }catch (e: Exception){
+            throw e
         }
-        roomDatabase.addressDao().updateBatchAddresses(resetSelectedAddresses)
-        roomDatabase.addressDao().updateAddress(updatedAddressStatus)
     }
+
     //ORDER
-    suspend fun addNewOrder(garbage: List<GarbageAdded>, user: User, address: Address, totalTransaction: Long, location: android.location.Location?){
+    suspend fun addNewOrder(
+        garbage: List<GarbageAdded>,
+        user: User,
+        address: Address,
+        totalTransaction: Long,
+        location: android.location.Location?
+    ) {
         try {
             val id = generateUUID()
             val locationId = generateUUID()
@@ -159,54 +225,71 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
                 created = "now"
             )
             roomDatabase.orderDao().addOrder(order)
-            location?.let{
-                roomDatabase.locationDao().addLocation(Location(id = locationId, latitude = location.latitude, longitude = location.longitude))
+            location?.let {
+                roomDatabase.locationDao().addLocation(
+                    Location(
+                        id = locationId,
+                        latitude = location.latitude,
+                        longitude = location.longitude
+                    )
+                )
             }
-            garbage.forEach { item -> roomDatabase.detailTransactionDao().addDetailTransaction(
-                DetailTransaction(orderId = id, garbageId = item.garbage.id, qty = item.amount, total = item.totalPrice)
-            ) }
-        }catch (e: Exception){
+            garbage.forEach { item ->
+                roomDatabase.detailTransactionDao().addDetailTransaction(
+                    DetailTransaction(
+                        orderId = id,
+                        garbageId = item.garbage.id,
+                        qty = item.amount,
+                        total = item.totalPrice
+                    )
+                )
+            }
+        } catch (e: Exception) {
             Log.d("TAG", "addNewOrder: $e")
         }
     }
-    suspend fun updateOrderStatus(order: Order, statusOrderItem: StatusOrderItem): Flow<Boolean>{
+
+    suspend fun updateOrderStatus(order: Order, statusOrderItem: StatusOrderItem): Flow<Boolean> {
         try {
             roomDatabase.orderDao().updateOrder(order.copy(status = statusOrderItem))
             return flowOf(true)
-        }catch (e: Exception){
+        } catch (e: Exception) {
             throw e
         }
     }
-    suspend fun getAvailableOrder(): Flow<List<OrderWithDetailTransaction>>{
+
+    suspend fun getAvailableOrder(): Flow<List<OrderWithDetailTransaction>> {
         try {
             // TODO: fetch data from api
-        }catch (e: Exception){
+        } catch (e: Exception) {
             throw e
         }
         return flowOf(roomDatabase.orderDao().getAvailableOrderWithTransactions())
     }
+
     // TODO: UPDATE ALL REPOSITORY METHOD WHEN API IS READY
     suspend fun getOrderDetail(orderId: String): Flow<OrderWithDetailTransaction> {
         try {
             //fetch api
             //delete all local data
             //insert to local
-        }catch (e: Exception){
+        } catch (e: Exception) {
             throw e
         }
 
         return flowOf(roomDatabase.orderDao().getDetailOrder(orderId))
     }
+
     //Chat
-    suspend fun getChatRooms(referenceTask: Task<List<String>>): Flow<List<String>>{
+    suspend fun getChatRooms(referenceTask: Task<List<String>>): Flow<List<String>> {
 //        val reference = FireBaseRealtimeDatabase.getAllRoomsKey()
         var response: List<String> = listOf()
-        referenceTask.addOnCompleteListener{
-            if(it.isSuccessful){
-                Log.d("UsersChat", "UsersChatsScreen: ${ it.result}")
+        referenceTask.addOnCompleteListener {
+            if (it.isSuccessful) {
+                Log.d("UsersChat", "UsersChatsScreen: ${it.result}")
                 response = it.result
             }
-            if(it.isCanceled){
+            if (it.isCanceled) {
                 throw Exception(it.exception?.message)
             }
         }
@@ -214,13 +297,17 @@ class MainRepository(private val datastore: DataStorePreferences, private val ro
         return flowOf(response)
     }
 
-    companion object{
+    companion object {
         val TAG = MainRepository::class.java.simpleName
 
         @Volatile
         private var INSTANCE: MainRepository? = null
 
-        fun getInstance(datastore: DataStorePreferences, roomDatabase: MainDatabase, context: Context): MainRepository = INSTANCE ?: synchronized(this){
+        fun getInstance(
+            datastore: DataStorePreferences,
+            roomDatabase: MainDatabase,
+            context: Context
+        ): MainRepository = INSTANCE ?: synchronized(this) {
             MainRepository(datastore, roomDatabase, context).apply {
                 INSTANCE = this
             }

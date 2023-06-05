@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AddressViewModel(private val repository: MainRepository): ViewModel() {
     val emptyAddress = Address(
@@ -97,9 +98,12 @@ class AddressViewModel(private val repository: MainRepository): ViewModel() {
     fun pickSelectedAddress(address: Address){
         _tempSelectedAddress.value = address
     }
-    fun confirmSelectedAddress(address: Address){
+    fun confirmSelectedAddress(address: Address, onSuccess: () -> Unit){
         viewModelScope.launch(Dispatchers.IO) {
             repository.saveSelectedAddress(address)
+            withContext(Dispatchers.Main){
+                onSuccess()
+            }
         }
     }
     fun addNewAddress(address: Address){
@@ -127,8 +131,12 @@ class AddressViewModel(private val repository: MainRepository): ViewModel() {
     }
     fun deleteAddress(address: Address){
         viewModelScope.launch(Dispatchers.IO) {
-            repository.deleteAddress(address)
-            _savedAddress.value = UiState.Loading//trigger loading so in ui it will call the loadSavedAddress method
+            try {
+                repository.deleteAddress(address)
+                _savedAddress.value = UiState.Loading//trigger loading so in ui it will call the loadSavedAddress method
+            }catch (e: Exception){
+                Log.d("TAG", "deleteAddress: ${e.message}")
+            }
         }
     }
     fun reloadSavedAddress() {

@@ -22,7 +22,7 @@ class UserViewModel(private val repository: MainRepository): ViewModel() {
                 repository.getUser().catch { error ->
                     _user.value = UiState.Error("error: ${error.message}")
                 }.collect{
-                    _user.value = UiState.Success(it)
+                    _user.value = if(it == null) UiState.Error("data null") else UiState.Success(it)
                 }
             }
         }catch (e: Exception){

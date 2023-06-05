@@ -1,6 +1,7 @@
 package com.bangkit.ecoease.ui.screen.order
 
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -15,7 +16,9 @@ import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.bangkit.ecoease.R
@@ -67,9 +70,23 @@ fun OrderHistoryScreen(
                 }
                 is UiState.Success -> {
 
-                    if(uiState.data.isEmpty()) Text(text = stringResource(R.string.no_order_history), style = MaterialTheme.typography.caption.copy(
-                        color = DarkGrey
-                    ))
+                    if(uiState.data.isEmpty()){
+                        Column(modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.Center)) {
+                            Image(painter =  painterResource(R.drawable.empty_illustration), contentDescription = "empty image", modifier = Modifier
+                                .size(224.dp)
+                                .align(
+                                    Alignment.CenterHorizontally
+                                ))
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(text = stringResource(R.string.no_order_history), style = MaterialTheme.typography.subtitle1.copy(
+                                color = DarkGrey,
+                                textAlign = TextAlign.Center
+                            ), modifier = Modifier.align(
+                                Alignment.CenterHorizontally))
+                        }
+                    }
 
                     LazyVerticalGrid(
                         columns =  GridCells.Fixed( if(windowInfo.screenWidthInfo == WindowInfo.WindowType.Compact) 1 else 2),

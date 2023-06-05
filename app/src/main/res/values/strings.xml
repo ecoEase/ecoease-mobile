@@ -45,4 +45,5 @@
     <string name="make_order">buat order</string>
     <string name="pick_by">diambil oleh</string>
     <string name="finished">selesai</string>
+    <string name="register">registrasi</string>
 </resources>

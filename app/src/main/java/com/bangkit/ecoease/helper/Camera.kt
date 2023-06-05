@@ -6,6 +6,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.net.Uri
+import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import androidx.camera.core.CameraSelector
@@ -16,10 +17,7 @@ import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.bangkit.ecoease.R
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
+import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.Executor
@@ -156,4 +154,27 @@ fun getImageUriFromTempBitmap(context: Context, bitmap: Bitmap, rotate: Float): 
     outputStream.close()
 
     return uri
+}
+
+private val timeStamp: String = SimpleDateFormat(
+    "dd-MMM-yyyy",
+    Locale.US,
+).format(System.currentTimeMillis())
+fun createTemporaryFile(context: Context): File {
+    val storageDir: File? = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+    return File.createTempFile(timeStamp, ".jpg", storageDir)
+}
+fun Uri.toFile(context: Context): File{
+    val contentResolver: ContentResolver = context.contentResolver
+    val myFile = createTemporaryFile(context)
+
+    val inputStream = contentResolver.openInputStream(this) as InputStream
+    val outputStream: OutputStream = FileOutputStream(myFile)
+    val buf = ByteArray(1024)
+    var len: Int
+    while(inputStream.read(buf).also { len = it } > 0) outputStream.write(buf, 0, len)
+    outputStream.close()
+    inputStream.close()
+
+    return myFile
 }
