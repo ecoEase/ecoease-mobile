@@ -3,6 +3,7 @@ package com.bangkit.ecoease.data.remote.interfaces
 import com.bangkit.ecoease.data.model.request.Address
 import com.bangkit.ecoease.data.remote.responseModel.AddAddressResponse
 import com.bangkit.ecoease.data.remote.responseModel.AddressResponse
+import com.bangkit.ecoease.data.remote.responseModel.DeleteAddressResponse
 import retrofit2.http.*
 
 interface AddressApiService {
@@ -14,4 +15,7 @@ interface AddressApiService {
 
     @PUT("address/use/{id}")
     suspend fun selectUseAddress(@Header("Authorization") token: String, @Path("id") id: String): AddressResponse
+    @DELETE("address/delete/{id}")
+    suspend fun deleteAddress(@Header("Authorization") token: String, @Path("id") id: String): DeleteAddressResponse
+
 }

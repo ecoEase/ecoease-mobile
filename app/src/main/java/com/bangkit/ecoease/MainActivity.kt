@@ -44,7 +44,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-
 val listMainRoute = listOf(
     Screen.Home,
     Screen.History,

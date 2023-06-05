@@ -133,6 +133,9 @@ class AddressViewModel(private val repository: MainRepository): ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 repository.deleteAddress(address)
+                if(_selectedAddress.value is UiState.Success && address == (_selectedAddress.value as UiState.Success<Address>).data){
+                    _selectedAddress.value = UiState.Loading
+                }
                 _savedAddress.value = UiState.Loading//trigger loading so in ui it will call the loadSavedAddress method
             }catch (e: Exception){
                 Log.d("TAG", "deleteAddress: ${e.message}")

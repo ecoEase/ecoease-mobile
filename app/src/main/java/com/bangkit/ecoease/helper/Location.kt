@@ -4,6 +4,8 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 
@@ -19,7 +21,18 @@ fun FusedLocationProviderClient.getLastLocation(context: Context, onSuccess: (Lo
     ) {
         this.lastLocation.addOnSuccessListener { location ->
             if(location == null) {
-                onError( NullPointerException("Location is null!"))
+                try {//if null using location manager
+                    val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                    val locationListener = object : LocationListener {
+                        override fun onLocationChanged(location: Location) {
+                            onSuccess(location)
+                            locationManager.removeUpdates(this)
+                        }
+                    }
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, locationListener)
+                }catch (e: Exception){
+                    onError( NullPointerException("Location is null!"))
+                }
             } else {
                 onSuccess(location)
             }

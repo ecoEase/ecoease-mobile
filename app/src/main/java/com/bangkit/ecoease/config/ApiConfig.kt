@@ -10,13 +10,13 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class ApiConfig{
     companion object{
-        val loggingInterceptor = HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
-        val client = OkHttpClient.Builder()
+        private val loggingInterceptor = HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
+        private val client = OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
             .build()
 
-        val retrofit = Retrofit.Builder().apply {
-            baseUrl("https://895f-2a09-bac5-3a19-137d-00-1f1-213.ngrok-free.app/api/v1/")// TODO: add api base url
+        private val retrofit = Retrofit.Builder().apply {
+            baseUrl("https://125e-2a09-bac5-3a1e-88c-00-da-32.ngrok-free.app/api/v1/")// TODO: add api base url
             addConverterFactory(GsonConverterFactory.create())
             client(client)
         }.build()

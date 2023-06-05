@@ -174,8 +174,13 @@ class MainRepository(
     }
 
     suspend fun deleteAddress(address: Address) {
-        AddressDummy.listSavedAddress.remove(address)//this dummy will simulate data from api
-        roomDatabase.addressDao().deleteAddress(address)
+        try {
+            val token = datastore.getAuthToken().first()
+            addressApiService.deleteAddress(token, address.id)
+//            roomDatabase.addressDao().deleteAddress(address)
+        }catch (e: Exception){
+            throw e
+        }
     }
 
     suspend fun getSelectedAddress(): Flow<Address?> {

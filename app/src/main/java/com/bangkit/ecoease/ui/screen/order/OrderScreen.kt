@@ -132,7 +132,8 @@ fun OrderScreen(
             when (uiState) {
                 is UiState.Success -> location = uiState.data
                 is UiState.Loading -> loadLastLocation()
-                is UiState.Error -> Toast.makeText(context, "error: ${uiState.errorMessage}", Toast.LENGTH_SHORT).show()
+                is UiState.Error -> Log.d("TAG", "error: ${uiState.errorMessage}")
+//                is UiState.Error -> Toast.makeText(context, "error: ${uiState.errorMessage}", Toast.LENGTH_SHORT).show()
             }
         }
 
