@@ -262,7 +262,14 @@ class MainActivity : ComponentActivity() {
                                     addGarbageOrderSlot = { orderViewModel.addGarbageSlot()},
                                     deleteGarbageSlotAt = { orderViewModel.deleteGarbageAt(it)},
                                     updateGarbageAtIndex = { index, newGarbage -> orderViewModel.updateGarbage(index, newGarbage) },
-                                    onMakeOrder = { listGarbage, totalTransaction, location -> orderViewModel.makeOrder(listGarbage, totalTransaction, location) },
+                                    onMakeOrder = { listGarbage, totalTransaction, location -> orderViewModel.makeOrder(listGarbage, totalTransaction, location, onSuccess = {
+                                        navController.navigate(Screen.OrderSuccess.route){
+                                            popUpTo(Screen.Order.route) {
+                                                inclusive = true
+                                            }
+
+                                        }
+                                    }) },
                                     onAcceptResetOrder = {resetOrder()}
                                 ) }
                             composable(Screen.ChangeAddress.route){

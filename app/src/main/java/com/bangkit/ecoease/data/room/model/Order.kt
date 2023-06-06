@@ -27,10 +27,10 @@ data class Order(
     val userId: String,
 
     @ColumnInfo(name = "mitra_id")
-    val mitraId: String,
+    val mitraId: String?,
 
     @ColumnInfo(name = "location_id")
-    val locationId: String,
+    val locationId: String?,
 
     @ColumnInfo(name = "address_id")
     val addressId: String,

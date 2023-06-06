@@ -8,6 +8,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -46,11 +47,13 @@ fun DetailOrderScreen(
     orderDetailStateFlow.collectAsState(initial = UiState.Loading).value.let { uiState ->
         when(uiState){
             is UiState.Loading -> {
-                CircularProgressIndicator()
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+                }
                 onLoadDetailOrder(orderId)
             }
             is UiState.Success-> {
-                OrderDetailContent(listGarbage = uiState.data.items, onUpdateOrderStatus = onUpdateOrderStatus, order = uiState.data.order, address = uiState.data.address, mitra = uiState.data.mitra)
+                OrderDetailContent(listGarbage = uiState.data.items, onUpdateOrderStatus = onUpdateOrderStatus, order = uiState.data.order, address = uiState.data.address, mitra = uiState.data.mitra, modifier = modifier)
             }
             is UiState.Error -> {
                 ErrorHandler(errorText = uiState.errorMessage, onReload = {
@@ -118,17 +121,3 @@ fun OrderDetailContent(
         }
     }
 }
-
-//@Preview(showBackground = true)
-//@Composable
-//fun DetailOrderScreenPreview(){
-//    EcoEaseTheme() {
-//        DetailOrderScreen(
-//            rememberNavController(),
-//            orderId = "",
-//            {},
-//            {},
-//            MutableStateFlow(UiState.Loading),
-//        )
-//    }
-//}

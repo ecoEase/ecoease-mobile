@@ -12,6 +12,7 @@ import com.bangkit.ecoease.ui.common.UiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class OrderViewModel(private val repository: MainRepository): ViewModel() {
     private val garbage = MutableStateFlow<MutableList<GarbageAdded?>>(mutableListOf())
@@ -61,6 +62,7 @@ class OrderViewModel(private val repository: MainRepository): ViewModel() {
     fun loadOrderHistory(){
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                _orderHistoryState.value = UiState.Loading
                 val userId = repository.getUser().first().id
                 repository.getAllOrderHistories(userId).catch {error ->
                     _orderHistoryState.value = UiState.Error("error: ${error.message}")
@@ -75,7 +77,7 @@ class OrderViewModel(private val repository: MainRepository): ViewModel() {
     fun reloadOrderHistory(){
         _orderHistoryState.value = UiState.Loading
     }
-    fun makeOrder(listGarbage: List<GarbageAdded>, totalTransaction: Long, location: android.location.Location?){
+    fun makeOrder(listGarbage: List<GarbageAdded>, totalTransaction: Long, location: android.location.Location?, onSuccess: () -> Unit){
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 //get user data
@@ -84,7 +86,6 @@ class OrderViewModel(private val repository: MainRepository): ViewModel() {
                 val selectedAddress = repository.getSelectedAddress()
                 //add new order
                 selectedAddress.first()?.let { address ->
-
                     repository.addNewOrder(
                         listGarbage,
                         user.first(),
@@ -92,6 +93,9 @@ class OrderViewModel(private val repository: MainRepository): ViewModel() {
                         totalTransaction,
                         location
                     )
+                    withContext(Dispatchers.Main){
+                        onSuccess()
+                    }
                 }
             }catch (e: Exception){
                 Log.d("TAG", "makeOrder: ${e.message}")
@@ -100,6 +104,7 @@ class OrderViewModel(private val repository: MainRepository): ViewModel() {
     }
     fun loadDetailOrder(orderId: String){
         viewModelScope.launch(Dispatchers.IO) {
+            _detailOrderState.value = UiState.Loading
             try {
                 repository.getOrderDetail(orderId).catch {
                     _detailOrderState.value = UiState.Error(it.message.toString())

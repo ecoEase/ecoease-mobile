@@ -1,15 +1,14 @@
 package com.bangkit.ecoease.data.remote.interfaces
 
 import com.bangkit.ecoease.data.model.request.OrderWithDetail
-import com.bangkit.ecoease.data.remote.responseModel.AddOrderDetailResponse
-import com.bangkit.ecoease.data.remote.responseModel.GarbageResponse
-import com.bangkit.ecoease.data.remote.responseModel.OrderDetailResponse
-import com.bangkit.ecoease.data.remote.responseModel.OrderResponse
+import com.bangkit.ecoease.data.remote.responseModel.order.AddOrderDetailResponse
+import com.bangkit.ecoease.data.remote.responseModel.order.OrderDetailResponse
+import com.bangkit.ecoease.data.remote.responseModel.order.OrderResponse
 import retrofit2.http.*
 
 interface OrderApiService{
     @GET("orders")
-    suspend fun get(@Header("Authorization") token: String): OrderResponse
+    suspend fun getAll(@Header("Authorization") token: String): OrderResponse
 
     @GET("orders")
     suspend fun getByUser(@Header("Authorization") token: String, @Query("userId") userId: String): OrderResponse

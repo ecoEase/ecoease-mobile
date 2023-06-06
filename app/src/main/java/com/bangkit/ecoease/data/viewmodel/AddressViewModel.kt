@@ -74,7 +74,7 @@ class AddressViewModel(private val repository: MainRepository): ViewModel() {
     }
     fun loadSavedAddress(){
         viewModelScope.launch(Dispatchers.IO) {
-            delay(200)
+            _selectedAddress.value = UiState.Loading
             repository.getSavedAddress().catch {
                 _savedAddress.value = UiState.Error("error: ${it.message}")
             }.collect{
@@ -84,6 +84,7 @@ class AddressViewModel(private val repository: MainRepository): ViewModel() {
     }
     fun loadSelectedAddress(){
         viewModelScope.launch(Dispatchers.IO) {
+            _selectedAddress.value = UiState.Loading
             delay(200)
             repository.getSelectedAddress().catch{
                 _selectedAddress.value = UiState.Error("error: ${it.message}")

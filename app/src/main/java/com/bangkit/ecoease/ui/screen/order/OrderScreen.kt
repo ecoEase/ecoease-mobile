@@ -183,8 +183,10 @@ fun OrderScreen(
         onDissmiss = { openDialog = false },
         onAccept = {
             onAcceptResetOrder()
-            navHostController.navigate(Screen.OrderSuccess.route)
-            onMakeOrder(orderState.garbageList.map { it!! }, orderState.total, location)
+            onMakeOrder(
+                orderState.garbageList.map { it!! },
+                orderState.total,
+                location)
         })
     DialogBox(
         text = "Apakah anda yakin ingin membatalkan order anda",
@@ -276,6 +278,12 @@ fun OrderScreenContent(
                 ) {
                     Text(text = stringResource(R.string.garbage))
                     RoundedButton(
+                        enabled = listGarbageFlow.collectAsState().value.let { uiState ->
+                            when(uiState){
+                                is UiState.Success -> uiState.data.isNotEmpty()
+                                else -> false
+                            }
+                        },
                         text = stringResource(R.string.add),
                         onClick = { onAddGarbageOrderSlot() })
                 }
@@ -289,6 +297,8 @@ fun OrderScreenContent(
                 val initialGarbageAmount = addedGarbage?.amount
                 val initialGarbagePrice = addedGarbage?.garbage?.price
                 val initialGarbageTotalPrice = addedGarbage?.totalPrice
+
+//                val listGarbageSelected = orderState.garbageList.filterNotNull().map { it.garbage }
 
                 listGarbageFlow.collectAsState(initial = UiState.Loading).value.let { uiState ->
                     when (uiState) {

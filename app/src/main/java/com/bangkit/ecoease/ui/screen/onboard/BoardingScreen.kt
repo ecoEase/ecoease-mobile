@@ -48,9 +48,9 @@ fun OnBoardingScreen(
     navController: NavHostController
 ){
     val listPagerItem = listOf(
-        PagerItem(R.raw.lottie_wave, "Welcome", Color(0xFFB9EDDD)),
-        PagerItem(R.raw.lottie_becket_trash_can, "b", Color(0xFF02AE9A)),
-        PagerItem(R.raw.lottie_becket_earth_day_animation, "Welcome", Color(0xFF1DD297)),
+        PagerItem(R.raw.lottie_wave, "Selamat datang di EcoEase", Color(0xFFB9EDDD)),
+        PagerItem(R.raw.lottie_becket_trash_can, "Tujuan kami yakni menumbuhkan kesadaran masyarakat terhadap pengelolaan sampah", Color(0xFF02AE9A)),
+        PagerItem(R.raw.lottie_becket_earth_day_animation, "Ayo bantu kami untuk membuat lingkungan yang lebih baik", Color(0xFF1DD297)),
     )
 
     val pagerState = rememberPagerState()
@@ -210,7 +210,7 @@ fun LottieContent(
         Text(
             text = text,
             modifier = modifier.fillMaxWidth(),
-            style = MaterialTheme.typography.h4.copy(
+            style = MaterialTheme.typography.h5.copy(
                 textAlign = TextAlign.Center
             )
         )

@@ -37,6 +37,9 @@ data class Address(
 	@field:SerializedName("selected")
 	val selected: Boolean,
 
+	@field:SerializedName("deleted")
+	val deleted: Boolean,
+
 	@field:SerializedName("updatedAt")
 	val updatedAt: String
 )

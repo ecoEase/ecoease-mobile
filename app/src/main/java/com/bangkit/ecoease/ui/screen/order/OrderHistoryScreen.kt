@@ -123,7 +123,7 @@ fun OrderHistoryScreen(
 
 @Composable
 private fun Loader(modifier: Modifier = Modifier){
-    Row(modifier = Modifier.fillMaxWidth()) {
-        CircularProgressIndicator(modifier = modifier.align(Alignment.CenterVertically))
+    Column(modifier = modifier.fillMaxWidth()) {
+        CircularProgressIndicator(modifier = modifier.align(Alignment.CenterHorizontally))
     }
 }

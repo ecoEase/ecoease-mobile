@@ -29,7 +29,7 @@ import com.bangkit.ecoease.ui.theme.GreenPrimary
 fun OrderSuccessScreen(
     navHostController: NavHostController,
     modifier: Modifier = Modifier
-){
+) {
     val composition by rememberLottieComposition(
         spec = LottieCompositionSpec.RawRes(R.raw.lottie_success)
     )
@@ -59,16 +59,34 @@ fun OrderSuccessScreen(
             )
         )
         Box(modifier = Modifier.height(62.dp))
-        Row(modifier = Modifier.align(Alignment.CenterHorizontally), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            RoundedButton(text = stringResource(R.string.home), type = RoundedButtonType.SECONDARY, onClick = {navHostController.navigate(Screen.Home.route)})
-            RoundedButton(text = stringResource(R.string.check_on_map), onClick = {navHostController.navigate(Screen.Map.route)})
+        Row(
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            RoundedButton(
+                text = stringResource(R.string.home),
+                type = RoundedButtonType.SECONDARY,
+                onClick = {
+                    navHostController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.OrderSuccess.route) {
+                            inclusive = true
+                        }
+                    }
+                })
+            RoundedButton(text = stringResource(R.string.check_on_map), onClick = {
+                navHostController.navigate(Screen.Map.route) {
+                    popUpTo(Screen.OrderSuccess.route) {
+                        inclusive = true
+                    }
+                }
+            })
         }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun OrderScreenSuccessPreview(){
+fun OrderScreenSuccessPreview() {
     EcoEaseTheme {
         OrderSuccessScreen(navHostController = rememberNavController())
     }

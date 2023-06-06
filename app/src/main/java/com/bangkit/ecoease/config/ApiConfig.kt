@@ -2,6 +2,7 @@ package com.bangkit.ecoease.config
 
 import com.bangkit.ecoease.data.remote.interfaces.AddressApiService
 import com.bangkit.ecoease.data.remote.interfaces.GarbageApiService
+import com.bangkit.ecoease.data.remote.interfaces.OrderApiService
 import com.bangkit.ecoease.data.remote.interfaces.UserApiService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -16,7 +17,7 @@ class ApiConfig{
             .build()
 
         private val retrofit = Retrofit.Builder().apply {
-            baseUrl("https://125e-2a09-bac5-3a1e-88c-00-da-32.ngrok-free.app/api/v1/")// TODO: add api base url
+            baseUrl("https://1f66-2001-448a-50a0-e682-615a-1f53-be85-8cbb.ngrok-free.app/api/v1/")// TODO: add api base url
             addConverterFactory(GsonConverterFactory.create())
             client(client)
         }.build()
@@ -24,5 +25,6 @@ class ApiConfig{
         fun getGarbageApiService(): GarbageApiService = retrofit.create(GarbageApiService::class.java)
         fun getUserApiService(): UserApiService = retrofit.create(UserApiService::class.java)
         fun getAddressApiService(): AddressApiService = retrofit.create(AddressApiService::class.java)
+        fun getOrderApiService(): OrderApiService = retrofit.create(OrderApiService::class.java)
     }
 }

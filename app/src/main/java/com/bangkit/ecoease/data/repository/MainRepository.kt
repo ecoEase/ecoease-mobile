@@ -4,19 +4,19 @@ import android.content.Context
 import android.util.Log
 import com.bangkit.ecoease.config.ApiConfig
 import com.bangkit.ecoease.data.datastore.DataStorePreferences
-import com.bangkit.ecoease.data.dummy.AddressDummy
 import com.bangkit.ecoease.data.model.GarbageAdded
 import com.bangkit.ecoease.data.model.ImageCaptured
+import com.bangkit.ecoease.data.model.request.DetailTransactionsItem
 import com.bangkit.ecoease.data.model.request.Login
+import com.bangkit.ecoease.data.model.request.OrderWithDetail
 import com.bangkit.ecoease.data.model.request.Register
 import com.bangkit.ecoease.data.remote.responseModel.toAddress
 import com.bangkit.ecoease.data.remote.responseModel.toGarbage
 import com.bangkit.ecoease.data.remote.responseModel.toUser
 import com.bangkit.ecoease.data.room.database.MainDatabase
 import com.bangkit.ecoease.data.room.model.*
-import com.bangkit.ecoease.helper.generateUUID
+import com.bangkit.ecoease.helper.toOrderWithDetailTransaction
 import com.google.android.gms.tasks.Task
-import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -32,6 +32,7 @@ class MainRepository(
     private val garbageApiService = ApiConfig.getGarbageApiService()
     private val userApiService = ApiConfig.getUserApiService()
     private val addressApiService = ApiConfig.getAddressApiService()
+    private val orderApiService = ApiConfig.getOrderApiService()
 
     //CAMERA
     fun setCapturedImage(imageCapture: ImageCaptured) {
@@ -114,22 +115,11 @@ class MainRepository(
             }
         } catch (e: Exception) {
             if (roomDatabase.garbageDao().getAllGarbage().isEmpty()) {
-                Log.d(TAG, "getAllGarbage: e")
+                Log.d(TAG, "getAllGarbage: $e")
                 throw e
             }
         }
         return flowOf(roomDatabase.garbageDao().getAllGarbage())
-    }
-
-    //ORDER HISTORY
-    fun getAllOrderHistories(userId: String): Flow<List<OrderWithDetailTransaction>> {
-//            flowOf(OrderHistoryDummy.getOrderHistories())
-        val orderWithDetailTransaction = roomDatabase.orderDao().getAllOrdersWithTransaction()
-        val gson = Gson()
-        val json = gson.toJsonTree(orderWithDetailTransaction)
-
-        Log.d("TAG", "getAllOrderHistories: $json")
-        return flowOf(roomDatabase.orderDao().getAllOrderFromUser(userId))
     }
 
     //Address
@@ -153,7 +143,6 @@ class MainRepository(
         }
         return flowOf(roomDatabase.addressDao().getAllAddress())
     }
-
     suspend fun addAddress(address: Address) {
         try {
             val token = datastore.getAuthToken().first()
@@ -172,7 +161,6 @@ class MainRepository(
             throw e
         }
     }
-
     suspend fun deleteAddress(address: Address) {
         try {
             val token = datastore.getAuthToken().first()
@@ -182,7 +170,6 @@ class MainRepository(
             throw e
         }
     }
-
     suspend fun getSelectedAddress(): Flow<Address?> {
         var response: Flow<Address?>
         try {
@@ -192,10 +179,8 @@ class MainRepository(
         }
         return response
     }
-
     suspend fun saveSelectedAddress(address: Address) {
         try {
-
             val token = datastore.getAuthToken().first()
             val response = addressApiService.selectUseAddress(token, address.id)
             if (response.data == null) throw Exception("data address is null")
@@ -208,47 +193,69 @@ class MainRepository(
         }
     }
 
+    //ORDER HISTORY
+    suspend fun getAllOrderHistories(userId: String): Flow<List<OrderWithDetailTransaction>> {
+        var orderWithDetailTransaction: List<OrderWithDetailTransaction> = listOf()
+
+        try {
+            val token = datastore.getAuthToken().first()
+            val userId = roomDatabase.userDao().getUser().id
+            val response = orderApiService.getByUser(token, userId)
+
+            response.data?.let{
+                orderWithDetailTransaction = it.map { orderData -> orderData.toOrderWithDetailTransaction()}
+            }
+            if(response.data == null) throw Exception(response.message)
+        }catch (e: Exception){
+            throw e
+        }
+//        orderWithDetailTransaction = roomDatabase.orderDao().getAllOrderFromUser(userId)
+//        val gson = Gson()
+//        val json = gson.toJsonTree(orderWithDetailTransaction)
+
+        return flowOf(orderWithDetailTransaction)
+    }
+
     //ORDER
     suspend fun addNewOrder(
         garbage: List<GarbageAdded>,
         user: User,
         address: Address,
         totalTransaction: Long,
-        location: android.location.Location?
+        location: android.location.Location?,
+        mitra: Mitra? = null,
+        date: String = "now",
     ) {
         try {
-            val id = generateUUID()
-            val locationId = generateUUID()
-            val order = Order(
-                id = id,
-                status = StatusOrderItem.NOT_TAKEN,
-                totalTransaction = totalTransaction,
-                userId = user.id,
-                mitraId = "",
-                locationId = locationId,
-                addressId = address.id,
-                created = "now"
+            val token = datastore.getAuthToken().first()
+            val userId = roomDatabase.userDao().getUser().id
+
+            val order = com.bangkit.ecoease.data.model.request.Order(
+                status = StatusOrderItem.NOT_TAKEN.toString(),
+                total_transaction = totalTransaction.toInt(),
+                user_id = userId,
+                address_id = address.id,
             )
-            roomDatabase.orderDao().addOrder(order)
-            location?.let {
-                roomDatabase.locationDao().addLocation(
-                    Location(
-                        id = locationId,
-                        latitude = location.latitude,
-                        longitude = location.longitude
-                    )
+            val listDetailTransactions = garbage.map {
+                DetailTransactionsItem(
+                    garbage_id = it.garbage.id,
+                    total = it.totalPrice.toInt(),
+                    qty = it.amount,
                 )
             }
-            garbage.forEach { item ->
-                roomDatabase.detailTransactionDao().addDetailTransaction(
-                    DetailTransaction(
-                        orderId = id,
-                        garbageId = item.garbage.id,
-                        qty = item.amount,
-                        total = item.totalPrice
-                    )
-                )
-            }
+            val convertedLocation = if(location != null) com.bangkit.ecoease.data.model.request.Location(
+                location.latitude,
+                location.longitude
+            ) else null
+            val newOrderData = OrderWithDetail(
+                order = order,
+                detailTransactions = listDetailTransactions,
+                location = convertedLocation
+            )
+            Log.d(TAG, "addNewOrder: $newOrderData")
+            val response = orderApiService.addNewOrder(token, newOrderData)
+
+            if(response.data == null) throw Exception(response.message)
         } catch (e: Exception) {
             Log.d("TAG", "addNewOrder: $e")
         }
@@ -276,14 +283,19 @@ class MainRepository(
     suspend fun getOrderDetail(orderId: String): Flow<OrderWithDetailTransaction> {
         try {
             //fetch api
+            val token = datastore.getAuthToken().first()
+            val response = orderApiService.getById(token, orderId)
+            if(response.data == null) throw Exception(response.message)
+
+            return flowOf(response.data.toOrderWithDetailTransaction())
             //delete all local data
             //insert to local
         } catch (e: Exception) {
             throw e
         }
-
-        return flowOf(roomDatabase.orderDao().getDetailOrder(orderId))
+//        return flowOf(roomDatabase.orderDao().getDetailOrder(orderId))
     }
+
 
     //Chat
     suspend fun getChatRooms(referenceTask: Task<List<String>>): Flow<List<String>> {

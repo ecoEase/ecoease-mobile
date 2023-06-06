@@ -1,65 +1,67 @@
 [
-  {
-    "address": {
-      "city": "Tulungagung",
-      "detail": "Tanggulturus",
-      "district": "Besuki",
-      "id": "4921ad27-4b39-493b-88a3-ec52272c97b4",
-      "name": "Alamat 1",
-      "selected": true
-    },
-    "items": [
-      {
-        "garbage": {
-          "id": "35def5b2-5dad-4f14-a395-2955ab0a9693",
-          "imageUrl": "https://images.unsplash.com/photo-1528190336454-13cd56b45b5a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80",
-          "name": "Kaleng",
-          "price": 500
-        },
-        "orderInfo": {
-          "garbageId": "35def5b2-5dad-4f14-a395-2955ab0a9693",
-          "orderId": "3d50957b-459c-4323-9029-050ee7ef02c7",
-          "qty": 2,
-          "total": 1000
-        }
+  [
+    {
+      "address": {
+        "city": "hjsgjdgk",
+        "detail": "nsg",
+        "district": "sndgndgm",
+        "id": "0674e329-56ac-4e06-820d-47c5ff6b4921",
+        "name": "sffsnsgks",
+        "selected": true
       },
-      {
-        "garbage": {
-          "id": "35def5b2-5dad-4f14-a395-2955ab0a9697",
-          "imageUrl": "https://images.unsplash.com/photo-1528190336454-13cd56b45b5a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80",
-          "name": "Botol Kaca",
-          "price": 800
+      "items": [
+        {
+          "garbage": {
+            "id": "test-1",
+            "price": 100,
+            "type": "Sampah A",
+            "urlPhoto": "https://images.tokopedia.net/img/cache/500-square/product-1/2017/3/7/12687423/12687423_08e51e9a-c821-40b5-a6eb-d53c72fc4ed3_350_378.jpg"
+          },
+          "orderInfo": {
+            "garbageId": "test-1",
+            "orderId": "bd545c3b-e874-4f7b-a90b-eed0b498b2f7",
+            "qty": 4,
+            "total": 400
+          }
         },
-        "orderInfo": {
-          "garbageId": "35def5b2-5dad-4f14-a395-2955ab0a9697",
-          "orderId": "3d50957b-459c-4323-9029-050ee7ef02c7",
-          "qty": 1,
-          "total": 800
+        {
+          "garbage": {
+            "id": "test-2",
+            "price": 100,
+            "type": "Sampah B",
+            "urlPhoto": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQIDMBE2rgIGas8Q2FZCzfl0wuodn1pb3-AGXNpmBRxpYGz3UpTGMV6XeD3G0JdTzPk9T8&usqp=CAU"
+          },
+          "orderInfo": {
+            "garbageId": "test-2",
+            "orderId": "bd545c3b-e874-4f7b-a90b-eed0b498b2f7",
+            "qty": 1,
+            "total": 100
+          }
         }
+      ],
+      "location": {
+        "id": "fa5e07cc-3e53-470a-957a-82ea08bf6bf1",
+        "latitude": -7.9612583,
+        "longitude": 112.6173917
+      },
+      "order": {
+        "addressId": "0674e329-56ac-4e06-820d-47c5ff6b4921",
+        "created": "now",
+        "id": "bd545c3b-e874-4f7b-a90b-eed0b498b2f7",
+        "locationId": "fa5e07cc-3e53-470a-957a-82ea08bf6bf1",
+        "mitraId": "",
+        "status": "NOT_TAKEN",
+        "totalTransaction": 500,
+        "userId": "test-user"
+      },
+      "user": {
+        "email": "user1@email.com",
+        "firstName": "user-1",
+        "id": "test-user",
+        "lastName": "lastname-1",
+        "password": "$2b$10$CxaAauzEdRZ/uaj4i7QrqeyEkUbtzVuHQMTSnPnTyUpih6vHVNoLO",
+        "phoneNumber": "081230812312",
+        "urlPhotoProfile": "https://storage.googleapis.com/money-tracker-bucket22/20230604214141-avatar new.png"
       }
-    ],
-    "location": {
-      "id": "e0f9f444-57d7-4b2b-9e66-8cf70de5f5fc",
-      "latitude": -7.9612583,
-      "longitude": 112.6173917
-    },
-    "order": {
-      "addressId": "4921ad27-4b39-493b-88a3-ec52272c97b4",
-      "created": "now",
-      "id": "3d50957b-459c-4323-9029-050ee7ef02c7",
-      "locationId": "e0f9f444-57d7-4b2b-9e66-8cf70de5f5fc",
-      "mitraId": "",
-      "status": "NOT_TAKEN",
-      "totalTransaction": 1800,
-      "userId": "db7ba75d-5d57-42ca-836c-3c08f42f9959"
-    },
-    "user": {
-      "email": "xyz@xyz.com",
-      "firstName": "Septa",
-      "id": "db7ba75d-5d57-42ca-836c-3c08f42f9959",
-      "lastName": "Alfauzan",
-      "password": "*****",
-      "urlPhotoProfile": ""
     }
-  }
-]
+  ]

@@ -1,25 +1,25 @@
 package com.bangkit.ecoease.data.model.request
 
 data class OrderWithDetail(
+	val location: Location?,
+	val order: Order,
 	val detailTransactions: List<DetailTransactionsItem>,
-	val location: Location,
-	val order: Order
 )
 
 data class Order(
-	val totalTransaction: Int,
-	val userId: String,
-	val addressId: String,
+	val total_transaction: Int,
+	val user_id: String,
+	val address_id: String,
 	val status: String
 )
 
 data class Location(
-	val latitude: Any,
-	val longitude: Any
+	val latitude: Double,
+	val longitude: Double
 )
 
 data class DetailTransactionsItem(
-	val garbageId: String,
+	val garbage_id: String,
 	val total: Int,
 	val qty: Int
 )
