@@ -3,16 +3,15 @@ package com.bangkit.ecoease.data.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bangkit.ecoease.data.event.MyEvent
 import com.bangkit.ecoease.data.model.request.Login
 import com.bangkit.ecoease.data.repository.MainRepository
 import com.bangkit.ecoease.helper.InputValidation
 import com.bangkit.ecoease.helper.generateUUID
 import com.bangkit.ecoease.ui.common.UiState
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -21,6 +20,9 @@ class AuthViewModel(private val repository: MainRepository) : ViewModel() {
     val passwordValidation: InputValidation = InputValidation("",false, "")
     private var _isLoginValid: MutableStateFlow<UiState<Boolean>> = MutableStateFlow(UiState.Success(false))
     val isLoginValid: StateFlow<UiState<Boolean>> = _isLoginValid
+
+    private val eventChannel = Channel<MyEvent>()
+    val eventFlow = eventChannel.receiveAsFlow()
 
     fun validateEmailInput(){
         val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\$"
@@ -69,10 +71,16 @@ class AuthViewModel(private val repository: MainRepository) : ViewModel() {
         }
 
     }
-    fun logout(){
+    fun logout(onSuccess: () -> Unit){
         viewModelScope.launch(Dispatchers.IO) {
-            repository.resetUser()
-            repository.setToken("")
+            try {
+                repository.logout()
+                withContext(Dispatchers.Main){
+                    onSuccess()
+                }
+            }catch (e: Exception){
+               eventChannel.send(MyEvent.MessageEvent("error: ${e.message}"))
+            }
         }
     }
 }

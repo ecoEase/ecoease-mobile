@@ -15,6 +15,7 @@ class ViewModelFactory(private val repository: MainRepository): ViewModelProvide
             modelClass.isAssignableFrom(CameraViewModel::class.java) -> CameraViewModel(repository) as T
             modelClass.isAssignableFrom(GarbageViewModel::class.java) -> GarbageViewModel(repository) as T
             modelClass.isAssignableFrom(LocationViewModel::class.java) -> LocationViewModel(repository) as T
+            modelClass.isAssignableFrom(MessageViewModel::class.java) -> MessageViewModel(repository) as T
             modelClass.isAssignableFrom(OrderViewModel::class.java) -> OrderViewModel(repository) as T
             modelClass.isAssignableFrom(RegisterViewModel::class.java) -> RegisterViewModel(repository) as T
             modelClass.isAssignableFrom(SplashViewModel::class.java) -> SplashViewModel(repository) as T

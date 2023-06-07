@@ -1,9 +1,6 @@
 package com.bangkit.ecoease.config
 
-import com.bangkit.ecoease.data.remote.interfaces.AddressApiService
-import com.bangkit.ecoease.data.remote.interfaces.GarbageApiService
-import com.bangkit.ecoease.data.remote.interfaces.OrderApiService
-import com.bangkit.ecoease.data.remote.interfaces.UserApiService
+import com.bangkit.ecoease.data.remote.interfaces.*
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -17,7 +14,7 @@ class ApiConfig{
             .build()
 
         private val retrofit = Retrofit.Builder().apply {
-            baseUrl("https://1f66-2001-448a-50a0-e682-615a-1f53-be85-8cbb.ngrok-free.app/api/v1/")// TODO: add api base url
+            baseUrl("https://a924-2001-448a-50a0-2cd4-a44b-6cd2-e1-40f6.ngrok-free.app/api/v1/")
             addConverterFactory(GsonConverterFactory.create())
             client(client)
         }.build()

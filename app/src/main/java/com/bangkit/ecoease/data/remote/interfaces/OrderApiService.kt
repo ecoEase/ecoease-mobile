@@ -1,9 +1,11 @@
 package com.bangkit.ecoease.data.remote.interfaces
 
 import com.bangkit.ecoease.data.model.request.OrderWithDetail
+import com.bangkit.ecoease.data.model.request.UpdateOrder
 import com.bangkit.ecoease.data.remote.responseModel.order.AddOrderDetailResponse
 import com.bangkit.ecoease.data.remote.responseModel.order.OrderDetailResponse
 import com.bangkit.ecoease.data.remote.responseModel.order.OrderResponse
+import com.bangkit.ecoease.data.remote.responseModel.order.UpdateOrderResponse
 import retrofit2.http.*
 
 interface OrderApiService{
@@ -19,6 +21,16 @@ interface OrderApiService{
     @GET("orders")
     suspend fun getById(@Header("Authorization") token: String, @Query("id") id: String): OrderDetailResponse
 
+    @GET("orders/available")
+    suspend fun getAvailable(@Header("Authorization") token: String): OrderResponse
+
     @POST("orders/with-detail-transactions")
     suspend fun addNewOrder(@Header("Authorization") token: String, @Body body: OrderWithDetail): AddOrderDetailResponse
+    @PUT("orders/cancel")
+    suspend fun cancelOrder(@Header("Authorization") token: String, @Body body: UpdateOrder): UpdateOrderResponse
+    //mitra only
+    @PUT("orders/pickup")
+    suspend fun pickupOrder(@Header("Authorization") token: String, @Body body: UpdateOrder): UpdateOrderResponse
+    @PUT("orders/update-status")
+    suspend fun updateOrderStatus(@Header("Authorization") token: String, @Body body: UpdateOrder): UpdateOrderResponse
 }

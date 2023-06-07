@@ -63,7 +63,6 @@ fun ProfileScreen(
     }
     DialogBox(text = stringResource(R.string.logout_confirm), onDissmiss = { openDialog = false }, isOpen = openDialog, onAccept = {
         logoutAction()
-        navHostController.navigate(Screen.Auth.route)
     })
 }
 

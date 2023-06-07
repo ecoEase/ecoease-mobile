@@ -1,23 +1,20 @@
 package com.bangkit.ecoease.data.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bangkit.ecoease.data.event.MyEvent
 import com.bangkit.ecoease.data.repository.MainRepository
 import com.bangkit.ecoease.data.room.model.Address
 import com.bangkit.ecoease.helper.InputValidation
 import com.bangkit.ecoease.ui.common.UiState
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class AddressViewModel(private val repository: MainRepository): ViewModel() {
-    val emptyAddress = Address(
+    private val emptyAddress = Address(
         id = "",
         name = "",
         detail = "",
@@ -25,6 +22,9 @@ class AddressViewModel(private val repository: MainRepository): ViewModel() {
         city = "",
         selected = false
     )
+    private val eventChannel = Channel<MyEvent>()
+    val eventFlow = eventChannel.receiveAsFlow()
+
     private var _savedAddress: MutableStateFlow<UiState<List<Address>>> = MutableStateFlow(UiState.Loading)
     private var _tempSelectedAddress: MutableStateFlow<Address> = MutableStateFlow(emptyAddress)
     private var _selectedAddress: MutableStateFlow<UiState<Address>> = MutableStateFlow(UiState.Loading)
@@ -74,18 +74,21 @@ class AddressViewModel(private val repository: MainRepository): ViewModel() {
     }
     fun loadSavedAddress(){
         viewModelScope.launch(Dispatchers.IO) {
-            _selectedAddress.value = UiState.Loading
-            repository.getSavedAddress().catch {
-                _savedAddress.value = UiState.Error("error: ${it.message}")
-            }.collect{
-                _savedAddress.value = UiState.Success(it)
+            try {
+                _selectedAddress.value = UiState.Loading
+                repository.getSavedAddress().catch {
+                    _savedAddress.value = UiState.Error("error: ${it.message}")
+                }.collect{
+                    _savedAddress.value = UiState.Success(it)
+                }
+            }catch (e: Exception){
+                _savedAddress.value = if(e.message.toString().contains("HTTP 404")) UiState.Success(listOf())  else UiState.Error("error: ${e.message}")
             }
         }
     }
     fun loadSelectedAddress(){
         viewModelScope.launch(Dispatchers.IO) {
             _selectedAddress.value = UiState.Loading
-            delay(200)
             repository.getSelectedAddress().catch{
                 _selectedAddress.value = UiState.Error("error: ${it.message}")
             }.collect{
@@ -101,9 +104,14 @@ class AddressViewModel(private val repository: MainRepository): ViewModel() {
     }
     fun confirmSelectedAddress(address: Address, onSuccess: () -> Unit){
         viewModelScope.launch(Dispatchers.IO) {
-            repository.saveSelectedAddress(address)
-            withContext(Dispatchers.Main){
-                onSuccess()
+            try {
+                repository.saveSelectedAddress(address)
+                eventChannel.send(MyEvent.MessageEvent("success select address"))
+                withContext(Dispatchers.Main){
+                    onSuccess()
+                }
+            }catch (e: Exception){
+                eventChannel.send(MyEvent.MessageEvent("error: ${e.message}"))
             }
         }
     }
@@ -123,11 +131,14 @@ class AddressViewModel(private val repository: MainRepository): ViewModel() {
                     repository.addAddress(newAddress)
                     _savedAddress.value = UiState.Loading//trigger loading so in ui it will call the loadSavedAddress method
                 }catch (e: Exception){
-                    Log.d("TAG", "addNewAddress: ${e.message}")
+                    eventChannel.send(MyEvent.MessageEvent("error: ${e.message}"))
                 }
             }
         }else{
-            throw Exception("Fields must be valid")
+//            throw Exception("Fields must be valid")
+            viewModelScope.launch {
+                eventChannel.send(MyEvent.MessageEvent("error: fields must be valid"))
+            }
         }
     }
     fun deleteAddress(address: Address){
@@ -139,7 +150,7 @@ class AddressViewModel(private val repository: MainRepository): ViewModel() {
                 }
                 _savedAddress.value = UiState.Loading//trigger loading so in ui it will call the loadSavedAddress method
             }catch (e: Exception){
-                Log.d("TAG", "deleteAddress: ${e.message}")
+                eventChannel.send(MyEvent.MessageEvent("error: ${e.message}"))
             }
         }
     }

@@ -74,7 +74,6 @@ fun AuthScreen(
                 is UiState.Loading -> enableLogin = false
                 is UiState.Success -> {
                     enableLogin = true
-                    // TODO: fix this error navigation after login 
                 }
                 is UiState.Error -> {
                     enableLogin = true

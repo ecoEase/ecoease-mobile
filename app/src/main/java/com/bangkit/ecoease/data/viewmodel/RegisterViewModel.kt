@@ -3,28 +3,31 @@ package com.bangkit.ecoease.data.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bangkit.ecoease.data.event.MyEvent
 import com.bangkit.ecoease.data.model.ImageCaptured
 import com.bangkit.ecoease.data.model.request.Register
-import com.bangkit.ecoease.data.remote.responseModel.RegisterData
 import com.bangkit.ecoease.data.repository.MainRepository
 import com.bangkit.ecoease.helper.InputValidation
 import com.bangkit.ecoease.ui.common.UiState
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import okhttp3.MediaType
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 
 class RegisterViewModel(private val repository: MainRepository) : ViewModel() {
+    private val eventChannel = Channel<MyEvent>()
+    val eventFlow = eventChannel.receiveAsFlow()
+
     val firstnameValidation: InputValidation = InputValidation("",false, "")
     val lastnameValidation: InputValidation = InputValidation("",false, "")
     val phoneNumberValidation: InputValidation = InputValidation("",false, "")
@@ -114,11 +117,11 @@ class RegisterViewModel(private val repository: MainRepository) : ViewModel() {
         if(isAllInputValid){
             viewModelScope.launch(Dispatchers.IO) {
                 try {
-                    // TODO: add register api
                     val fileRequestBody = photoProfileFile.asRequestBody("image/jpeg".toMediaTypeOrNull())
+                    val fileFieldName = "photoFile"
                     val filePart = MultipartBody.Part.createFormData(
-                        "file",
-                        "${emailValidation.inputValue.value}-profile.jpg",
+                        fileFieldName,
+                        photoProfileFile.name,
                         fileRequestBody
                     )
                     val registerData = Register(
@@ -126,17 +129,19 @@ class RegisterViewModel(private val repository: MainRepository) : ViewModel() {
                         firstName = firstnameValidation.inputValue.value.toRequestBody("text/plain".toMediaType()),
                         lastName = lastnameValidation.inputValue.value.toRequestBody("text/plain".toMediaType()),
                         email = emailValidation.inputValue.value.toRequestBody("text/plain".toMediaType()),
-                        phoneNumber = phoneNumberValidation.inputValue.value.toRequestBody("text/plain".toMediaType()),
+                        phone_number = phoneNumberValidation.inputValue.value.toRequestBody("text/plain".toMediaType()),
                         password = passwordValidation.inputValue.value.toRequestBody("text/plain".toMediaType()),
                     )
                     repository.registerUser(registerData).catch { error ->
-                        Log.d("TAG", "register: $error")
+                        eventChannel.send(MyEvent.MessageEvent("error: ${error.message}"))
                     }.collect{result ->
                         Log.d("TAG", "register: $result")
-                        onSuccess()
+                        withContext(Dispatchers.Main){
+                            onSuccess()
+                        }
                     }
                 }catch (e: Exception){
-                    throw e
+                    eventChannel.send(MyEvent.MessageEvent("error: ${e.message}"))
                 }
             }
         }

@@ -27,6 +27,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.Screen
+import com.bangkit.ecoease.data.event.MyEvent
 import com.bangkit.ecoease.data.model.GarbageAdded
 import com.bangkit.ecoease.data.model.Order
 import com.bangkit.ecoease.data.room.model.Garbage
@@ -41,6 +42,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionsRequired
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.location.LocationServices
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 //    android.Manifest.permission.ACCESS_BACKGROUND_LOCATION,
@@ -72,6 +74,7 @@ fun OrderScreen(
     onReloadSelectedAddress: () -> Unit,
     onMakeOrder: (List<GarbageAdded>, Long, Location?) -> Unit,
     selectedAddressStateFlow: StateFlow<UiState<com.bangkit.ecoease.data.room.model.Address>>,
+    eventFlow: Flow<MyEvent>,
     updateGarbageAtIndex: (Int, GarbageAdded) -> Unit,
 ) {
     val context = LocalContext.current
@@ -119,6 +122,11 @@ fun OrderScreen(
 
     LaunchedEffect(Unit) {
         permissionState.launchMultiplePermissionRequest()
+        eventFlow.collect { event ->
+            when(event) {
+                is MyEvent.MessageEvent -> Toast.makeText( context, event.message, Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     PermissionsRequired(

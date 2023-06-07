@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.bangkit.ecoease.R
+import com.bangkit.ecoease.data.event.MyEvent
 import com.bangkit.ecoease.data.room.model.Address
 import com.bangkit.ecoease.helper.InputValidation
 import com.bangkit.ecoease.helper.generateUUID
@@ -28,6 +29,7 @@ import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.theme.DarkGrey
 import com.bangkit.ecoease.utils.WindowInfo
 import com.bangkit.ecoease.utils.rememberWindowInfo
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -49,6 +51,7 @@ fun ChangeAddressScreen(
     onSelectedAddress: (Address) -> Unit,
     onSaveSelectedAddress: (Address, () -> Unit) -> Unit,
     onReloadSavedAddress: () -> Unit,
+    eventFlow: Flow<MyEvent>,
     navHostController: NavHostController,
     modifier: Modifier = Modifier
 ) {
@@ -57,6 +60,14 @@ fun ChangeAddressScreen(
     var selectedIndex: Int by rememberSaveable { mutableStateOf(-1) }
     var loadingSelectAddress by rememberSaveable { mutableStateOf(false) }
     val windowInfo = rememberWindowInfo()
+
+    LaunchedEffect(Unit){
+        eventFlow.collect { event ->
+            when(event) {
+                is MyEvent.MessageEvent -> Toast.makeText( context, event.message, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     fun resetFieldHandler() {
         nameValidation.updateInputValue("")

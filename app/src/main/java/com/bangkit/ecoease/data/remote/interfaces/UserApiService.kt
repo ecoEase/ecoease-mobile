@@ -17,11 +17,11 @@ interface UserApiService{
     @Multipart
     @POST("register")
     suspend fun register(
-        @Part photoFile: MultipartBody.Part,
         @Part("firstName") firstName: RequestBody,
         @Part("lastName") lastName: RequestBody,
         @Part("email") email: RequestBody,
         @Part("password") password: RequestBody,
-        @Part("phone_number") phoneNumber: RequestBody,
+        @Part("phone_number") phone_number: RequestBody,
+        @Part photoFile: MultipartBody.Part,
     ) : RegisterResponse
 }

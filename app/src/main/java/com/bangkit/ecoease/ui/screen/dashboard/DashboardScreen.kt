@@ -22,6 +22,7 @@ import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.Banner
 import com.bangkit.ecoease.ui.component.CardPrice
 import com.bangkit.ecoease.ui.component.ErrorHandler
+import com.bangkit.ecoease.ui.component.RoundedButton
 import com.bangkit.ecoease.utils.WindowInfo
 import com.bangkit.ecoease.utils.rememberWindowInfo
 import kotlinx.coroutines.flow.StateFlow
@@ -33,25 +34,27 @@ fun DashboardScreen(
     onReloadGarbage: () -> Unit,
     navHostController: NavHostController,
     modifier: Modifier = Modifier
-){
+) {
     val windowInfo = rememberWindowInfo()
+    Column {
 
-    if(windowInfo.screenWidthInfo == WindowInfo.WindowType.Compact){
-        DashboardScreenPotraitContent(
-            garbageStateFlow = garbageStateFlow,
-            onLoadGarbage = onLoadGarbage,
-            onReloadGarbage = onReloadGarbage,
-            navHostController = navHostController,
-            modifier = modifier
-        )
-    }else{
-        DashboardScreenLandscapeContent(
-            garbageStateFlow = garbageStateFlow,
-            onLoadGarbage = onLoadGarbage,
-            onReloadGarbage = onReloadGarbage,
-            navHostController = navHostController,
-            modifier = modifier
-        )
+        if (windowInfo.screenWidthInfo == WindowInfo.WindowType.Compact) {
+            DashboardScreenPotraitContent(
+                garbageStateFlow = garbageStateFlow,
+                onLoadGarbage = onLoadGarbage,
+                onReloadGarbage = onReloadGarbage,
+                navHostController = navHostController,
+                modifier = modifier
+            )
+        } else {
+            DashboardScreenLandscapeContent(
+                garbageStateFlow = garbageStateFlow,
+                onLoadGarbage = onLoadGarbage,
+                onReloadGarbage = onReloadGarbage,
+                navHostController = navHostController,
+                modifier = modifier
+            )
+        }
     }
 }
 
@@ -62,7 +65,7 @@ fun DashboardScreenPotraitContent(
     onReloadGarbage: () -> Unit,
     navHostController: NavHostController,
     modifier: Modifier = Modifier
-){
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -87,7 +90,7 @@ fun DashboardScreenLandscapeContent(
     onReloadGarbage: () -> Unit,
     navHostController: NavHostController,
     modifier: Modifier = Modifier
-){
+) {
     Row(
         modifier = modifier
             .fillMaxSize()
@@ -109,7 +112,7 @@ fun DashboardScreenLandscapeContent(
 fun Header(
     navHostController: NavHostController,
     modifier: Modifier = Modifier,
-){
+) {
     Column(modifier) {
         Text(text = stringResource(R.string.good_morning), style = MaterialTheme.typography.h4)
         Spacer(modifier = Modifier.height(42.dp))
@@ -117,18 +120,19 @@ fun Header(
         Spacer(modifier = Modifier.height(42.dp))
     }
 }
+
 @Composable
 fun DashboardScreenContent(
     garbageStateFlow: StateFlow<UiState<List<Garbage>>>,
     onLoadGarbage: () -> Unit,
     onReloadGarbage: () -> Unit,
     modifier: Modifier = Modifier,
-){
+) {
     Column(modifier = modifier) {
         Text(text = stringResource(R.string.garbage_price), style = MaterialTheme.typography.h5)
         Spacer(modifier = Modifier.height(16.dp))
         garbageStateFlow.collectAsState(initial = UiState.Loading).value.let { uiState ->
-            when(uiState){
+            when (uiState) {
                 is UiState.Loading -> {
                     CircularProgressIndicator(modifier = modifier)
                     onLoadGarbage()
@@ -137,13 +141,19 @@ fun DashboardScreenContent(
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         contentPadding = PaddingValues(bottom = 64.dp)
-                    ){
-                        items(uiState.data){item ->
-                            CardPrice(imageUrl = item.urlPhoto, name = item.type, price = "Rp${item.price.toCurrency()}")
+                    ) {
+                        items(uiState.data) { item ->
+                            CardPrice(
+                                imageUrl = item.urlPhoto,
+                                name = item.type,
+                                price = "Rp${item.price.toCurrency()}"
+                            )
                         }
                     }
                 }
-                is UiState.Error -> ErrorHandler(errorText = uiState.errorMessage, onReload = { onReloadGarbage() })
+                is UiState.Error -> ErrorHandler(
+                    errorText = uiState.errorMessage,
+                    onReload = { onReloadGarbage() })
             }
         }
     }

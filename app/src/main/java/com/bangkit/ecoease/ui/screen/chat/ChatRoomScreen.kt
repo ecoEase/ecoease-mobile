@@ -24,50 +24,52 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Devices
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.bangkit.ecoease.data.firebase.FireBaseRealtimeDatabase
 import com.bangkit.ecoease.data.firebase.FireBaseRealtimeDatabase.getCurrentChat
 import com.bangkit.ecoease.data.model.Message
+import com.bangkit.ecoease.data.room.model.User
 import com.bangkit.ecoease.ui.component.ChatBubble
 import com.bangkit.ecoease.ui.component.TextInput
-import com.bangkit.ecoease.ui.theme.EcoEaseTheme
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import java.util.*
 
 @Composable
 fun ChatRoomScreen(
     roomId: String,
-    navHostController: NavHostController,
+    userFlow: Flow<User>?,
     modifier: Modifier = Modifier
-){
+) {
     val context = LocalContext.current
     val messagesRef = FireBaseRealtimeDatabase.createMessageRef(roomId)
     var message: String by rememberSaveable { mutableStateOf("") }
-    var chats: MutableList<Message> = remember{ mutableStateListOf() }
-    var loading by remember{ mutableStateOf(false) }
+    var chats: MutableList<Message> = remember { mutableStateListOf() }
+    var loading by remember { mutableStateOf(false) }
     val lazyListState = rememberLazyListState()
+    var username by remember{ mutableStateOf("") }
 
-    // TODO: move chat bussiness logic in a viewmodel
-    LaunchedEffect(Unit){
+    LaunchedEffect(Unit) {
         loading = true
+        userFlow?.let {
+            username = "${it.first().firstName} ${it.first().lastName}"
+        }
         messagesRef.getCurrentChat(roomId = roomId).addOnCompleteListener {
             loading = false
-            if(it.isSuccessful){
+            if (it.isSuccessful) {
                 chats.clear()
                 chats.addAll(it.result)
             }
         }
     }
 
-    // TODO: animate scroll when new chat added
-    LaunchedEffect(chats.size){
-        lazyListState.animateScrollToItem(chats.size - 1)
+    LaunchedEffect(chats.size) {
+        if(chats.size != 0){
+            lazyListState.animateScrollToItem(chats.size)
+        }
     }
 
-    DisposableEffect(Unit){
+    DisposableEffect(Unit) {
         val childEventListener = FireBaseRealtimeDatabase.childEventListener { chats.add(it) }
         messagesRef.addChildEventListener(childEventListener)
         onDispose {
@@ -77,49 +79,84 @@ fun ChatRoomScreen(
 
 
     val animatedIconBgColor by animateColorAsState(
-        targetValue = if(message.isNotEmpty()) MaterialTheme.colors.primary else MaterialTheme.colors.secondary,
+        targetValue = if (message.isNotEmpty()) MaterialTheme.colors.primary else MaterialTheme.colors.secondary,
         animationSpec = tween(200)
     )
 
     Column(modifier = modifier.fillMaxSize()) {
-        if(loading) Loader(modifier = Modifier.fillMaxWidth().weight(1f))
-
-        AnimatedVisibility(
-            visible = !loading,
+        if (loading) Loader(
             modifier = Modifier
-                .weight(1f)
                 .fillMaxWidth()
-        ) {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier
-                .fillMaxHeight()
-                .padding(horizontal = 32.dp), contentPadding = PaddingValues(bottom = 64.dp)){
-                items(chats.toList()){message ->
-                    ChatBubble(message = message.text ?: "", sender = message.name ?: "", isOwner = true, date = DateUtils.getRelativeTimeSpanString(message.timeStamp ?: 0).toString())
+                .weight(1f)
+        )
+
+        Column(modifier = Modifier.weight(1f)) {
+            AnimatedVisibility(
+                visible = !loading,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            ) {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(horizontal = 32.dp),
+                    contentPadding = PaddingValues(bottom = 48.dp),
+                    state = lazyListState
+                ) {
+                    items(chats.toList()) { message ->
+                        ChatBubble(
+                            message = message.text ?: "",
+                            sender = message.name ?: "",
+                            isOwner = message.name == username,
+                            date = DateUtils.getRelativeTimeSpanString(message.timeStamp ?: 0)
+                                .toString()
+                        )
+                    }
                 }
             }
         }
 
-        Row(modifier = Modifier.fillMaxWidth()) {
-            TextInput(placeHolder = "Type message", value = message, modifier = Modifier.weight(1f), onValueChange = {it -> message = it})
-            IconButton(onClick = { messagesRef
-                .push()
-                .setValue(
-                    Message(
-                        text = message,
-                        name = "Lorem",
-                        timeStamp = Date().time
-                    )
-                ) { error, _ ->
-                    message = ""
-                    Toast.makeText(context,if (error != null) "error" else "success" + " sending message",Toast.LENGTH_SHORT).show()
-                    }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(72.dp)
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 8.dp)
+        ) {
+            TextInput(
+                placeHolder = "Type message",
+                value = message,
+                onValueChange = { it -> message = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = 52.dp)
+            )
+            IconButton(
+                onClick = {
+                    messagesRef
+                        .push()
+                        .setValue(
+                            Message(
+                                text = message,
+                                name = username,
+                                timeStamp = Date().time
+                            )
+                        ) { error, _ ->
+                            message = ""
+                            Toast.makeText(
+                                context,
+                                if (error != null) "error" else "success" + " sending message",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                 }, modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(32.dp))
-                .background(animatedIconBgColor)
-                .padding(8.dp)
-                .align(Alignment.CenterVertically)
-                ,
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(32.dp))
+                    .background(animatedIconBgColor)
+                    .padding(8.dp)
+                    .align(Alignment.CenterEnd),
                 enabled = message.isNotEmpty()
             ) {
                 Icon(
@@ -131,16 +168,10 @@ fun ChatRoomScreen(
         }
     }
 }
+
 @Composable
-private fun Loader(modifier: Modifier = Modifier){
+private fun Loader(modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
         CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-    }
-}
-@Preview(showBackground = true, device = Devices.PIXEL_4)
-@Composable
-private fun ChatRoomScreenPreview(){
-    EcoEaseTheme() {
-        ChatRoomScreen(navHostController = rememberNavController(), roomId = "ref")
     }
 }

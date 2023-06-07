@@ -50,6 +50,7 @@ fun DetailCardGarbage(
 fun DetailAddressCard(
     name: String,
     detail: String,
+    district: String,
     city: String,
     modifier: Modifier = Modifier
 ){
@@ -60,8 +61,9 @@ fun DetailAddressCard(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(text = name)
-            Text(text = detail, style = MaterialTheme.typography.body2)
-            Text(text = city, style = MaterialTheme.typography.body2)
+            Text(text = "detail: $detail", style = MaterialTheme.typography.body2)
+            Text(text = "Kecamatan: $district", style = MaterialTheme.typography.body2)
+            Text(text = "Kab/Kota: $city", style = MaterialTheme.typography.body2)
         }
     }
 }

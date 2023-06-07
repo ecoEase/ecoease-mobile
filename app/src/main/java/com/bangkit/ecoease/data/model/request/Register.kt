@@ -9,5 +9,5 @@ data class Register(
     val lastName: RequestBody,
     val email: RequestBody,
     val password: RequestBody,
-    val phoneNumber: RequestBody,
+    val phone_number: RequestBody,
 )

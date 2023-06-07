@@ -6,15 +6,14 @@ import com.bangkit.ecoease.config.ApiConfig
 import com.bangkit.ecoease.data.datastore.DataStorePreferences
 import com.bangkit.ecoease.data.model.GarbageAdded
 import com.bangkit.ecoease.data.model.ImageCaptured
-import com.bangkit.ecoease.data.model.request.DetailTransactionsItem
-import com.bangkit.ecoease.data.model.request.Login
-import com.bangkit.ecoease.data.model.request.OrderWithDetail
-import com.bangkit.ecoease.data.model.request.Register
+import com.bangkit.ecoease.data.model.request.*
 import com.bangkit.ecoease.data.remote.responseModel.toAddress
 import com.bangkit.ecoease.data.remote.responseModel.toGarbage
 import com.bangkit.ecoease.data.remote.responseModel.toUser
 import com.bangkit.ecoease.data.room.database.MainDatabase
 import com.bangkit.ecoease.data.room.model.*
+import com.bangkit.ecoease.data.room.model.Address
+import com.bangkit.ecoease.data.room.model.Order
 import com.bangkit.ecoease.helper.toOrderWithDetailTransaction
 import com.google.android.gms.tasks.Task
 import kotlinx.coroutines.flow.Flow
@@ -59,19 +58,23 @@ class MainRepository(
     //USER
     suspend fun registerUser(registerData: Register): Flow<Boolean> {
         try {
-            // TODO: register bermasalah 
-            Log.d(TAG, "registerUser: ${registerData.photoFile}")
             val response = userApiService.register(
                 photoFile = registerData.photoFile,
                 firstName = registerData.firstName,
                 lastName = registerData.lastName,
                 email = registerData.email,
-                phoneNumber = registerData.phoneNumber,
+                phone_number = registerData.phone_number,
                 password = registerData.password,
             )
             if (response.data != null) return flowOf(true)
+//            val response = dicodingApiService.register(
+//                registerData.firstName,
+//                registerData.photoFile
+//            )
+//            if(response.error == false) return flowOf(true)
             throw Exception(response.message)
         } catch (e: Exception) {
+            Log.d("TAG", "registerUser error: ${e.message} ")
             throw e
         }
     }
@@ -100,8 +103,18 @@ class MainRepository(
         }
     }
 
-    fun getUser(): Flow<User> = flowOf(roomDatabase.userDao().getUser())
+    suspend fun logout() {
+        try {
+            setToken("")
+            roomDatabase.userDao().deleteAll()
+            roomDatabase.mitraDao().deleteAll()
+            roomDatabase.addressDao().deleteAllAddress()
+        } catch (e: Exception) {
+            throw e
+        }
+    }
 
+    fun getUser(): Flow<User> = flowOf(roomDatabase.userDao().getUser())
     //GARBAGE
     suspend fun getAllGarbage(): Flow<List<Garbage>> {
         try {
@@ -143,33 +156,38 @@ class MainRepository(
         }
         return flowOf(roomDatabase.addressDao().getAllAddress())
     }
+
     suspend fun addAddress(address: Address) {
         try {
             val token = datastore.getAuthToken().first()
             val userId = roomDatabase.userDao().getUser().id
 
-            addressApiService.addNewAddress(token, com.bangkit.ecoease.data.model.request.Address(
-                name = address.name,
-                city = address.city,
-                district = address.district,
-                detail = address.detail,
-                user_id = userId,
-            ))
+            addressApiService.addNewAddress(
+                token, com.bangkit.ecoease.data.model.request.Address(
+                    name = address.name,
+                    city = address.city,
+                    district = address.district,
+                    detail = address.detail,
+                    user_id = userId,
+                )
+            )
 
             roomDatabase.addressDao().addAddress(address)
-        }catch (e: Exception){
+        } catch (e: Exception) {
             throw e
         }
     }
+
     suspend fun deleteAddress(address: Address) {
         try {
             val token = datastore.getAuthToken().first()
             addressApiService.deleteAddress(token, address.id)
 //            roomDatabase.addressDao().deleteAddress(address)
-        }catch (e: Exception){
+        } catch (e: Exception) {
             throw e
         }
     }
+
     suspend fun getSelectedAddress(): Flow<Address?> {
         var response: Flow<Address?>
         try {
@@ -179,6 +197,7 @@ class MainRepository(
         }
         return response
     }
+
     suspend fun saveSelectedAddress(address: Address) {
         try {
             val token = datastore.getAuthToken().first()
@@ -188,7 +207,7 @@ class MainRepository(
             response.data.forEach { addressItem ->
                 roomDatabase.addressDao().addAddress(addressItem.toAddress())
             }
-        }catch (e: Exception){
+        } catch (e: Exception) {
             throw e
         }
     }
@@ -202,11 +221,12 @@ class MainRepository(
             val userId = roomDatabase.userDao().getUser().id
             val response = orderApiService.getByUser(token, userId)
 
-            response.data?.let{
-                orderWithDetailTransaction = it.map { orderData -> orderData.toOrderWithDetailTransaction()}
+            response.data?.let {
+                orderWithDetailTransaction =
+                    it.map { orderData -> orderData.toOrderWithDetailTransaction() }
             }
-            if(response.data == null) throw Exception(response.message)
-        }catch (e: Exception){
+            if (response.data == null) throw Exception(response.message)
+        } catch (e: Exception) {
             throw e
         }
 //        orderWithDetailTransaction = roomDatabase.orderDao().getAllOrderFromUser(userId)
@@ -243,28 +263,35 @@ class MainRepository(
                     qty = it.amount,
                 )
             }
-            val convertedLocation = if(location != null) com.bangkit.ecoease.data.model.request.Location(
-                location.latitude,
-                location.longitude
-            ) else null
+            val convertedLocation =
+                if (location != null) com.bangkit.ecoease.data.model.request.Location(
+                    location.latitude,
+                    location.longitude
+                ) else null
             val newOrderData = OrderWithDetail(
                 order = order,
                 detailTransactions = listDetailTransactions,
                 location = convertedLocation
             )
-            Log.d(TAG, "addNewOrder: $newOrderData")
             val response = orderApiService.addNewOrder(token, newOrderData)
 
-            if(response.data == null) throw Exception(response.message)
+            if (response.data == null) throw Exception(response.message)
         } catch (e: Exception) {
-            Log.d("TAG", "addNewOrder: $e")
+            throw e
         }
     }
 
-    suspend fun updateOrderStatus(order: Order, statusOrderItem: StatusOrderItem): Flow<Boolean> {
+    suspend fun updateOrderStatus(order: Order, statusOrderItem: StatusOrderItem) {
         try {
+            val token = datastore.getAuthToken().first()
+            val response = orderApiService.cancelOrder(token, UpdateOrder(
+                id = order.id,
+                status = statusOrderItem
+            ))
+
+            if(response.data == null) throw Exception(response.message)
+
             roomDatabase.orderDao().updateOrder(order.copy(status = statusOrderItem))
-            return flowOf(true)
         } catch (e: Exception) {
             throw e
         }
@@ -273,19 +300,24 @@ class MainRepository(
     suspend fun getAvailableOrder(): Flow<List<OrderWithDetailTransaction>> {
         try {
             // TODO: fetch data from api
+
+            val token = datastore.getAuthToken().first()
+
+            val response = orderApiService.getAvailable(token)
+            if(response.data == null) throw Exception(response.message)
+
+            return flowOf(response.data.map { it.toOrderWithDetailTransaction() })
         } catch (e: Exception) {
             throw e
         }
-        return flowOf(roomDatabase.orderDao().getAvailableOrderWithTransactions())
     }
 
-    // TODO: UPDATE ALL REPOSITORY METHOD WHEN API IS READY
     suspend fun getOrderDetail(orderId: String): Flow<OrderWithDetailTransaction> {
         try {
             //fetch api
             val token = datastore.getAuthToken().first()
             val response = orderApiService.getById(token, orderId)
-            if(response.data == null) throw Exception(response.message)
+            if (response.data == null) throw Exception(response.message)
 
             return flowOf(response.data.toOrderWithDetailTransaction())
             //delete all local data

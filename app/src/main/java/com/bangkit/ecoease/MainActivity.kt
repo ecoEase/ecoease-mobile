@@ -1,9 +1,13 @@
 package com.bangkit.ecoease
 
+import android.app.PendingIntent
 import android.content.Intent
 import android.content.Intent.ACTION_GET_CONTENT
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.telephony.SmsManager
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,6 +19,7 @@ import androidx.compose.material.icons.filled.CameraEnhance
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -28,7 +33,6 @@ import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.data.model.ImageCaptured
 import com.bangkit.ecoease.data.viewmodel.*
 import com.bangkit.ecoease.di.Injection
-import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.*
 import com.bangkit.ecoease.ui.screen.*
 import com.bangkit.ecoease.ui.screen.auth.AuthScreen
@@ -39,8 +43,11 @@ import com.bangkit.ecoease.ui.screen.order.DetailOrderScreen
 import com.bangkit.ecoease.ui.screen.order.OrderHistoryScreen
 import com.bangkit.ecoease.ui.screen.order.OrderScreen
 import com.bangkit.ecoease.ui.screen.order.OrderSuccessScreen
+import com.bangkit.ecoease.ui.screen.register.RegisterScreen
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.google.firebase.FirebaseApp
+import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.launch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -61,9 +68,9 @@ class MainActivity : ComponentActivity() {
     private lateinit var cameraViewModel: CameraViewModel
     private lateinit var registerViewModel: RegisterViewModel
 
-    // TODO: move all business logic in viewmodel
-    override fun onCreate(savedInstanceState: Bundle?) {
 
+
+    override fun onCreate(savedInstanceState: Bundle?) {
         val splashViewModel = ViewModelFactory(Injection.provideInjection(this)).create(SplashViewModel::class.java)
         super.onCreate(savedInstanceState)
         cameraViewModel = ViewModelFactory(Injection.provideInjection(this)).create(CameraViewModel::class.java)
@@ -74,10 +81,16 @@ class MainActivity : ComponentActivity() {
         val addressViewModel = ViewModelFactory(Injection.provideInjection(this)).create(AddressViewModel::class.java)
         val userViewModel = ViewModelFactory(Injection.provideInjection(this)).create(UserViewModel::class.java)
         val locationViewModel = ViewModelFactory(Injection.provideInjection(this)).create(LocationViewModel::class.java)
+        val messageViewModel = ViewModelFactory(Injection.provideInjection(this)).create(MessageViewModel::class.java)
 
         installSplashScreen().setKeepOnScreenCondition{
             splashViewModel.isLoading.value
         }
+val testToken = FirebaseMessaging.getInstance().token.addOnCompleteListener {
+
+        Log.d("TOKEN", "onCreate: ${it.result } ")
+}
+
 
         setContent {
             EcoEaseTheme {
@@ -132,7 +145,7 @@ class MainActivity : ComponentActivity() {
                         floatingActionButtonPosition = FabPosition.Center,
                         isFloatingActionButtonDocked = true,
                     ) {paddingValues ->
-                        // TODO: TESTING FOR EACH SCREEN 
+                        // TODO: TESTING FOR EACH SCREEN
                         DialogBox(text = "Apakah anda yakin ingin membatalkan order anda", onDissmiss = { openDialog = false }, onAccept = { resetOrder() }, isOpen = openDialog)
                         NavHost(
                             navController = navController,
@@ -143,6 +156,14 @@ class MainActivity : ComponentActivity() {
                         ){
                             composable(Screen.Onboard.route){
                                 OnBoardingScreen(navController = navController, onFinish = { splashViewModel.finishedOnBoard() })
+                            }
+                            composable(Screen.Home.route){
+                                DashboardScreen(
+                                    navHostController = navController,
+                                    garbageStateFlow = garbageViewModel.garbageState,
+                                    onLoadGarbage = { garbageViewModel.getAllGarbage() },
+                                    onReloadGarbage = { garbageViewModel.reloadGarbage() },
+                                )
                             }
                             composable(
                                 route = Screen.Scan.route,
@@ -172,14 +193,7 @@ class MainActivity : ComponentActivity() {
                                     }
                                 )
                             }
-                            composable(Screen.Home.route){
-                                DashboardScreen(
-                                    navHostController = navController,
-                                    garbageStateFlow = garbageViewModel.garbageState,
-                                    onLoadGarbage = { garbageViewModel.getAllGarbage() },
-                                    onReloadGarbage = { garbageViewModel.reloadGarbage() },
-                                )
-                            }
+
                             composable(Screen.History.route){
                                 OrderHistoryScreen(
                                     orderHistoryState = orderViewModel.orderHistoryState,
@@ -194,7 +208,13 @@ class MainActivity : ComponentActivity() {
                                     userStateFlow = userViewModel.user,
                                     onLoadUser = { userViewModel.getUser() },
                                     onReloadUser = { userViewModel.reloadUser() },
-                                    logoutAction = { authViewModel.logout() }
+                                    logoutAction = { authViewModel.logout(onSuccess = {
+                                        navController.navigate(Screen.Auth.route){
+                                            popUpTo(Screen.Home.route){
+                                                inclusive = true
+                                            }
+                                        }
+                                    }) }
                                 )
                             }
                             composable(Screen.Map.route){
@@ -236,6 +256,7 @@ class MainActivity : ComponentActivity() {
                                     validateEmailInput = { registerViewModel.validateEmailInput() },
                                     validatePhoneNumberInput = { registerViewModel.validatePhoneNumberInput() },
                                     validatePasswordInput = { registerViewModel.validatePasswordInput() },
+                                    errorEvent = registerViewModel.eventFlow,
                                     onRegister = { photoFile, onSuccess -> registerViewModel.register(photoFile, onSuccess) },
                                     openGallery = {
                                         val intent = Intent().apply {
@@ -262,6 +283,7 @@ class MainActivity : ComponentActivity() {
                                     addGarbageOrderSlot = { orderViewModel.addGarbageSlot()},
                                     deleteGarbageSlotAt = { orderViewModel.deleteGarbageAt(it)},
                                     updateGarbageAtIndex = { index, newGarbage -> orderViewModel.updateGarbage(index, newGarbage) },
+                                    eventFlow = orderViewModel.eventFlow,
                                     onMakeOrder = { listGarbage, totalTransaction, location -> orderViewModel.makeOrder(listGarbage, totalTransaction, location, onSuccess = {
                                         navController.navigate(Screen.OrderSuccess.route){
                                             popUpTo(Screen.Order.route) {
@@ -290,6 +312,7 @@ class MainActivity : ComponentActivity() {
                                     onSaveSelectedAddress = { address, onSuccess -> addressViewModel.confirmSelectedAddress(address, onSuccess) },
                                     onReloadSavedAddress = { addressViewModel.reloadSavedAddress() },
                                     savedAddressStateFlow = addressViewModel.savedAddress,
+                                    eventFlow = addressViewModel.eventFlow,
                                     tempSelectedAddressStateFlow = addressViewModel.tempSelectedAddress,
                                 )
                             }
@@ -302,13 +325,19 @@ class MainActivity : ComponentActivity() {
                             ){
                                 val orderId = it.arguments?.getString("orderId") ?: ""
                                 DetailOrderScreen(
-                                    navHostController = navController,
                                     orderId = orderId,
+                                    userStateFlow = orderViewModel.myUserData,
                                     orderDetailStateFlow = orderViewModel.detailOrderState,
                                     onLoadDetailOrder = { id -> orderViewModel.loadDetailOrder(id) },
                                     onReloadDetailOrder = { orderViewModel.reloadDetailOrder() },
-                                    onUpdateOrderStatus = { order, status -> orderViewModel.updateOrder(order, status) },
-                                    updateOrderStatusState = MutableStateFlow(UiState.Loading),
+                                    onUpdateOrderStatus = { order, status -> orderViewModel.updateOrder(order, status, onSuccess = {
+                                        navController.navigate(Screen.History.route){
+                                            popUpTo(Screen.DetailOrder.createRoute(orderId)){
+                                                inclusive = true
+                                            }
+                                        }
+                                    }) },
+                                    eventFlow = orderViewModel.eventFlow
                                 )
                             }
                             composable(Screen.UsersChats.route){
@@ -322,7 +351,10 @@ class MainActivity : ComponentActivity() {
                                 arguments = listOf(navArgument("roomId"){type = NavType.StringType})
                             ){
                                 val roomId = it.arguments?.getString("roomId") ?: "ref"
-                                ChatRoomScreen(navHostController = navController, roomId = roomId)
+                                ChatRoomScreen(
+                                    userFlow = messageViewModel.user,
+                                    roomId = roomId,
+                                )
                             }
                         }
                     }

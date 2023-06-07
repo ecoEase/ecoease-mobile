@@ -1,4 +1,5 @@
 package com.bangkit.ecoease.data.event
 
-class MyEvent {
+sealed class MyEvent {
+    data class MessageEvent(val message: String): MyEvent()
 }

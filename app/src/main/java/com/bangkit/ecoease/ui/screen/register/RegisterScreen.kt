@@ -1,7 +1,8 @@
-package com.bangkit.ecoease.ui.screen
+package com.bangkit.ecoease.ui.screen.register
 
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -22,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.Screen
+import com.bangkit.ecoease.data.event.MyEvent
 import com.bangkit.ecoease.data.model.ImageCaptured
 import com.bangkit.ecoease.helper.InputValidation
 import com.bangkit.ecoease.helper.toFile
@@ -30,6 +32,7 @@ import com.bangkit.ecoease.ui.component.PillWidget
 import com.bangkit.ecoease.ui.component.RoundedButton
 import com.bangkit.ecoease.ui.component.TextInput
 import com.bangkit.ecoease.ui.theme.GreenPrimary
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import java.io.File
 
@@ -48,6 +51,7 @@ fun RegisterScreen(
     validatePasswordInput: () -> Unit,
     loadImageProfile: () -> Unit,
     navHostController: NavHostController,
+    errorEvent: Flow<MyEvent>,
     onRegister: (photoFile: File, onSuccess: () -> Unit) -> Unit,
     openGallery: () -> Unit,
     modifier: Modifier = Modifier
@@ -60,6 +64,13 @@ fun RegisterScreen(
             is UiState.Success -> imageUri = uiState.data.uri
             is UiState.Error -> Log.d("TAG", "RegisterScreen image profile: ${uiState.errorMessage}")
             is UiState.Loading -> loadImageProfile()
+        }
+    }
+    LaunchedEffect(Unit){
+        errorEvent.collect { event ->
+            when(event) {
+                is MyEvent.MessageEvent -> Toast.makeText( context, event.message, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

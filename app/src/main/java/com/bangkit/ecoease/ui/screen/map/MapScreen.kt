@@ -63,14 +63,13 @@ fun MapScreen(
     val permissionsState =
         rememberMultiplePermissionsState(permissions = if (Build.VERSION.SDK_INT > 28) locationPermissions28Above else locationPermissions)
     val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-    var expandBottomSheet by remember { mutableStateOf(false) }
     var userName by rememberSaveable { mutableStateOf("") }
     var id: String by rememberSaveable { mutableStateOf("") }
     var date by rememberSaveable { mutableStateOf("") }
     var detailAddress by rememberSaveable { mutableStateOf("") }
     var district by rememberSaveable { mutableStateOf("") }
     var city by rememberSaveable { mutableStateOf("") }
-    var garbageNames: MutableList<String> = remember{ mutableStateListOf() }
+    var garbageNames by remember{ mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         permissionsState.launchMultiplePermissionRequest()
@@ -95,7 +94,7 @@ fun MapScreen(
             detailAddress = it.address.detail
             district = it.address.district
             city = it.address.city
-            garbageNames = it.items.map { it.garbage.type }.toMutableList()
+            garbageNames = it.items.map { it.garbage.type }.joinToString(", ")
         }
         bottomSheetScaffoldState.bottomSheetState.isExpanded
     }
@@ -154,7 +153,7 @@ fun MapScreen(
                                 }
                             }
                         }
-                        is UiState.Error -> Text(text = uiState.errorMessage)
+                        is UiState.Error -> Log.d("TAG", "MapScreen: ${uiState.errorMessage}")
                     }
                 }
             }
@@ -170,7 +169,7 @@ private fun DetailOrder(
     detailAddress: String,
     district: String,
     city: String,
-    garbageNames: List<String>,
+    garbageNames: String,
     showCollapseButton: Boolean,
     collapseBottomSheet: () -> Unit,
     openDetailOrder: (String) -> Unit,
@@ -199,7 +198,7 @@ private fun DetailOrder(
             Spacer(modifier = Modifier.height(64.dp))
             Row(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = garbageNames.joinToString(", "),
+                    text = garbageNames,
                     style = MaterialTheme.typography.subtitle2,
                     modifier = Modifier.weight(1f),
                     overflow = TextOverflow.Ellipsis,
