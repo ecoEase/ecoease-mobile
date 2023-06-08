@@ -2,8 +2,7 @@ package com.bangkit.ecoease.data.remote.responseModel.order
 
 import com.google.gson.annotations.SerializedName
 
-
-data class Detailtransaction(
+data class DetailTransaction(
 
     @field:SerializedName("garbage_id")
     val garbageId: String,

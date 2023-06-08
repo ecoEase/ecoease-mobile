@@ -41,6 +41,9 @@ data class UserData(
 	@field:SerializedName("email")
 	val email: String,
 
+	@field:SerializedName("fcm_token")
+	val fcmToken: String?,
+
 	@field:SerializedName("updatedAt")
 	val updatedAt: String
 )
@@ -53,4 +56,5 @@ fun UserData.toUser(): User = User(
 	phoneNumber = this.phoneNumber,
 	password = this.password,
 	urlPhotoProfile = this.urlPhotoProfile,
+	fcmToken = this.fcmToken,
 )

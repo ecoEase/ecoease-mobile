@@ -6,7 +6,7 @@ import com.google.gson.annotations.SerializedName
 data class GarbagesItem(
 
     @field:SerializedName("detailtransaction")
-    val detailtransaction: Detailtransaction,
+    val detailtransaction: DetailTransaction,
 
     @field:SerializedName("createdAt")
     val createdAt: String,

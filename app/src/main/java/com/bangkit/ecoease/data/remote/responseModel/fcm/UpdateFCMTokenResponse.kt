@@ -1,23 +1,17 @@
-package com.bangkit.ecoease.data.remote.responseModel
+package com.bangkit.ecoease.data.remote.responseModel.fcm
 
 import com.google.gson.annotations.SerializedName
 
-data class RegisterResponse(
+data class UpdateFCMTokenResponse(
 
 	@field:SerializedName("data")
-	val data: RegisterData?,
+	val data: Data,
 
 	@field:SerializedName("message")
 	val message: String
 )
 
-data class RegisterData(
-
-	@field:SerializedName("firstName")
-	val firstName: String,
-
-	@field:SerializedName("lastName")
-	val lastName: String,
+data class Data(
 
 	@field:SerializedName("createdAt")
 	val createdAt: String,
@@ -28,18 +22,21 @@ data class RegisterData(
 	@field:SerializedName("url_photo_profile")
 	val urlPhotoProfile: String,
 
-	@field:SerializedName("phone_number")
-	val phoneNumber: String,
+	@field:SerializedName("fcm_token")
+	val fcmToken: String,
+
+	@field:SerializedName("last_name")
+	val lastName: String,
 
 	@field:SerializedName("id")
 	val id: String,
+
+	@field:SerializedName("first_name")
+	val firstName: String,
 
 	@field:SerializedName("email")
 	val email: String,
 
 	@field:SerializedName("updatedAt")
-	val updatedAt: String,
-
-	@field:SerializedName("fcm_token")
-	val fcmToken: String?,
+	val updatedAt: String
 )

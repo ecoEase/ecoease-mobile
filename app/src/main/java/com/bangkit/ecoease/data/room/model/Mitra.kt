@@ -28,5 +28,8 @@ data class Mitra(
     val password: String,
 
     @ColumnInfo(name = "url_photo_profile")
-    val urlPhotoProfile: String
+    val urlPhotoProfile: String,
+
+    @ColumnInfo(name = "fcm_token")
+    val fcmToken: String?,
 ): Parcelable

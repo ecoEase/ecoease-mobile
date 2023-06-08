@@ -1,13 +1,9 @@
 package com.bangkit.ecoease
 
-import android.app.PendingIntent
 import android.content.Intent
 import android.content.Intent.ACTION_GET_CONTENT
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.telephony.SmsManager
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,7 +15,6 @@ import androidx.compose.material.icons.filled.CameraEnhance
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -45,9 +40,6 @@ import com.bangkit.ecoease.ui.screen.order.OrderScreen
 import com.bangkit.ecoease.ui.screen.order.OrderSuccessScreen
 import com.bangkit.ecoease.ui.screen.register.RegisterScreen
 import com.bangkit.ecoease.ui.theme.EcoEaseTheme
-import com.google.firebase.FirebaseApp
-import com.google.firebase.messaging.FirebaseMessaging
-import kotlinx.coroutines.launch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -86,12 +78,6 @@ class MainActivity : ComponentActivity() {
         installSplashScreen().setKeepOnScreenCondition{
             splashViewModel.isLoading.value
         }
-val testToken = FirebaseMessaging.getInstance().token.addOnCompleteListener {
-
-        Log.d("TOKEN", "onCreate: ${it.result } ")
-}
-
-
         setContent {
             EcoEaseTheme {
                 val navController: NavHostController = rememberNavController()
@@ -193,7 +179,6 @@ val testToken = FirebaseMessaging.getInstance().token.addOnCompleteListener {
                                     }
                                 )
                             }
-
                             composable(Screen.History.route){
                                 OrderHistoryScreen(
                                     orderHistoryState = orderViewModel.orderHistoryState,
@@ -352,7 +337,10 @@ val testToken = FirebaseMessaging.getInstance().token.addOnCompleteListener {
                             ){
                                 val roomId = it.arguments?.getString("roomId") ?: "ref"
                                 ChatRoomScreen(
-                                    userFlow = messageViewModel.user,
+                                    getCurrentUser = {messageViewModel.getCurrentUser()},
+                                    reloadGetCurrentUser = {messageViewModel.reloadCurrentUser()},
+                                    userUiState = messageViewModel.user,
+                                    sendNotification = { body -> messageViewModel.sendNotification(body) },
                                     roomId = roomId,
                                 )
                             }

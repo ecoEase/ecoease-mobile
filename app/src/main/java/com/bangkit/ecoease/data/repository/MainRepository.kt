@@ -2,11 +2,13 @@ package com.bangkit.ecoease.data.repository
 
 import android.content.Context
 import android.util.Log
+import com.bangkit.ecoease.BuildConfig
 import com.bangkit.ecoease.config.ApiConfig
 import com.bangkit.ecoease.data.datastore.DataStorePreferences
 import com.bangkit.ecoease.data.model.GarbageAdded
 import com.bangkit.ecoease.data.model.ImageCaptured
 import com.bangkit.ecoease.data.model.request.*
+import com.bangkit.ecoease.data.remote.responseModel.UserData
 import com.bangkit.ecoease.data.remote.responseModel.toAddress
 import com.bangkit.ecoease.data.remote.responseModel.toGarbage
 import com.bangkit.ecoease.data.remote.responseModel.toUser
@@ -32,6 +34,9 @@ class MainRepository(
     private val userApiService = ApiConfig.getUserApiService()
     private val addressApiService = ApiConfig.getAddressApiService()
     private val orderApiService = ApiConfig.getOrderApiService()
+    private val fcmServerApiService = ApiConfig.getFCMServerApiService()
+    private val fcmClientApiService = ApiConfig.getFCMClientApiService()
+
 
     //CAMERA
     fun setCapturedImage(imageCapture: ImageCaptured) {
@@ -79,7 +84,7 @@ class MainRepository(
         }
     }
 
-    suspend fun loginUser(loginData: Login): Flow<String> {
+    suspend fun loginUser(loginData: Login): Flow<UserData> {
         try {
             val response = userApiService.login(loginData)
             response.data?.let {
@@ -87,7 +92,7 @@ class MainRepository(
                 roomDatabase.userDao().deleteAll()
                 roomDatabase.userDao().addUser(userData.toUser())
                 setToken(response.token)
-                return flowOf(response.message)
+                return flowOf(it)
             }
             throw Exception(response.message)
         } catch (e: Exception) {
@@ -115,6 +120,7 @@ class MainRepository(
     }
 
     fun getUser(): Flow<User> = flowOf(roomDatabase.userDao().getUser())
+
     //GARBAGE
     suspend fun getAllGarbage(): Flow<List<Garbage>> {
         try {
@@ -218,21 +224,19 @@ class MainRepository(
 
         try {
             val token = datastore.getAuthToken().first()
-            val userId = roomDatabase.userDao().getUser().id
             val response = orderApiService.getByUser(token, userId)
 
             response.data?.let {
                 orderWithDetailTransaction =
-                    it.map { orderData -> orderData.toOrderWithDetailTransaction() }
+                    it.map { orderData ->
+                        Log.d(TAG, "getAllOrderHistories: $orderData")
+                        orderData.toOrderWithDetailTransaction()
+                    }
             }
             if (response.data == null) throw Exception(response.message)
         } catch (e: Exception) {
             throw e
         }
-//        orderWithDetailTransaction = roomDatabase.orderDao().getAllOrderFromUser(userId)
-//        val gson = Gson()
-//        val json = gson.toJsonTree(orderWithDetailTransaction)
-
         return flowOf(orderWithDetailTransaction)
     }
 
@@ -284,12 +288,14 @@ class MainRepository(
     suspend fun updateOrderStatus(order: Order, statusOrderItem: StatusOrderItem) {
         try {
             val token = datastore.getAuthToken().first()
-            val response = orderApiService.cancelOrder(token, UpdateOrder(
-                id = order.id,
-                status = statusOrderItem
-            ))
+            val response = orderApiService.cancelOrder(
+                token, UpdateOrder(
+                    id = order.id,
+                    status = statusOrderItem
+                )
+            )
 
-            if(response.data == null) throw Exception(response.message)
+            if (response.data == null) throw Exception(response.message)
 
             roomDatabase.orderDao().updateOrder(order.copy(status = statusOrderItem))
         } catch (e: Exception) {
@@ -299,13 +305,9 @@ class MainRepository(
 
     suspend fun getAvailableOrder(): Flow<List<OrderWithDetailTransaction>> {
         try {
-            // TODO: fetch data from api
-
             val token = datastore.getAuthToken().first()
-
             val response = orderApiService.getAvailable(token)
-            if(response.data == null) throw Exception(response.message)
-
+            if (response.data == null) throw Exception(response.message)
             return flowOf(response.data.map { it.toOrderWithDetailTransaction() })
         } catch (e: Exception) {
             throw e
@@ -314,20 +316,15 @@ class MainRepository(
 
     suspend fun getOrderDetail(orderId: String): Flow<OrderWithDetailTransaction> {
         try {
-            //fetch api
             val token = datastore.getAuthToken().first()
             val response = orderApiService.getById(token, orderId)
             if (response.data == null) throw Exception(response.message)
 
             return flowOf(response.data.toOrderWithDetailTransaction())
-            //delete all local data
-            //insert to local
         } catch (e: Exception) {
             throw e
         }
-//        return flowOf(roomDatabase.orderDao().getDetailOrder(orderId))
     }
-
 
     //Chat
     suspend fun getChatRooms(referenceTask: Task<List<String>>): Flow<List<String>> {
@@ -342,12 +339,36 @@ class MainRepository(
                 throw Exception(it.exception?.message)
             }
         }
-
         return flowOf(response)
     }
 
+    //FCM to handle notification
+    suspend fun setFCMToken(id: String, token: String) {
+        try {
+            val tokenAuth = datastore.getAuthToken().first()
+            fcmServerApiService.updateUserToken(
+                token = tokenAuth,
+                id = id,
+                body = UpdateFCMToken(token)
+            )
+            datastore.setFCMToken(token)
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
+    suspend fun getFCMToken(): String = datastore.getFCMToken().first()
+    suspend fun sendNotification(body: FCMNotification) {
+        try {
+            val token = BuildConfig.FCM_key
+            fcmClientApiService.sendNotification(token = token, body = body)
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
     companion object {
-        val TAG = MainRepository::class.java.simpleName
+        private val TAG = MainRepository::class.java.simpleName
 
         @Volatile
         private var INSTANCE: MainRepository? = null

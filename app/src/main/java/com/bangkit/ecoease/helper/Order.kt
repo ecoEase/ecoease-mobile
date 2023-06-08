@@ -55,6 +55,7 @@ fun OrderDetailData.toOrderWithDetailTransaction(): OrderWithDetailTransaction {
         password = this.user.password,
         phoneNumber = this.user.phoneNumber,
         urlPhotoProfile = this.user.urlPhotoProfile,
+        fcmToken = this.user.fcmToken,
     )
 
     val mitra = if(this.mitra != null) Mitra(
@@ -63,7 +64,8 @@ fun OrderDetailData.toOrderWithDetailTransaction(): OrderWithDetailTransaction {
         lastName = this.mitra.firstName,
         email = this.mitra.firstName,
         password = this.mitra.password,
-        urlPhotoProfile = this.mitra.urlPhotoProfile
+        urlPhotoProfile = this.mitra.urlPhotoProfile,
+        fcmToken = this.mitra.fcmToken,
     ) else null
 
     return OrderWithDetailTransaction(

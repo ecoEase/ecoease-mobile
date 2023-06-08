@@ -1,5 +1,6 @@
 package com.bangkit.ecoease.data.firebase
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -10,6 +11,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.bangkit.ecoease.MainActivity
 import com.bangkit.ecoease.R
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 

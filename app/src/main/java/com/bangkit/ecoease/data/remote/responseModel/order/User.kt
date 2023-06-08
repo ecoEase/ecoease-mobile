@@ -30,5 +30,8 @@ data class User(
     val email: String,
 
     @field:SerializedName("updatedAt")
-    val updatedAt: String
+    val updatedAt: String,
+
+    @field:SerializedName("fcm_token")
+    val fcmToken: String,
 )

@@ -9,6 +9,7 @@ import com.bangkit.ecoease.data.repository.MainRepository
 import com.bangkit.ecoease.helper.InputValidation
 import com.bangkit.ecoease.helper.generateUUID
 import com.bangkit.ecoease.ui.common.UiState
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
@@ -59,6 +60,13 @@ class AuthViewModel(private val repository: MainRepository) : ViewModel() {
                         _isLoginValid.value = UiState.Error("error: ${error.message}")
                     }.collect{
                         _isLoginValid.value = UiState.Success(true)
+
+                        Log.d("TAG", "login: ${it.id}")
+
+                        setFCMToken(it.id)
+
+
+
                         withContext(Dispatchers.Main){
                             onSuccess()
                         }
@@ -74,12 +82,32 @@ class AuthViewModel(private val repository: MainRepository) : ViewModel() {
     fun logout(onSuccess: () -> Unit){
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                val userFlow = repository.getUser()
                 repository.logout()
+                userFlow.collect{
+                    resetFCMToken(it.id)
+                }
                 withContext(Dispatchers.Main){
                     onSuccess()
                 }
             }catch (e: Exception){
                eventChannel.send(MyEvent.MessageEvent("error: ${e.message}"))
+            }
+        }
+    }
+
+    private fun setFCMToken(id: String){
+        FirebaseMessaging.getInstance().token.addOnCompleteListener {
+            viewModelScope.launch(Dispatchers.IO) {
+                Log.d("TAG", "setFCMToken: ${it.result}")
+                repository.setFCMToken(id = id, token = it.result)
+            }
+        }
+    }
+    private fun resetFCMToken(id: String){
+        FirebaseMessaging.getInstance().deleteToken().addOnCompleteListener {
+            viewModelScope.launch(Dispatchers.IO) {
+                repository.setFCMToken(id = id, token = "")
             }
         }
     }

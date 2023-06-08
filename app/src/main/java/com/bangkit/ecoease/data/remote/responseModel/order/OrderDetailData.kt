@@ -14,7 +14,7 @@ data class OrderDetailData(
     @field:SerializedName("address")
     val address: Address,
 
-    @field:SerializedName("User")
+    @field:SerializedName("user")
     val user: User,
 
     @field:SerializedName("address_id")

@@ -1,5 +1,6 @@
 package com.bangkit.ecoease.data.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bangkit.ecoease.data.event.MyEvent
@@ -101,15 +102,17 @@ class OrderViewModel(private val repository: MainRepository) : ViewModel() {
     //HISTORY
     fun loadOrderHistory() {
         viewModelScope.launch(Dispatchers.IO) {
+            val userId = repository.getUser().first().id
+            Log.d("TAG", "loadOrderHistory: $userId")
             try {
                 _orderHistoryState.value = UiState.Loading
-                val userId = repository.getUser().first().id
                 repository.getAllOrderHistories(userId).catch { error ->
                     _orderHistoryState.value = UiState.Error("error: ${error.message}")
                 }.collect { result ->
                     _orderHistoryState.value = UiState.Success(result)
                 }
             } catch (e: Exception) {
+                Log.d("TAG", "loadOrderHistory: $e")
                 _orderHistoryState.value =
                     if (e.message.toString().contains("HTTP 404")) UiState.Success(
                         listOf()

@@ -14,7 +14,13 @@ class ApiConfig{
             .build()
 
         private val retrofit = Retrofit.Builder().apply {
-            baseUrl("https://a924-2001-448a-50a0-2cd4-a44b-6cd2-e1-40f6.ngrok-free.app/api/v1/")
+            baseUrl("https://a83e-2001-448a-50a0-2cd4-29f2-87ca-7f6d-2a2b.ngrok-free.app/api/v1/")
+            addConverterFactory(GsonConverterFactory.create())
+            client(client)
+        }.build()
+
+        private val fcmRetrofit = Retrofit.Builder().apply {
+            baseUrl("https://fcm.googleapis.com/")
             addConverterFactory(GsonConverterFactory.create())
             client(client)
         }.build()
@@ -23,5 +29,8 @@ class ApiConfig{
         fun getUserApiService(): UserApiService = retrofit.create(UserApiService::class.java)
         fun getAddressApiService(): AddressApiService = retrofit.create(AddressApiService::class.java)
         fun getOrderApiService(): OrderApiService = retrofit.create(OrderApiService::class.java)
+        fun getChatroomApiService(): ChatroomApiService = retrofit.create(ChatroomApiService::class.java)
+        fun getFCMServerApiService(): FCMServerApiService = retrofit.create(FCMServerApiService::class.java)
+        fun getFCMClientApiService(): FCMClientApiService = fcmRetrofit.create(FCMClientApiService::class.java)
     }
 }
