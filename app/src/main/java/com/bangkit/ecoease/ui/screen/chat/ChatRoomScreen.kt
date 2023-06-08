@@ -27,7 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.bangkit.ecoease.data.firebase.FireBaseRealtimeDatabase
-import com.bangkit.ecoease.data.firebase.FireBaseRealtimeDatabase.getCurrentChat
+import com.bangkit.ecoease.data.firebase.FireBaseRealtimeDatabase.getCurrentChats
 import com.bangkit.ecoease.data.model.Message
 import com.bangkit.ecoease.data.model.request.FCMNotification
 import com.bangkit.ecoease.data.model.request.Notification
@@ -56,6 +56,7 @@ fun ChatRoomScreen(
     var loading by remember { mutableStateOf(false) }
     val lazyListState = rememberLazyListState()
     var username by remember { mutableStateOf("") }
+    var fullname by remember { mutableStateOf("") }
     var token: String? by remember { mutableStateOf(null) }
     var users: MutableList<String> = remember {
         mutableStateListOf()
@@ -63,24 +64,33 @@ fun ChatRoomScreen(
 
 
     LaunchedEffect(Unit) {
-        messagesRef.getCurrentChat(roomId = roomId).addOnCompleteListener {
+        messagesRef.getCurrentChats().addOnCompleteListener {
             if (it.isSuccessful) {
                 chats.clear()
                 chats.addAll(it.result)
             }
         }
-        FirebaseMessaging.getInstance().token.addOnCompleteListener {
-            token = it.result
-        }
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { token = it.result }
     }
 
     LaunchedEffect(chats.size) {
         if (chats.size != 0) {
             lazyListState.animateScrollToItem(chats.size)
-            users = chats.map { it.token ?: "" }.toSet().toMutableStateList()
-            users.map {
-
-                Log.d("TAG", "ChatRoomScreen token user: ${it} $username")
+            //maping all chatroom user fcm token
+            val filtered = chats.filter { it.username != username }.toSet()
+            users = filtered.map { it.token ?: "" }.toMutableStateList()
+            users.map { fcmToken ->
+                sendNotification(
+                    FCMNotification(
+                        to = fcmToken,
+                        notification = Notification(
+                            body = message,
+                            title = username,
+                            subTitle = message,
+                        )
+                    )
+                )
+                Log.d("TAG", "ChatRoomScreen: $fcmToken")
             }
         }
     }
@@ -101,23 +111,11 @@ fun ChatRoomScreen(
                     Message(
                         token = token,
                         text = message,
-                        name = username,
+                        name = fullname,
+                        username = username,
                         timeStamp = Date().time
                     )
                 ) { error, _ -> if (error != null) throw Exception(error.message) }
-            users.map { fcmToken ->
-
-            }
-            sendNotification(
-                FCMNotification(
-                    to = "cLhb5UK5QKmaIHBzdKYIPe:APA91bFAFPzhPc_T9rt0qHnJA28wCx8yyZPzCExws54blUrZ0071dbl-n8fu13Byd6VNa-VVASTKeYLv7g7nyjk4kWw0UPU9UpqT_tSFlD1q6NGdZJHB90omjwMZAWyxalTfIxfNNORa",
-                    notification = Notification(
-                        body = message,
-                        title = username,
-                        subTitle = message,
-                    )
-                )
-            )
         } catch (e: Exception) {
             Toast.makeText(
                 context,
@@ -129,8 +127,9 @@ fun ChatRoomScreen(
         }
     }
 
-    fun setUsername(user: User){
-        username = "${user.firstName} ${user.lastName}"
+    fun setUsername(user: User) {
+        fullname = "${user.firstName} ${user.lastName}"
+        username = "${user.email}"
     }
 
     val animatedIconBgColor by animateColorAsState(

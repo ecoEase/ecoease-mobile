@@ -32,10 +32,14 @@ object FireBaseRealtimeDatabase{
         }
         return taskCompletionSource.task
     }
-    fun DatabaseReference.getCurrentChat(roomId: String, onFinish: () -> Unit = {}): Task<MutableList<Message>>{
+
+    fun createNewRoom(roomId: String){
+        db.reference.push().setValue(roomId)
+    }
+
+    fun DatabaseReference.getCurrentChats(): Task<MutableList<Message>>{
         val taskCompletionSource = TaskCompletionSource<MutableList<Message>>()
         this.get().addOnCompleteListener{task ->
-            onFinish()
             if(task.isSuccessful){
                 val result = task.result
                 result?.let {

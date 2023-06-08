@@ -328,7 +328,9 @@ class MainActivity : ComponentActivity() {
                             composable(Screen.UsersChats.route){
                                 UsersChatsScreen(
                                     navHostController = navController,
-                                    onLoadChatRooms = {}
+                                    onLoadChatRooms = {},
+                                    eventFlow = messageViewModel.eventFlow,
+                                    onCreateNewChatroom = { messageViewModel.createChatroom() }
                                 )
                             }
                             composable(

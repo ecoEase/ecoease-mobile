@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bangkit.ecoease.data.event.MyEvent
+import com.bangkit.ecoease.data.firebase.FireBaseRealtimeDatabase
 import com.bangkit.ecoease.data.model.request.FCMNotification
 import com.bangkit.ecoease.data.repository.MainRepository
 import com.bangkit.ecoease.data.room.model.User
@@ -31,7 +32,7 @@ class MessageViewModel(private val repository: MainRepository) : ViewModel() {
                 repository.getUser().catch {
                     _user.value = UiState.Error("error: ${it.message}")
                     eventChannel.send(MyEvent.MessageEvent("error: ${it.message}"))
-                }.collect{
+                }.collect {
                     _user.value = UiState.Success(it)
                 }
             } catch (e: Exception) {
@@ -41,13 +42,30 @@ class MessageViewModel(private val repository: MainRepository) : ViewModel() {
         }
     }
 
-    fun reloadCurrentUser(){ _user.value = UiState.Loading }
+    fun reloadCurrentUser() {
+        _user.value = UiState.Loading
+    }
 
-    private fun subscribeToChatroom(){
+    private fun subscribeToChatroom() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
 //                _user = repository.getUser()
                 //get chatrooms
+            } catch (e: Exception) {
+                eventChannel.send(MyEvent.MessageEvent("error: ${e.message}"))
+            }
+        }
+    }
+
+    fun createChatroom() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                repository.createChatroom().catch {
+                    eventChannel.send(MyEvent.MessageEvent("error: ${it.message}"))
+                }.collect {
+                    eventChannel.send(MyEvent.MessageEvent("success creating room ${it.data?.id}"))
+                    FireBaseRealtimeDatabase.createNewRoom(it.data!!.id )
+                }
             } catch (e: Exception) {
                 eventChannel.send(MyEvent.MessageEvent("error: ${e.message}"))
             }

@@ -9,7 +9,8 @@ import com.bangkit.ecoease.data.model.GarbageAdded
 import com.bangkit.ecoease.data.model.ImageCaptured
 import com.bangkit.ecoease.data.model.request.*
 import com.bangkit.ecoease.data.remote.responseModel.UserData
-import com.bangkit.ecoease.data.remote.responseModel.toAddress
+import com.bangkit.ecoease.data.remote.responseModel.address.toAddress
+import com.bangkit.ecoease.data.remote.responseModel.chatroom.AddChatroomResponse
 import com.bangkit.ecoease.data.remote.responseModel.toGarbage
 import com.bangkit.ecoease.data.remote.responseModel.toUser
 import com.bangkit.ecoease.data.room.database.MainDatabase
@@ -34,6 +35,7 @@ class MainRepository(
     private val userApiService = ApiConfig.getUserApiService()
     private val addressApiService = ApiConfig.getAddressApiService()
     private val orderApiService = ApiConfig.getOrderApiService()
+    private val chatRoomApiService = ApiConfig.getChatroomApiService()
     private val fcmServerApiService = ApiConfig.getFCMServerApiService()
     private val fcmClientApiService = ApiConfig.getFCMClientApiService()
 
@@ -146,7 +148,7 @@ class MainRepository(
         try {
             val token = datastore.getAuthToken().first()
             val userId = roomDatabase.userDao().getUser().id
-            val response = addressApiService.getSavedAddress(token = token, userId = userId)
+            val response = addressApiService.getAll(token = token, userId = userId)
             roomDatabase.addressDao().deleteAllAddress()
 
             if (response.data == null) throw Exception("data address is null")
@@ -195,13 +197,22 @@ class MainRepository(
     }
 
     suspend fun getSelectedAddress(): Flow<Address?> {
-        var response: Flow<Address?>
         try {
-            response = flowOf(roomDatabase.addressDao().getSelectedAddress())
+            val token = datastore.getAuthToken().first()
+            val userId = roomDatabase.userDao().getUser().id
+            val response = addressApiService.getAll(token = token, userId = userId)
+
+            if(response.data == null) throw Exception(response.message)
+
+            roomDatabase.addressDao().deleteAllAddress()
+            response.data.forEach { address ->
+                roomDatabase.addressDao().addAddress(address.toAddress() )
+            }
+            return flowOf(roomDatabase.addressDao().getSelectedAddress())
         } catch (e: Exception) {
+            if(roomDatabase.addressDao().getSelectedAddress() != null) return flowOf(roomDatabase.addressDao().getSelectedAddress())
             throw e
         }
-        return response
     }
 
     suspend fun saveSelectedAddress(address: Address) {
@@ -319,7 +330,6 @@ class MainRepository(
             val token = datastore.getAuthToken().first()
             val response = orderApiService.getById(token, orderId)
             if (response.data == null) throw Exception(response.message)
-
             return flowOf(response.data.toOrderWithDetailTransaction())
         } catch (e: Exception) {
             throw e
@@ -327,6 +337,21 @@ class MainRepository(
     }
 
     //Chat
+    // TODO: change the functionality so it can create chatroom based userid and mitraid
+    suspend fun createChatroom(body: Chatroom? = null): Flow<AddChatroomResponse>{
+        try {
+            val tokenAuth = datastore.getAuthToken().first()
+            val userId = roomDatabase.userDao().getUser().id
+            val response = chatRoomApiService.addChatroom(token = tokenAuth, body = Chatroom(
+                user_id = userId,
+                mitra_id = "815d6dbe-03d5-4642-b9bb-5e9defc7ff24"
+            ))
+            if(response.data == null) throw Exception(response.message)
+            return flowOf(response)
+        }catch (e: Exception){
+            throw e
+        }
+    }
     suspend fun getChatRooms(referenceTask: Task<List<String>>): Flow<List<String>> {
 //        val reference = FireBaseRealtimeDatabase.getAllRoomsKey()
         var response: List<String> = listOf()
@@ -343,14 +368,16 @@ class MainRepository(
     }
 
     //FCM to handle notification
-    suspend fun setFCMToken(id: String, token: String) {
+    suspend fun setFCMToken(id: String? = null, token: String) {
         try {
             val tokenAuth = datastore.getAuthToken().first()
-            fcmServerApiService.updateUserToken(
-                token = tokenAuth,
-                id = id,
-                body = UpdateFCMToken(token)
-            )
+            id?.let {
+                fcmServerApiService.updateUserToken(
+                    token = tokenAuth,
+                    id = it,
+                    body = UpdateFCMToken(token)
+                )
+            }
             datastore.setFCMToken(token)
         } catch (e: Exception) {
             throw e

@@ -2,13 +2,14 @@ package com.bangkit.ecoease.data.remote.interfaces
 
 import com.bangkit.ecoease.data.model.request.Address
 import com.bangkit.ecoease.data.remote.responseModel.AddAddressResponse
-import com.bangkit.ecoease.data.remote.responseModel.AddressResponse
+import com.bangkit.ecoease.data.remote.responseModel.address.AddressResponse
 import com.bangkit.ecoease.data.remote.responseModel.DeleteAddressResponse
+import com.bangkit.ecoease.data.remote.responseModel.address.SelectedAddressResponse
 import retrofit2.http.*
 
 interface AddressApiService {
     @GET("address")
-    suspend fun getSavedAddress(@Header("Authorization") token: String, @Query("userId") userId: String): AddressResponse
+    suspend fun getAll(@Header("Authorization") token: String, @Query("userId") userId: String): AddressResponse
 
     @POST("address")
     suspend fun addNewAddress(@Header("Authorization") token: String, @Body address: Address): AddAddressResponse
@@ -18,4 +19,6 @@ interface AddressApiService {
     @DELETE("address/delete/{id}")
     suspend fun deleteAddress(@Header("Authorization") token: String, @Path("id") id: String): DeleteAddressResponse
 
+    @GET("address/selected/{id}")
+    suspend fun getSelectedFromUser(@Header("Authorization") token: String, @Path("id") id: String): SelectedAddressResponse
 }

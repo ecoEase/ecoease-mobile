@@ -34,12 +34,10 @@ class RegisterViewModel(private val repository: MainRepository) : ViewModel() {
     val emailValidation: InputValidation = InputValidation("",false, "")
     val passwordValidation: InputValidation = InputValidation("",false, "")
 
-    private val _uiStateProfileImage: MutableStateFlow<UiState<ImageCaptured>> = MutableStateFlow(
-        UiState.Loading)
+    private val _uiStateProfileImage: MutableStateFlow<UiState<ImageCaptured>> = MutableStateFlow(UiState.Loading)
     val uiStateProfileImage: StateFlow<UiState<ImageCaptured>> = _uiStateProfileImage
 
     fun setProfileImage(imageCaptured: ImageCaptured){
-        Log.d("TAG", "setImage: $imageCaptured")
         _uiStateProfileImage.value = UiState.Loading
         repository.setCapturedImage(imageCaptured)
     }
@@ -106,9 +104,19 @@ class RegisterViewModel(private val repository: MainRepository) : ViewModel() {
             }
         )
     }
+
+    private fun resetAllInput(){
+        firstnameValidation.updateInputValue("")
+        lastnameValidation.updateInputValue("")
+        phoneNumberValidation.updateInputValue("")
+        emailValidation.updateInputValue("")
+        passwordValidation.updateInputValue("")
+        _uiStateProfileImage.value = UiState.Loading
+    }
     fun register(photoProfileFile: File, onSuccess: () -> Unit){
         run{
             validateFirstnameInput()
+            validateLastnameInput()
             validatePhoneNumberInput()
             validateEmailInput()
             validatePasswordInput()
@@ -135,10 +143,8 @@ class RegisterViewModel(private val repository: MainRepository) : ViewModel() {
                     repository.registerUser(registerData).catch { error ->
                         eventChannel.send(MyEvent.MessageEvent("error: ${error.message}"))
                     }.collect{result ->
-                        Log.d("TAG", "register: $result")
-                        withContext(Dispatchers.Main){
-                            onSuccess()
-                        }
+                        resetAllInput()
+                        withContext(Dispatchers.Main){ onSuccess() }
                     }
                 }catch (e: Exception){
                     eventChannel.send(MyEvent.MessageEvent("error: ${e.message}"))
