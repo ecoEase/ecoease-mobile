@@ -2,18 +2,25 @@ package com.bangkit.ecoease.data.firebase
 
 import android.util.Log
 import com.bangkit.ecoease.BuildConfig
+import com.bangkit.ecoease.data.model.Chatroom
 import com.bangkit.ecoease.data.model.Message
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.TaskCompletionSource
 import com.google.firebase.database.*
+import com.google.firebase.database.ktx.getValue
 
 object FireBaseRealtimeDatabase{
     private val db: FirebaseDatabase = FirebaseDatabase.getInstance (BuildConfig.firebase_realtime_db_url)
     private val listRooms = mutableListOf<String>()
     fun createMessageRef(ref: String): DatabaseReference = db.reference.child(ref)
-    fun getAllRoomsKey(): Task<List<String>>{
+    fun createRoomRef(): DatabaseReference = db.reference
+
+    fun createNewRoom(roomId: String){
+        db.reference.push().setValue(roomId)
+    }
+    fun DatabaseReference.getAllRoomsKey(): Task<List<String>>{
         val taskCompletionSource = TaskCompletionSource<List<String>>()
-        db.reference.get().addOnCompleteListener{ task ->
+        this.get().addOnCompleteListener{ task ->
             if(task.isSuccessful){
                 val result = task.result
                 result?.let {
@@ -33,9 +40,6 @@ object FireBaseRealtimeDatabase{
         return taskCompletionSource.task
     }
 
-    fun createNewRoom(roomId: String){
-        db.reference.push().setValue(roomId)
-    }
 
     fun DatabaseReference.getCurrentChats(): Task<MutableList<Message>>{
         val taskCompletionSource = TaskCompletionSource<MutableList<Message>>()
@@ -58,7 +62,7 @@ object FireBaseRealtimeDatabase{
         return taskCompletionSource.task
     }
 
-    fun childEventListener(onChildAdded: (Message) -> Unit) = object : ChildEventListener {
+    fun chatChildEventListener(onChildAdded: (Message) -> Unit) = object : ChildEventListener {
         override fun onChildAdded(dataSnapshot: DataSnapshot, previousChildName: String?) {
             // Handle new child node added
             val childData = dataSnapshot.getValue(Message::class.java)
@@ -70,6 +74,25 @@ object FireBaseRealtimeDatabase{
         override fun onChildRemoved(snapshot: DataSnapshot) {}
         override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
         override fun onCancelled(error: DatabaseError) {}
+    }
+    fun roomChildEventListener(onChildAdded: (Chatroom) -> Unit, onChildRemoved: (Chatroom) -> Unit) = object : ChildEventListener{
+        override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+            val childData = Chatroom(key = snapshot.key, value = snapshot.value.toString())
+            childData?.let {
+                onChildAdded(it)
+            }
+        }
+
+        override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {}
+        override fun onChildRemoved(snapshot: DataSnapshot) {
+            val childData = Chatroom(key = snapshot.key, value = snapshot.value.toString())
+            childData?.let {
+                onChildRemoved(it)
+            }
+        }
+        override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
+        override fun onCancelled(error: DatabaseError) {}
+
     }
     fun listenRoomKeys(): Task<List<String?>>{
         val taskCompletionSource = TaskCompletionSource<List<String?>>()

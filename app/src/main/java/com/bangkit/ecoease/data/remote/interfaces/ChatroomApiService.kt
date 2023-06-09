@@ -1,13 +1,9 @@
 package com.bangkit.ecoease.data.remote.interfaces
 
 import com.bangkit.ecoease.data.model.request.Chatroom
-import com.bangkit.ecoease.data.model.request.Login
-import com.bangkit.ecoease.data.remote.responseModel.RegisterResponse
-import com.bangkit.ecoease.data.remote.responseModel.UserLoginResponse
 import com.bangkit.ecoease.data.remote.responseModel.chatroom.AddChatroomResponse
 import com.bangkit.ecoease.data.remote.responseModel.chatroom.ChatroomResponse
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
+import com.bangkit.ecoease.data.remote.responseModel.chatroom.DeleteChatroomResponse
 import retrofit2.http.*
 
 interface ChatroomApiService{
@@ -16,5 +12,9 @@ interface ChatroomApiService{
 
     @POST("chatrooms")
     suspend fun addChatroom(@Header("Authorization") token: String, @Body body: Chatroom): AddChatroomResponse
+
+
+    @POST("chatrooms/delete/{id}")
+    suspend fun deleteChatroom(@Header("Authorization") token: String, @Path("id") id: String): DeleteChatroomResponse
 
 }

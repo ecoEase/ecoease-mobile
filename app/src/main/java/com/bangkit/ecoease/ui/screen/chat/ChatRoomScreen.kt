@@ -37,9 +37,11 @@ import com.bangkit.ecoease.ui.component.ChatBubble
 import com.bangkit.ecoease.ui.component.ErrorHandler
 import com.bangkit.ecoease.ui.component.TextInput
 import com.google.firebase.messaging.FirebaseMessaging
+import com.google.gson.GsonBuilder
 import kotlinx.coroutines.flow.StateFlow
 import java.util.*
 
+private val gsonPretty = GsonBuilder().setPrettyPrinting().create()
 @Composable
 fun ChatRoomScreen(
     roomId: String,
@@ -58,10 +60,7 @@ fun ChatRoomScreen(
     var username by remember { mutableStateOf("") }
     var fullname by remember { mutableStateOf("") }
     var token: String? by remember { mutableStateOf(null) }
-    var users: MutableList<String> = remember {
-        mutableStateListOf()
-    }
-
+    var otherUsers = remember{ mutableStateListOf<String>() }
 
     LaunchedEffect(Unit) {
         messagesRef.getCurrentChats().addOnCompleteListener {
@@ -77,26 +76,15 @@ fun ChatRoomScreen(
         if (chats.size != 0) {
             lazyListState.animateScrollToItem(chats.size)
             //maping all chatroom user fcm token
-            val filtered = chats.filter { it.username != username }.toSet()
-            users = filtered.map { it.token ?: "" }.toMutableStateList()
-            users.map { fcmToken ->
-                sendNotification(
-                    FCMNotification(
-                        to = fcmToken,
-                        notification = Notification(
-                            body = message,
-                            title = username,
-                            subTitle = message,
-                        )
-                    )
-                )
-                Log.d("TAG", "ChatRoomScreen: $fcmToken")
-            }
+            val filtered = chats.filter { it.token != token }.toSet()
+            val setOfFilteredToken = filtered.map { it.token ?: "" }.toSet().toMutableStateList()
+            otherUsers = setOfFilteredToken
+
         }
     }
 
     DisposableEffect(Unit) {
-        val childEventListener = FireBaseRealtimeDatabase.childEventListener { chats.add(it) }
+        val childEventListener = FireBaseRealtimeDatabase.chatChildEventListener { chats.add(it) }
         messagesRef.addChildEventListener(childEventListener)
         onDispose {
             messagesRef.removeEventListener(childEventListener)
@@ -116,6 +104,18 @@ fun ChatRoomScreen(
                         timeStamp = Date().time
                     )
                 ) { error, _ -> if (error != null) throw Exception(error.message) }
+
+
+            val filtered = chats.filter { it.token != token }.toSet()
+            val setOfFilteredToken = filtered.map { it.token ?: "" }.toSet().toMutableStateList()
+            otherUsers = setOfFilteredToken
+
+            Log.d("TAG", "handleSendMessage: ${gsonPretty.toJson(otherUsers.toList())} ")
+            val notificationBody =
+                Notification(body = "message", title = username, subTitle = message)
+            otherUsers.map { fcmToken ->
+                sendNotification(FCMNotification(to = fcmToken, notification = notificationBody))
+            }
         } catch (e: Exception) {
             Toast.makeText(
                 context,
@@ -165,7 +165,7 @@ fun ChatRoomScreen(
                                     ChatBubble(
                                         message = message.text ?: "",
                                         sender = message.name ?: "",
-                                        isOwner = message.name == username,
+                                        isOwner = message.username == username,
                                         date = DateUtils.getRelativeTimeSpanString(
                                             message.timeStamp ?: 0
                                         )

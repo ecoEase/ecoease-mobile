@@ -22,6 +22,7 @@ import androidx.navigation.NavHostController
 import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.data.event.MyEvent
 import com.bangkit.ecoease.data.firebase.FireBaseRealtimeDatabase
+import com.bangkit.ecoease.data.firebase.FireBaseRealtimeDatabase.getAllRoomsKey
 import com.bangkit.ecoease.helper.generateUUID
 import com.bangkit.ecoease.ui.component.Avatar
 import kotlinx.coroutines.delay
@@ -38,16 +39,16 @@ fun UsersChatsScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    var loading by remember {mutableStateOf(false)}
-    var rooms: List<String?> by remember {mutableStateOf(listOf())}
+    var loading by remember { mutableStateOf(false) }
+    var rooms: MutableList<String?> = remember { mutableStateListOf() }
+    val chatroomRef = FireBaseRealtimeDatabase.createRoomRef()
     LaunchedEffect(Unit) {
         loading = true
-        val reference = FireBaseRealtimeDatabase.getAllRoomsKey()
-        reference.addOnCompleteListener {
+        chatroomRef.getAllRoomsKey().addOnCompleteListener {
             loading = false
             if (it.isSuccessful) {
-                Log.d("UsersChat", "UsersChatsScreen: ${it.result}")
-                rooms = it.result
+                rooms.clear()
+                rooms.addAll(it.result.toMutableList())
             }
         }
         eventFlow.collect { event ->
@@ -58,6 +59,22 @@ fun UsersChatsScreen(
                     Toast.LENGTH_SHORT
                 ).show()
             }
+        }
+    }
+
+    DisposableEffect(Unit) {
+        val childEventListener =
+            FireBaseRealtimeDatabase.roomChildEventListener(
+                onChildAdded = { newRoom ->
+                    rooms.add(newRoom.key)
+                },
+                onChildRemoved = { deletedRom ->
+                    rooms.remove(deletedRom.key)
+                },
+            )
+        chatroomRef.addChildEventListener(childEventListener)
+        onDispose {
+            chatroomRef.removeEventListener(childEventListener)
         }
     }
 

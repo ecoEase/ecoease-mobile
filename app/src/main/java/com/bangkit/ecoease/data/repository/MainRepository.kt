@@ -11,6 +11,8 @@ import com.bangkit.ecoease.data.model.request.*
 import com.bangkit.ecoease.data.remote.responseModel.UserData
 import com.bangkit.ecoease.data.remote.responseModel.address.toAddress
 import com.bangkit.ecoease.data.remote.responseModel.chatroom.AddChatroomResponse
+import com.bangkit.ecoease.data.remote.responseModel.chatroom.ChatRoomItem
+import com.bangkit.ecoease.data.remote.responseModel.chatroom.DeleteChatroomResponse
 import com.bangkit.ecoease.data.remote.responseModel.toGarbage
 import com.bangkit.ecoease.data.remote.responseModel.toUser
 import com.bangkit.ecoease.data.room.database.MainDatabase
@@ -352,19 +354,28 @@ class MainRepository(
             throw e
         }
     }
-    suspend fun getChatRooms(referenceTask: Task<List<String>>): Flow<List<String>> {
-//        val reference = FireBaseRealtimeDatabase.getAllRoomsKey()
-        var response: List<String> = listOf()
-        referenceTask.addOnCompleteListener {
-            if (it.isSuccessful) {
-                Log.d("UsersChat", "UsersChatsScreen: ${it.result}")
-                response = it.result
-            }
-            if (it.isCanceled) {
-                throw Exception(it.exception?.message)
-            }
+
+    suspend fun deleteChatroom(roomId: String): Flow<DeleteChatroomResponse>{
+        try {
+            val tokenAuth = datastore.getAuthToken().first()
+            val response = chatRoomApiService.deleteChatroom(token = tokenAuth, id = roomId)
+            if(response.data == null) throw Exception(response.message)
+            return flowOf(response)
+        }catch (e: Exception){
+            throw e
         }
-        return flowOf(response)
+    }
+
+    suspend fun getChatRooms(): Flow<List<ChatRoomItem>> {
+        try {
+            val tokenAuth = datastore.getAuthToken().first()
+            val userId = roomDatabase.userDao().getUser().id
+            val response = chatRoomApiService.getChatrooms(token = tokenAuth, userId = userId)
+            if(response.data == null) throw Exception(response.message)
+            return flowOf(response.data)
+        }catch (e: Exception){
+            throw e
+        }
     }
 
     //FCM to handle notification
