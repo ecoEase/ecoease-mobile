@@ -13,8 +13,7 @@ interface ChatroomApiService{
     @POST("chatrooms")
     suspend fun addChatroom(@Header("Authorization") token: String, @Body body: Chatroom): AddChatroomResponse
 
-
-    @POST("chatrooms/delete/{id}")
+    @DELETE("chatrooms/delete/{id}")
     suspend fun deleteChatroom(@Header("Authorization") token: String, @Path("id") id: String): DeleteChatroomResponse
 
 }

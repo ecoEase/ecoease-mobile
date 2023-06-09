@@ -5,6 +5,7 @@ import android.util.Log
 import com.bangkit.ecoease.BuildConfig
 import com.bangkit.ecoease.config.ApiConfig
 import com.bangkit.ecoease.data.datastore.DataStorePreferences
+import com.bangkit.ecoease.data.firebase.FireBaseRealtimeDatabase
 import com.bangkit.ecoease.data.model.GarbageAdded
 import com.bangkit.ecoease.data.model.ImageCaptured
 import com.bangkit.ecoease.data.model.request.*
@@ -349,18 +350,20 @@ class MainRepository(
                 mitra_id = "815d6dbe-03d5-4642-b9bb-5e9defc7ff24"
             ))
             if(response.data == null) throw Exception(response.message)
+            FireBaseRealtimeDatabase.createNewChatroom(response.data!!.id )
             return flowOf(response)
         }catch (e: Exception){
             throw e
         }
     }
 
-    suspend fun deleteChatroom(roomId: String): Flow<DeleteChatroomResponse>{
+    suspend fun deleteChatroom(roomKey: String, roomId: String): Flow<Boolean>{
         try {
             val tokenAuth = datastore.getAuthToken().first()
             val response = chatRoomApiService.deleteChatroom(token = tokenAuth, id = roomId)
             if(response.data == null) throw Exception(response.message)
-            return flowOf(response)
+            FireBaseRealtimeDatabase.deleteChatroom(roomKey)
+            return flowOf(true)
         }catch (e: Exception){
             throw e
         }

@@ -1,6 +1,5 @@
 package com.bangkit.ecoease.ui.screen.chat
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
@@ -10,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -23,6 +23,7 @@ import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.data.event.MyEvent
 import com.bangkit.ecoease.data.firebase.FireBaseRealtimeDatabase
 import com.bangkit.ecoease.data.firebase.FireBaseRealtimeDatabase.getAllRoomsKey
+import com.bangkit.ecoease.data.model.Chatroom
 import com.bangkit.ecoease.helper.generateUUID
 import com.bangkit.ecoease.ui.component.Avatar
 import kotlinx.coroutines.delay
@@ -35,12 +36,13 @@ fun UsersChatsScreen(
     navHostController: NavHostController,
     onCreateNewChatroom: () -> Unit,
     onLoadChatRooms: () -> Unit,
+    onDeleteRoom: (id: String, key: String) -> Unit,
     eventFlow: Flow<MyEvent>,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     var loading by remember { mutableStateOf(false) }
-    var rooms: MutableList<String?> = remember { mutableStateListOf() }
+    var rooms: MutableList<Chatroom> = remember { mutableStateListOf() }
     val chatroomRef = FireBaseRealtimeDatabase.createRoomRef()
     LaunchedEffect(Unit) {
         loading = true
@@ -66,10 +68,10 @@ fun UsersChatsScreen(
         val childEventListener =
             FireBaseRealtimeDatabase.roomChildEventListener(
                 onChildAdded = { newRoom ->
-                    rooms.add(newRoom.key)
+                    rooms.add(newRoom)
                 },
                 onChildRemoved = { deletedRom ->
-                    rooms.remove(deletedRom.key)
+                    rooms.remove(deletedRom)
                 },
             )
         chatroomRef.addChildEventListener(childEventListener)
@@ -107,22 +109,33 @@ fun UsersChatsScreen(
                     .fillMaxWidth()
             ) {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(rooms.toList(), key = { it ?: generateUUID() }) { roomId ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    roomId?.let { id ->
-                                        Screen.ChatRoom.setTitle(id)
-                                        val roomChatRoute = Screen.ChatRoom.createRoute(id)
-                                        navHostController.navigate(roomChatRoute)
-                                    }
-                                },
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        )
-                        {
-                            Avatar(imageUrl = "https://images.unsplash.com/photo-1596815064285-45ed8a9c0463?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=366&q=80")
-                            Text(text = roomId ?: "")
+                    items(rooms.toList(), key = { it.key ?: generateUUID() }) { room ->
+                        Column {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        room?.let {
+                                            Screen.ChatRoom.setTitle(it.key)
+                                            val roomChatRoute = Screen.ChatRoom.createRoute(it.value ?: "")
+                                            navHostController.navigate(roomChatRoute)
+                                        }
+                                    },
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            )
+                            {
+                                Avatar(imageUrl = "https://images.unsplash.com/photo-1596815064285-45ed8a9c0463?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=366&q=80")
+                                Text(text = room.value ?: "")
+
+                            }
+                            IconButton(onClick = {
+                                onDeleteRoom(room.key, room.value ?: "")
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "delete"
+                                )
+                            }
                         }
                     }
                 }

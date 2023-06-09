@@ -61,7 +61,6 @@ class MessageViewModel(private val repository: MainRepository) : ViewModel() {
                     eventChannel.send(MyEvent.MessageEvent("error: ${it.message}"))
                 }.collect {
                     eventChannel.send(MyEvent.MessageEvent("success creating room ${it.data?.id}"))
-                    FireBaseRealtimeDatabase.createNewRoom(it.data!!.id )
                 }
             } catch (e: Exception) {
                 eventChannel.send(MyEvent.MessageEvent("error: ${e.message}"))
@@ -69,10 +68,10 @@ class MessageViewModel(private val repository: MainRepository) : ViewModel() {
         }
     }
 
-    fun deleteChatroom(roomId: String, onSuccess: () -> Unit){
+    fun deleteChatroom(roomKey: String, roomId: String, onSuccess: () -> Unit){
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                repository.deleteChatroom(roomId).catch {error ->
+                repository.deleteChatroom(roomKey, roomId).catch {error ->
                     eventChannel.send(MyEvent.MessageEvent("error: ${error.message}"))
                 }.collect{
                     eventChannel.send(MyEvent.MessageEvent("success delete chat room"))

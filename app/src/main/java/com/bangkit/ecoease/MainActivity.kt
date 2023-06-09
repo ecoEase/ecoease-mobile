@@ -330,6 +330,9 @@ class MainActivity : ComponentActivity() {
                                     navHostController = navController,
                                     onLoadChatRooms = {},
                                     eventFlow = messageViewModel.eventFlow,
+                                    onDeleteRoom = { roomKey, roomId -> messageViewModel.deleteChatroom(roomKey, roomId, onSuccess = {
+
+                                    }) },
                                     onCreateNewChatroom = { messageViewModel.createChatroom() }
                                 )
                             }

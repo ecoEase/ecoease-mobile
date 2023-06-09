@@ -7,7 +7,6 @@ import com.bangkit.ecoease.data.model.Message
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.TaskCompletionSource
 import com.google.firebase.database.*
-import com.google.firebase.database.ktx.getValue
 
 object FireBaseRealtimeDatabase{
     private val db: FirebaseDatabase = FirebaseDatabase.getInstance (BuildConfig.firebase_realtime_db_url)
@@ -15,23 +14,35 @@ object FireBaseRealtimeDatabase{
     fun createMessageRef(ref: String): DatabaseReference = db.reference.child(ref)
     fun createRoomRef(): DatabaseReference = db.reference
 
-    fun createNewRoom(roomId: String){
-        db.reference.push().setValue(roomId)
+    fun createNewChatroom(roomId: String){
+        try {
+            db.reference.push().setValue(roomId)
+        }catch (e: Exception){
+            Log.d("TAG", "error createNewChatroom: ${e.message}")
+        }
     }
-    fun DatabaseReference.getAllRoomsKey(): Task<List<String>>{
-        val taskCompletionSource = TaskCompletionSource<List<String>>()
+
+    fun deleteChatroom(roomId: String){
+        try {
+            db.reference.child(roomId).removeValue()
+        }catch (e: Exception){
+            Log.d("TAG", "error deleteChatroom: ${e.message}")
+        }
+    }
+
+    fun DatabaseReference.getAllRoomsKey(): Task<List<Chatroom>>{
+        val taskCompletionSource = TaskCompletionSource<List<Chatroom>>()
         this.get().addOnCompleteListener{ task ->
             if(task.isSuccessful){
                 val result = task.result
                 result?.let {
                     val final = result.children.map { snapshot ->
-                        snapshot.key ?: ""
+                        Chatroom(key = snapshot.key ?: "", value = snapshot.value.toString())
                     }
                     taskCompletionSource.setResult(final)
                 }
             }
             if(task.isCanceled){
-                Log.d("UsersChat", "getAllRooms: ${task.exception?.message}")
                 task.exception?.let {
                     taskCompletionSource.setException(it)
                 }
@@ -39,7 +50,6 @@ object FireBaseRealtimeDatabase{
         }
         return taskCompletionSource.task
     }
-
 
     fun DatabaseReference.getCurrentChats(): Task<MutableList<Message>>{
         val taskCompletionSource = TaskCompletionSource<MutableList<Message>>()
@@ -61,7 +71,6 @@ object FireBaseRealtimeDatabase{
         }
         return taskCompletionSource.task
     }
-
     fun chatChildEventListener(onChildAdded: (Message) -> Unit) = object : ChildEventListener {
         override fun onChildAdded(dataSnapshot: DataSnapshot, previousChildName: String?) {
             // Handle new child node added
@@ -77,15 +86,14 @@ object FireBaseRealtimeDatabase{
     }
     fun roomChildEventListener(onChildAdded: (Chatroom) -> Unit, onChildRemoved: (Chatroom) -> Unit) = object : ChildEventListener{
         override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-            val childData = Chatroom(key = snapshot.key, value = snapshot.value.toString())
+            val childData = Chatroom(key = snapshot.key.toString(), value = snapshot.value.toString())
             childData?.let {
                 onChildAdded(it)
             }
         }
-
         override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {}
         override fun onChildRemoved(snapshot: DataSnapshot) {
-            val childData = Chatroom(key = snapshot.key, value = snapshot.value.toString())
+            val childData = Chatroom(key = snapshot.key.toString(), value = snapshot.value.toString())
             childData?.let {
                 onChildRemoved(it)
             }
