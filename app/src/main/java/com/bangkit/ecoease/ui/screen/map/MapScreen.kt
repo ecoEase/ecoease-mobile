@@ -1,32 +1,24 @@
-package com.bangkit.ecoease.ui.screen
+package com.bangkit.ecoease.ui.screen.map
 
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Replay
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.Screen
@@ -69,13 +61,14 @@ fun MapScreen(
     var detailAddress by rememberSaveable { mutableStateOf("") }
     var district by rememberSaveable { mutableStateOf("") }
     var city by rememberSaveable { mutableStateOf("") }
-    var garbageNames by remember{ mutableStateOf("") }
+    var garbageNames by remember { mutableStateOf("") }
 
-    LaunchedEffect(Unit) {
+    fun handlerRequestPermissionAndCurrentLocation(){
         permissionsState.launchMultiplePermissionRequest()
         fusedLocationClient.getLastLocation(context,
             onSuccess = {
-                cameraPositionState.position = CameraPosition.fromLatLngZoom(LatLng(it.latitude, it.longitude), 15f)
+                cameraPositionState.position =
+                    CameraPosition.fromLatLngZoom(LatLng(it.latitude, it.longitude), 15f)
             },
             onError = {
                 Toast.makeText(context, "$it", Toast.LENGTH_SHORT).show()
@@ -83,82 +76,120 @@ fun MapScreen(
         )
     }
 
+    LaunchedEffect(Unit) {
+        handlerRequestPermissionAndCurrentLocation()
+    }
+
     val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = BottomSheetState(BottomSheetValue.Collapsed)
     )
 
-    fun poiClickHandler(data: OrderWithDetailTransaction) {
-        data.let {
-            id = it.order.id
-            userName = it.user.firstName
-            detailAddress = it.address.detail
-            district = it.address.district
-            city = it.address.city
-            garbageNames = it.items.map { it.garbage.type }.joinToString(", ")
-        }
-        bottomSheetScaffoldState.bottomSheetState.isExpanded
-    }
-    BottomSheetScaffold(
-        scaffoldState = bottomSheetScaffoldState,
-        sheetContent = {
-           DetailOrder(
-                id = id,
-                userName = userName,
-                date = date,
-                detailAddress = detailAddress,
-                district = district,
-                city = city,
-                garbageNames = garbageNames,
-                showCollapseButton = bottomSheetScaffoldState.bottomSheetState.isExpanded,
-                collapseBottomSheet = {
-                    coroutineScope.launch {
-                        bottomSheetScaffoldState.bottomSheetState.collapse()
-                    }
-                },
-                openDetailOrder = { id -> navHostController.navigate(Screen.DetailOrder.createRoute(id)) }
-            )
+    PermissionsRequired(
+        multiplePermissionsState = permissionsState,
+        permissionsNotGrantedContent = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(32.dp)) {
+                Text(text = "To run this feature, this app require those permission.", style = MaterialTheme.typography.caption.copy(
+                    color = DarkGrey
+                ))
+                RoundedButton(
+                    text = "re-request permission",
+                    trailIcon = Icons.Default.Replay,
+                    onClick = { handlerRequestPermissionAndCurrentLocation() })
+            }
         },
-        sheetPeekHeight = if(id.isEmpty()) 0.dp else 64.dp,
-        sheetShape = RoundedCornerShape(topEnd = 30.dp, topStart = 30.dp),
-    ) {
-        Box(modifier = modifier
-            .fillMaxSize()) {
-            GoogleMap(
-                properties = MapProperties(isMyLocationEnabled = true),
-                uiSettings = MapUiSettings(
-                    myLocationButtonEnabled = true,
-                    compassEnabled = true
-                ),
-                modifier = Modifier.fillMaxSize(),
-                cameraPositionState = cameraPositionState
-            ){
-                availableOrderStateFlow.collectAsState(initial = UiState.Loading).value.let { uiState ->
-                    when(uiState){
-                        is UiState.Loading -> loadAvailableOrders()
-                        is UiState.Success -> {
-                            uiState.data.forEach {
-                                it.location?.let { location ->
-                                    Marker(
-                                        state = MarkerState(position = LatLng(location.latitude, location.longitude)),
-                                        onClick = { _ ->
-                                            if(bottomSheetScaffoldState.bottomSheetState.isCollapsed){
-                                                coroutineScope.launch { bottomSheetScaffoldState.bottomSheetState.expand() }
-                                            }
-                                            poiClickHandler(it)
-                                            false
-                                        },
-                                        title = it.address.city,
-                                        snippet = "marker in singapore"
-                                    )
+        permissionsNotAvailableContent = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(text = "Required permission is not available in your device 😢")
+            }
+        }) {
+
+        fun poiClickHandler(data: OrderWithDetailTransaction) {
+            data.let {
+                id = it.order.id
+                userName = it.user.firstName
+                detailAddress = it.address.detail
+                district = it.address.district
+                city = it.address.city
+                date = it.order.created
+                garbageNames = it.items.map { it.garbage.type }.joinToString(", ")
+            }
+            bottomSheetScaffoldState.bottomSheetState.isExpanded
+        }
+        BottomSheetScaffold(
+            scaffoldState = bottomSheetScaffoldState,
+            sheetContent = {
+                DetailOrder(
+                    id = id,
+                    userName = userName,
+                    date = date,
+                    detailAddress = detailAddress,
+                    district = district,
+                    city = city,
+                    garbageNames = garbageNames,
+                    collapseBottomSheet = {
+                        coroutineScope.launch {
+                            bottomSheetScaffoldState.bottomSheetState.collapse()
+                        }
+                    },
+                    openDetailOrder = { id ->
+                        navHostController.navigate(
+                            Screen.DetailOrder.createRoute(
+                                id
+                            )
+                        )
+                    }
+                )
+            },
+            sheetPeekHeight = if (id.isEmpty()) 0.dp else 64.dp,
+            sheetShape = RoundedCornerShape(topEnd = 30.dp, topStart = 30.dp),
+        ) {
+            Box(
+                modifier = modifier
+                    .fillMaxSize()
+            ) {
+                GoogleMap(
+                    properties = MapProperties(isMyLocationEnabled = true),
+                    uiSettings = MapUiSettings(
+                        myLocationButtonEnabled = true,
+                        compassEnabled = true
+                    ),
+                    modifier = Modifier.fillMaxSize(),
+                    cameraPositionState = cameraPositionState
+                ) {
+                    availableOrderStateFlow.collectAsState(initial = UiState.Loading).value.let { uiState ->
+                        when (uiState) {
+                            is UiState.Loading -> loadAvailableOrders()
+                            is UiState.Success -> {
+                                uiState.data.forEach {
+                                    it.location?.let { location ->
+                                        Marker(
+                                            state = MarkerState(
+                                                position = LatLng(
+                                                    location.latitude,
+                                                    location.longitude
+                                                )
+                                            ),
+                                            onClick = { _ ->
+                                                if (bottomSheetScaffoldState.bottomSheetState.isCollapsed) {
+                                                    coroutineScope.launch { bottomSheetScaffoldState.bottomSheetState.expand() }
+                                                }
+                                                poiClickHandler(it)
+                                                false
+                                            },
+                                            title = "${it.address.district}, ${it.address.city}",
+                                            snippet = it.address.detail
+                                        )
+                                    }
                                 }
                             }
+                            is UiState.Error -> Log.d("TAG", "MapScreen: ${uiState.errorMessage}")
                         }
-                        is UiState.Error -> Log.d("TAG", "MapScreen: ${uiState.errorMessage}")
                     }
                 }
             }
         }
     }
+
 }
 
 @Composable
@@ -170,7 +201,6 @@ private fun DetailOrder(
     district: String,
     city: String,
     garbageNames: String,
-    showCollapseButton: Boolean,
     collapseBottomSheet: () -> Unit,
     openDetailOrder: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -179,49 +209,64 @@ private fun DetailOrder(
         modifier = modifier
             .fillMaxWidth()
             .padding(bottom = 64.dp, top = 16.dp)
-            .padding(horizontal = 32.dp)
-        ,
+            .padding(horizontal = 32.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-            Box(modifier = Modifier
+        Box(
+            modifier = Modifier
                 .fillMaxWidth()
-                .height(32.dp)) {
-                Box(modifier = Modifier
-                    .background(MaterialTheme.colors.onBackground)
+                .height(32.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(DarkGrey)
                     .width(64.dp)
                     .height(4.dp)
-                    .align(Alignment.Center))
-                if(showCollapseButton) IconButton(onClick = { collapseBottomSheet() }, modifier = Modifier.align(Alignment.CenterEnd)) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = "close icon")
-                }
-            }
-            Spacer(modifier = Modifier.height(64.dp))
-            Row(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = garbageNames,
-                    style = MaterialTheme.typography.subtitle2,
-                    modifier = Modifier.weight(1f),
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1,
-                )
-                Text(
-                    text = date, style = MaterialTheme.typography.caption.copy(
-                        DarkGrey
-                    )
-                )
-            }
-            Row {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = userName,
-                        style = MaterialTheme.typography.caption.copy(color = DarkGrey)
-                    )
-                    Text(text = detailAddress, style = MaterialTheme.typography.subtitle2)
-                    Text(text = "$district, $city.", style = MaterialTheme.typography.caption)
-                }
-                RoundedButton(text = stringResource(id = R.string.detail), modifier = Modifier.align(Alignment.Bottom), onClick = { openDetailOrder(id) })
+                    .align(Alignment.Center)
+            )
+
+        }
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text(text = "Detail Order", style = MaterialTheme.typography.body2.copy(
+                color = DarkGrey
+            ))
+            IconButton(
+                onClick = { collapseBottomSheet() }
+            ) {
+                Icon(imageVector = Icons.Default.Close, contentDescription = "close icon", tint = DarkGrey)
             }
         }
+        Spacer(modifier = Modifier.height(18.dp))
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = garbageNames,
+                style = MaterialTheme.typography.body1,
+                modifier = Modifier.weight(1f),
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+            )
+            Text(
+                text = date, style = MaterialTheme.typography.caption.copy(
+                    DarkGrey
+                )
+            )
+        }
+        Row {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = userName,
+                    style = MaterialTheme.typography.body1.copy(color = DarkGrey)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = detailAddress, style = MaterialTheme.typography.subtitle2)
+                Text(text = "$district, $city.", style = MaterialTheme.typography.caption)
+            }
+            RoundedButton(
+                text = stringResource(id = R.string.detail),
+                modifier = Modifier.align(Alignment.Bottom),
+                onClick = { openDetailOrder(id) })
+        }
+    }
 }
 
 @Preview(showBackground = true)
