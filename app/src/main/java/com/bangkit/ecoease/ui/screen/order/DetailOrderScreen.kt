@@ -2,6 +2,7 @@ package com.bangkit.ecoease.ui.screen.order
 
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -22,6 +24,7 @@ import com.bangkit.ecoease.data.room.model.*
 import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.*
 import com.bangkit.ecoease.ui.theme.DarkGrey
+import com.bangkit.ecoease.ui.theme.OrangeAccent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -45,9 +48,7 @@ fun DetailOrderScreen(
         eventFlow.collect { event ->
             when (event) {
                 is MyEvent.MessageEvent -> Toast.makeText(
-                    context,
-                    event.message,
-                    Toast.LENGTH_SHORT
+                    context, event.message, Toast.LENGTH_SHORT
                 ).show()
             }
         }
@@ -101,11 +102,19 @@ fun OrderDetailContent(
             .padding(horizontal = 32.dp)
             .padding(vertical = 32.dp)
     ) {
-        Text(
-            text = stringResource(R.string.status), style = MaterialTheme.typography.body1.copy(
-                color = DarkGrey
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(
+                text = stringResource(R.string.status), style = MaterialTheme.typography.body1.copy(
+                    color = DarkGrey
+                )
             )
-        )
+            if (order.status == StatusOrderItem.NOT_TAKEN && order.userId == myId) {
+                PillWidget(color = OrangeAccent,
+                    textColor = Color.White,
+                    text = "batalkan pesanan",
+                    modifier = Modifier.clickable { openDialog = true })
+            }
+        }
         StatusOrder(statusItemHistory = order.status)
         Text(
             text = stringResource(R.string.address_info),
@@ -113,7 +122,12 @@ fun OrderDetailContent(
                 color = DarkGrey
             )
         )
-        DetailAddressCard(name = address.name, detail = address.detail, district = address.district, city = address.city)
+        DetailAddressCard(
+            name = address.name,
+            detail = address.detail,
+            district = address.district,
+            city = address.city
+        )
         Spacer(modifier = Modifier.height(30.dp))
         Row(horizontalArrangement = Arrangement.SpaceBetween) {
             Text(
@@ -135,8 +149,7 @@ fun OrderDetailContent(
             }
         }
         LazyColumn(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(listGarbage) {
                 DetailCardGarbage(
@@ -147,21 +160,10 @@ fun OrderDetailContent(
                 )
             }
         }
-        if (order.status == StatusOrderItem.NOT_TAKEN && order.userId == myId) {
-            RoundedButton(
-                text = "batalkan pesanan",
-                type = RoundedButtonType.SECONDARY,
-                enabled = true,
-                onClick = {
-                    openDialog = true
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-            DialogBox(
-                text = "Apakah anda yakin untuk membatalkan pesanan anda?",
-                onDissmiss = { openDialog = false },
-                isOpen = openDialog,
-                onAccept = { onUpdateOrderStatus(order, StatusOrderItem.CANCELED) })
-        }
+
+        DialogBox(text = "Apakah anda yakin untuk membatalkan pesanan anda?",
+            onDissmiss = { openDialog = false },
+            isOpen = openDialog,
+            onAccept = { onUpdateOrderStatus(order, StatusOrderItem.CANCELED) })
     }
 }

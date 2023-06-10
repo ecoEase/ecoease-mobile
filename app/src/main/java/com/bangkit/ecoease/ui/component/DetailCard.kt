@@ -13,6 +13,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.ui.theme.BluePrimary
+import com.bangkit.ecoease.ui.theme.DarkGrey
 import com.bangkit.ecoease.ui.theme.LightGrey
 
 @Composable
@@ -77,7 +78,7 @@ fun CardContainer(
         modifier = modifier
             .fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, BluePrimary)
+        border = BorderStroke(1.dp, DarkGrey)
     ) {
         content()
     }

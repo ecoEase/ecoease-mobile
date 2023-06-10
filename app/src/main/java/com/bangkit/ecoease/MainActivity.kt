@@ -33,6 +33,7 @@ import com.bangkit.ecoease.ui.screen.*
 import com.bangkit.ecoease.ui.screen.auth.AuthScreen
 import com.bangkit.ecoease.ui.screen.chat.ChatRoomScreen
 import com.bangkit.ecoease.ui.screen.chat.UsersChatsScreen
+import com.bangkit.ecoease.ui.screen.map.MapScreen
 import com.bangkit.ecoease.ui.screen.onboard.OnBoardingScreen
 import com.bangkit.ecoease.ui.screen.order.DetailOrderScreen
 import com.bangkit.ecoease.ui.screen.order.OrderHistoryScreen
