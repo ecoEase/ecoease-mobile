@@ -120,18 +120,30 @@ fun OrderScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
+    fun requestPermissionHandler() {
         permissionState.launchMultiplePermissionRequest()
+    }
+
+    LaunchedEffect(Unit) {
+        requestPermissionHandler()
         eventFlow.collect { event ->
-            when(event) {
-                is MyEvent.MessageEvent -> Toast.makeText( context, event.message, Toast.LENGTH_SHORT).show()
+            when (event) {
+                is MyEvent.MessageEvent -> Toast.makeText(
+                    context,
+                    event.message,
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
 
     PermissionsRequired(
         multiplePermissionsState = permissionState,
-        permissionsNotGrantedContent = { },
+        permissionsNotGrantedContent = {
+            ErrorHandler(
+                errorText = "Location permission is not granted, please give location permission in order to use this feature",
+                onReload = { requestPermissionHandler() })
+        },
         permissionsNotAvailableContent = {
             Column { Text(text = "Maaf perangkat anda tidak dapat mengakses fitur ini") }
         }) {
@@ -149,30 +161,30 @@ fun OrderScreen(
             modifier = modifier,
             windowType = windowInfo.screenWidthInfo,
             content = {
-            OrderScreenContent(
-                navHostController = navHostController,
-                isPotrait = true,
-                lazyListState = lazyListState,
-                orderStateFlow = orderStateFlow,
-                listGarbageFlow = listGarbageFlow,
-                loadListGarbage = loadListGarbage,
-                reloadListGarbage = reloadListGarbage,
-                onAddGarbageOrderSlot = {
-                    addGarbageOrderSlot()//add new slot garbage in viewmodel
-                    addedForm += 1
-                    garbageSlot.add(generateUUID())
-                },
-                deleteGarbageSlotAt = ::deleteGarbageSlotAtHandler,
-                onLoadSelectedAddress = onLoadSelectedAddress,
-                onSuccessLoadSelectedAddress = { isAddressNull = false },
-                onReloadSelectedAddress = onReloadSelectedAddress,
-                garbageSlot = garbageSlot,
-                selectedAddressStateFlow = selectedAddressStateFlow,
-                updateGarbageAtIndex = { index, newUpdateGarbageData ->
-                    updateGarbageAtIndex(index, newUpdateGarbageData)
-                }
-            )
-        },
+                OrderScreenContent(
+                    navHostController = navHostController,
+                    isPotrait = true,
+                    lazyListState = lazyListState,
+                    orderStateFlow = orderStateFlow,
+                    listGarbageFlow = listGarbageFlow,
+                    loadListGarbage = loadListGarbage,
+                    reloadListGarbage = reloadListGarbage,
+                    onAddGarbageOrderSlot = {
+                        addGarbageOrderSlot()//add new slot garbage in viewmodel
+                        addedForm += 1
+                        garbageSlot.add(generateUUID())
+                    },
+                    deleteGarbageSlotAt = ::deleteGarbageSlotAtHandler,
+                    onLoadSelectedAddress = onLoadSelectedAddress,
+                    onSuccessLoadSelectedAddress = { isAddressNull = false },
+                    onReloadSelectedAddress = onReloadSelectedAddress,
+                    garbageSlot = garbageSlot,
+                    selectedAddressStateFlow = selectedAddressStateFlow,
+                    updateGarbageAtIndex = { index, newUpdateGarbageData ->
+                        updateGarbageAtIndex(index, newUpdateGarbageData)
+                    }
+                )
+            },
             bottomSheet = {
                 BottomSheet(
                     label = stringResource(R.string.total),
@@ -194,7 +206,8 @@ fun OrderScreen(
             onMakeOrder(
                 orderState.garbageList.map { it!! },
                 orderState.total,
-                location)
+                location
+            )
         })
     DialogBox(
         text = "Apakah anda yakin ingin membatalkan order anda",
@@ -287,7 +300,7 @@ fun OrderScreenContent(
                     Text(text = stringResource(R.string.garbage))
                     RoundedButton(
                         enabled = listGarbageFlow.collectAsState().value.let { uiState ->
-                            when(uiState){
+                            when (uiState) {
                                 is UiState.Success -> uiState.data.isNotEmpty()
                                 else -> false
                             }

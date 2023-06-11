@@ -47,7 +47,6 @@ class MainRepository(
     fun setCapturedImage(imageCapture: ImageCaptured) {
         capturedImageUri = imageCapture
     }
-
     fun getCapturedImage(): Flow<ImageCaptured> {
         Log.d(MainRepository::class.java.simpleName, "getCapturedImageUri: $capturedImageUri")
         return flowOf(capturedImageUri!!)
