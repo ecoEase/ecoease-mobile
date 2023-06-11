@@ -4,9 +4,11 @@ import android.content.Context
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
+import android.widget.Space
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -34,6 +36,7 @@ import com.bangkit.ecoease.helper.ObjectDetection
 import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.data.model.ImageCaptured
 import com.bangkit.ecoease.helper.getImageUriFromTempBitmap
+import com.bangkit.ecoease.helper.toFile
 import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.RoundedButton
 import com.bangkit.ecoease.ui.component.RoundedButtonType
@@ -44,43 +47,48 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
+import java.io.File
 
 @Composable
 fun ScanScreen(
     modifier: Modifier = Modifier,
+    classifyImage: (imageFile: File) -> Unit,
+    imagePredictState: StateFlow<UiState<String>>,
     navController: NavHostController,
-    filePath: String,
     imageCapturedState: StateFlow<UiState<ImageCaptured>>,
     onLoadingImageState: () -> Unit,
     openCamera: () -> Unit,
     openGallery: () -> Unit,
-){
+) {
     val context = LocalContext.current
     var predictedImgUri: Uri? by rememberSaveable { mutableStateOf(null) }
     val defaultScanMessage = stringResource(R.string.scan_message)
     var scanMessage: String by rememberSaveable { mutableStateOf(defaultScanMessage) }
-    var loadingPrediction by rememberSaveable{ mutableStateOf(false) }
+    var loadingPrediction by rememberSaveable { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp)){
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 32.dp, vertical = 16.dp)
+    ) {
         Column(
-            modifier = modifier
-                .fillMaxSize()
-            ,
+            modifier = modifier.fillMaxSize().offset(y = (-64).dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
-        )
-        {
+        ) {
             imageCapturedState.collectAsState(initial = UiState.Loading).value.let { uiState ->
-                Log.d("predict state", "TempScreen: $uiState")
-                when(uiState){
+//                Log.d("predict state", "TempScreen: $uiState")
+                when (uiState) {
                     is UiState.Success -> {
                         LaunchedEffect(uiState.data) {
+//                            predictedImgUri = getImageUriPrediction(context, uiState.data.uri, uiState.data.isBackCam)
                             loadingPrediction = true
-                            predictedImgUri = getImageUriPrediction(context, uiState.data.uri, uiState.data.isBackCam)
+                            predictedImgUri =
+                                handleClassify(context, uiState.data.uri, classifyImage)
                             loadingPrediction = false
                         }
                     }
-                    is UiState.Error ->{
+                    is UiState.Error -> {
                         predictedImgUri = null
                     }
                     is UiState.Loading -> {
@@ -89,16 +97,15 @@ fun ScanScreen(
                 }
             }
 
-            if(loadingPrediction) LoadingScanAnim()
+            if (loadingPrediction) LoadingScanAnim()
             else AsyncImage(
                 model = predictedImgUri ?: "",
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(394.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(LightGreyVariant)
-                ,
-                onLoading = {loadingState ->
+                    .background(LightGreyVariant),
+                onLoading = { loadingState ->
                     Log.d("TAG", "TempScreen: loading")
                 },
                 contentScale = ContentScale.Crop,
@@ -106,31 +113,78 @@ fun ScanScreen(
                 placeholder = painterResource(id = R.drawable.baseline_image_24),
                 error = painterResource(id = R.drawable.baseline_image_24),
             )
-            if(!loadingPrediction){
-                if(predictedImgUri == null) Text( text = scanMessage, style = MaterialTheme.typography.caption.copy( color = DarkGrey), modifier = Modifier.padding(top = 32.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(top = 16.dp)){
-                    RoundedButton( modifier = Modifier.weight(1f), text = "buka gallery", onClick = { openGallery() }, trailIcon = Icons.Default.Image, type = if(predictedImgUri != null) RoundedButtonType.SECONDARY else RoundedButtonType.PRIMARY,
+            if (!loadingPrediction) {
+                if (predictedImgUri == null) Text(
+                    text = scanMessage,
+                    style = MaterialTheme.typography.caption.copy(color = DarkGrey),
+                    modifier = Modifier.padding(top = 32.dp)
+                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.padding(top = 16.dp)
+                ) {
+                    RoundedButton(
+                        modifier = Modifier.weight(1f),
+                        text = "buka gallery",
+                        onClick = { openGallery() },
+                        trailIcon = Icons.Default.Image,
+                        type = if (predictedImgUri != null) RoundedButtonType.SECONDARY else RoundedButtonType.PRIMARY,
                     )
                     RoundedButton(
                         modifier = Modifier.weight(1f),
-                        text = if(predictedImgUri != null) stringResource(R.string.restart_scan) else stringResource(R.string.start_scan),
-                        type = if(predictedImgUri != null) RoundedButtonType.SECONDARY else RoundedButtonType.PRIMARY,
+                        text = if (predictedImgUri != null) stringResource(R.string.restart_scan) else stringResource(
+                            R.string.start_scan
+                        ),
+                        type = if (predictedImgUri != null) RoundedButtonType.SECONDARY else RoundedButtonType.PRIMARY,
                         onClick = { openCamera() },
-                        trailIcon = Icons.Default.CameraAlt)
+                        trailIcon = Icons.Default.CameraAlt
+                    )
                 }
             }
         }
-        if(!loadingPrediction && predictedImgUri != null) RoundedButton(
-            modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter),
-            text = stringResource(id = R.string.make_report_btn),
-            onClick = { navController.navigate(Screen.Order.route) })
+        imagePredictState.collectAsState().value.let { uiState ->
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                when (uiState) {
+                    is UiState.Success -> {
+                        Text(text = stringResource(R.string.classification_result))
+                        Text(text = uiState.data)
+                        Spacer(modifier = Modifier.height(32.dp))
+                        RoundedButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = stringResource(id = R.string.make_report_btn),
+                            onClick = { navController.navigate(Screen.Order.route) })
+                    }
+                    is UiState.Loading -> {
+                        if(!loadingPrediction && predictedImgUri != null) Row {
+                            Text(text = stringResource(R.string.loading_classification_result))
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        }
+                    }
+                    is UiState.Error -> {
+                        Text(text = "Error ketika melakukan klasifikasi sampah, silahkan scan ulang")
+                        Text(text = uiState.errorMessage, style = MaterialTheme.typography.caption)
+                    }
+                }
+            }
+        }
+//        if(!loadingPrediction && predictedImgUri != null) RoundedButton(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .align(Alignment.BottomCenter),
+//            text = stringResource(id = R.string.make_report_btn),
+//            onClick = { navController.navigate(Screen.Order.route) })
     }
 }
 
 @Composable
 fun LoadingScanAnim(
     modifier: Modifier = Modifier
-){
+) {
     val composition by rememberLottieComposition(
         spec = LottieCompositionSpec.RawRes(R.raw.lottie_image_scan_load)
     )
@@ -148,38 +202,51 @@ fun LoadingScanAnim(
     )
 }
 
-suspend fun getImageUriPrediction(context: Context, uri: Uri, isBackCam: Boolean): Uri = withContext(Dispatchers.IO){
-    // TODO: fix image prediction result, not rotated 
-    try {
-        val inputStream = context.contentResolver.openInputStream(uri)
-        var bitmap = BitmapFactory.decodeStream(inputStream)
 
-        val resultBitmap = ObjectDetection.run(context, bitmap, isBackCam)
-        //SAVE TO GALLERY
+suspend fun handleClassify(
+    context: Context,
+    imageUri: Uri,
+    classifyImage: (imageFile: File) -> Unit
+): Uri = withContext(Dispatchers.IO) {
+    val imageFile = imageUri.toFile(context)
+    classifyImage(imageFile)
+    return@withContext imageUri
+}
+
+suspend fun getImageUriPrediction(context: Context, uri: Uri, isBackCam: Boolean): Uri =
+    withContext(Dispatchers.IO) {
+        // TODO: fix image prediction result, not rotated 
+        try {
+            val inputStream = context.contentResolver.openInputStream(uri)
+            var bitmap = BitmapFactory.decodeStream(inputStream)
+
+            val resultBitmap = ObjectDetection.run(context, bitmap, isBackCam)
+            //SAVE TO GALLERY
 //        return@withContext getImageUriFromBitmap(
 //            context = context,
 //            bitmap = resultBitmap
 //        )
-        //SAVE TO TEMPORARY FILE
-        return@withContext getImageUriFromTempBitmap(
-            context = context,
-            bitmap = resultBitmap,
+            //SAVE TO TEMPORARY FILE
+            return@withContext getImageUriFromTempBitmap(
+                context = context,
+                bitmap = resultBitmap,
 //            rotate = if (isBackCam) 90f else -90f
-            rotate = 0f
-        )
-    }catch (e: Exception){
-        Log.d("TAG", "TempScreen: $e")
-        throw e
+                rotate = 0f
+            )
+        } catch (e: Exception) {
+            Log.d("TAG", "TempScreen: $e")
+            throw e
+        }
     }
-}
 
 @Preview(showBackground = true, device = Devices.PIXEL_4)
 @Composable
-fun PreviewScreen(){
+fun PreviewScreen() {
     EcoEaseTheme {
         ScanScreen(
-            filePath = "",
             navController = rememberNavController(),
+            classifyImage = {},
+            imagePredictState = MutableStateFlow(UiState.Loading),
             openCamera = {},
             openGallery = {},
             onLoadingImageState = {},

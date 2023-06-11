@@ -25,6 +25,13 @@ class ApiConfig{
             client(client)
         }.build()
 
+
+        private val mlRetrofit = Retrofit.Builder().apply {
+            baseUrl("https://eco-jushlewoya-uc.a.run.app/")
+            addConverterFactory(GsonConverterFactory.create())
+            client(client)
+        }.build()
+
         fun getGarbageApiService(): GarbageApiService = retrofit.create(GarbageApiService::class.java)
         fun getUserApiService(): UserApiService = retrofit.create(UserApiService::class.java)
         fun getAddressApiService(): AddressApiService = retrofit.create(AddressApiService::class.java)
@@ -32,5 +39,6 @@ class ApiConfig{
         fun getChatroomApiService(): ChatroomApiService = retrofit.create(ChatroomApiService::class.java)
         fun getFCMServerApiService(): FCMServerApiService = retrofit.create(FCMServerApiService::class.java)
         fun getFCMClientApiService(): FCMClientApiService = fcmRetrofit.create(FCMClientApiService::class.java)
+        fun getMLApiService(): MLApiService = mlRetrofit.create(MLApiService::class.java)
     }
 }

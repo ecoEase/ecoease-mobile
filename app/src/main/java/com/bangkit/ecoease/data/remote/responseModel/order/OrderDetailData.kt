@@ -1,6 +1,6 @@
 package com.bangkit.ecoease.data.remote.responseModel.order
 
-import com.bangkit.ecoease.data.remote.responseModel.Address
+import com.bangkit.ecoease.data.remote.responseModel.address.Address
 import com.google.gson.annotations.SerializedName
 
 data class OrderDetailData(

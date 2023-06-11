@@ -46,4 +46,6 @@
     <string name="pick_by">diambil oleh</string>
     <string name="finished">selesai</string>
     <string name="register">registrasi</string>
+    <string name="classification_result">Hasil klasifikasi sampah</string>
+    <string name="loading_classification_result">Memuat hasil klasifikasi</string>
 </resources>

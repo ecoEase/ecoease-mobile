@@ -1,9 +1,9 @@
 package com.bangkit.ecoease.data.remote.interfaces
 
 import com.bangkit.ecoease.data.model.request.Address
-import com.bangkit.ecoease.data.remote.responseModel.AddAddressResponse
+import com.bangkit.ecoease.data.remote.responseModel.address.AddAddressResponse
 import com.bangkit.ecoease.data.remote.responseModel.address.AddressResponse
-import com.bangkit.ecoease.data.remote.responseModel.DeleteAddressResponse
+import com.bangkit.ecoease.data.remote.responseModel.address.DeleteAddressResponse
 import com.bangkit.ecoease.data.remote.responseModel.address.SelectedAddressResponse
 import retrofit2.http.*
 

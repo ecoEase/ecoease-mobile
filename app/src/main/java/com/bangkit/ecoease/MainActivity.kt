@@ -152,18 +152,11 @@ class MainActivity : ComponentActivity() {
                                     onReloadGarbage = { garbageViewModel.reloadGarbage() },
                                 )
                             }
-                            composable(
-                                route = Screen.Scan.route,
-                                arguments = listOf(navArgument("path"){
-                                    nullable = true
-                                    defaultValue = null
-                                    type = NavType.StringType
-                                })
-                            ){
-                                val filePath = it.arguments?.getString("path") ?: ""
+                            composable(route = Screen.Scan.route){
                                 ScanScreen(
                                     navController = navController,
-                                    filePath = filePath,
+                                    imagePredictState = cameraViewModel.predictResultUiState,
+                                    classifyImage = { file -> cameraViewModel.classify(file) },
                                     imageCapturedState = cameraViewModel.uiStateImageCaptured,
                                     onLoadingImageState = { cameraViewModel.getImageUri() },
                                     openCamera = {

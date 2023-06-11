@@ -14,6 +14,7 @@ import com.bangkit.ecoease.data.remote.responseModel.address.toAddress
 import com.bangkit.ecoease.data.remote.responseModel.chatroom.AddChatroomResponse
 import com.bangkit.ecoease.data.remote.responseModel.chatroom.ChatRoomItem
 import com.bangkit.ecoease.data.remote.responseModel.chatroom.DeleteChatroomResponse
+import com.bangkit.ecoease.data.remote.responseModel.ml.ClassifyResponse
 import com.bangkit.ecoease.data.remote.responseModel.toGarbage
 import com.bangkit.ecoease.data.remote.responseModel.toUser
 import com.bangkit.ecoease.data.room.database.MainDatabase
@@ -25,6 +26,8 @@ import com.google.android.gms.tasks.Task
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import okhttp3.MultipartBody
+import retrofit2.http.Multipart
 
 class MainRepository(
     private val datastore: DataStorePreferences,
@@ -33,7 +36,6 @@ class MainRepository(
 ) {
     private var capturedImageUri: ImageCaptured? = null
 
-    // TODO: add API service for each endpoint
     private val garbageApiService = ApiConfig.getGarbageApiService()
     private val userApiService = ApiConfig.getUserApiService()
     private val addressApiService = ApiConfig.getAddressApiService()
@@ -41,16 +43,12 @@ class MainRepository(
     private val chatRoomApiService = ApiConfig.getChatroomApiService()
     private val fcmServerApiService = ApiConfig.getFCMServerApiService()
     private val fcmClientApiService = ApiConfig.getFCMClientApiService()
-
-
+    private val mlApiService = ApiConfig.getMLApiService()
     //CAMERA
     fun setCapturedImage(imageCapture: ImageCaptured) {
         capturedImageUri = imageCapture
     }
-    fun getCapturedImage(): Flow<ImageCaptured> {
-        Log.d(MainRepository::class.java.simpleName, "getCapturedImageUri: $capturedImageUri")
-        return flowOf(capturedImageUri!!)
-    }
+    fun getCapturedImage(): Flow<ImageCaptured> = flowOf(capturedImageUri!!)
 
     //ON BOARDING
     suspend fun getIsFinishOnboard(): Boolean = datastore.isFinishReadOnBoard().first()
@@ -337,7 +335,6 @@ class MainRepository(
             throw e
         }
     }
-
     //Chat
     // TODO: change the functionality so it can create chatroom based userid and mitraid
     suspend fun createChatroom(body: Chatroom? = null): Flow<AddChatroomResponse>{
@@ -355,7 +352,6 @@ class MainRepository(
             throw e
         }
     }
-
     suspend fun deleteChatroom(roomKey: String, roomId: String): Flow<Boolean>{
         try {
             val tokenAuth = datastore.getAuthToken().first()
@@ -367,7 +363,6 @@ class MainRepository(
             throw e
         }
     }
-
     suspend fun getChatRooms(): Flow<List<ChatRoomItem>> {
         try {
             val tokenAuth = datastore.getAuthToken().first()
@@ -403,6 +398,16 @@ class MainRepository(
             val token = BuildConfig.FCM_key
             fcmClientApiService.sendNotification(token = token, body = body)
         } catch (e: Exception) {
+            throw e
+        }
+    }
+
+    //ML
+    suspend fun classify(image: MultipartBody.Part): Flow<ClassifyResponse>{
+        try {
+            val response = mlApiService.classify(image)
+            return flowOf(response)
+        }catch (e: Exception){
             throw e
         }
     }

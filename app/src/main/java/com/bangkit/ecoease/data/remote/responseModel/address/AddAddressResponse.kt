@@ -1,13 +1,13 @@
-package com.bangkit.ecoease.data.remote.responseModel
+package com.bangkit.ecoease.data.remote.responseModel.address
 
 import com.google.gson.annotations.SerializedName
 
 data class AddAddressResponse(
 
-	@field:SerializedName("address")
+    @field:SerializedName("address")
 	val address: Address,
 
-	@field:SerializedName("message")
+    @field:SerializedName("message")
 	val message: String
 )
 
