@@ -322,12 +322,12 @@ class MainActivity : ComponentActivity() {
                             composable(Screen.UsersChats.route){
                                 UsersChatsScreen(
                                     navHostController = navController,
-                                    onLoadChatRooms = {},
+                                    onLoadChatRooms = {messageViewModel.getChatrooms()},
+                                    chatroomsUiState = messageViewModel.chatrooms,
                                     eventFlow = messageViewModel.eventFlow,
                                     onDeleteRoom = { roomKey, roomId -> messageViewModel.deleteChatroom(roomKey, roomId, onSuccess = {
-
+                                        // TODO: add onsuccess
                                     }) },
-                                    onCreateNewChatroom = { messageViewModel.createChatroom() }
                                 )
                             }
                             composable(
@@ -337,8 +337,10 @@ class MainActivity : ComponentActivity() {
                                 val roomId = it.arguments?.getString("roomId") ?: "ref"
                                 ChatRoomScreen(
                                     getCurrentUser = {messageViewModel.getCurrentUser()},
-                                    reloadGetCurrentUser = {messageViewModel.reloadCurrentUser()},
                                     userUiState = messageViewModel.user,
+                                    getChatroomDetail = {messageViewModel.getDetailChatroom(roomId)},
+                                    chatroomDetailUiState = messageViewModel.detailChatrooms,
+                                    reloadGetCurrentUser = {messageViewModel.reloadCurrentUser()},
                                     sendNotification = { body -> messageViewModel.sendNotification(body) },
                                     roomId = roomId,
                                 )

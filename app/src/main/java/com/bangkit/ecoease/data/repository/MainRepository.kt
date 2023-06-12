@@ -158,9 +158,7 @@ class MainRepository(
             }
         } catch (e: Exception) {
             Log.d("TAG", "getSavedAddress: ${e.message}")
-            if (roomDatabase.addressDao().getAllAddress().isEmpty()) {
-                throw e
-            }
+            throw e
         }
         return flowOf(roomDatabase.addressDao().getAllAddress())
     }
@@ -190,7 +188,7 @@ class MainRepository(
         try {
             val token = datastore.getAuthToken().first()
             addressApiService.deleteAddress(token, address.id)
-//            roomDatabase.addressDao().deleteAddress(address)
+            roomDatabase.addressDao().deleteAddress(address)
         } catch (e: Exception) {
             throw e
         }
@@ -337,18 +335,18 @@ class MainRepository(
     }
     //Chat
     // TODO: change the functionality so it can create chatroom based userid and mitraid
-    suspend fun createChatroom(body: Chatroom? = null): Flow<AddChatroomResponse>{
+    suspend fun createChatroom(userId: String): Flow<AddChatroomResponse> {
         try {
             val tokenAuth = datastore.getAuthToken().first()
-            val userId = roomDatabase.userDao().getUser().id
-            val response = chatRoomApiService.addChatroom(token = tokenAuth, body = Chatroom(
-                user_id = userId,
-                mitra_id = "815d6dbe-03d5-4642-b9bb-5e9defc7ff24"
-            ))
-            if(response.data == null) throw Exception(response.message)
-            FireBaseRealtimeDatabase.createNewChatroom(response.data!!.id )
+            val mitraId = roomDatabase.userDao().getUser().id
+            val value = Chatroom(mitra_id = mitraId, user_id = userId)
+            val response = chatRoomApiService.addChatroom(
+                token = tokenAuth, body = value
+            )
+            if (response.data == null) throw Exception(response.message)
+            FireBaseRealtimeDatabase.createNewChatroom(response.data!!.id)
             return flowOf(response)
-        }catch (e: Exception){
+        } catch (e: Exception) {
             throw e
         }
     }
@@ -374,6 +372,18 @@ class MainRepository(
             throw e
         }
     }
+
+    suspend fun getChatroomDetail(roomId: String): Flow<ChatRoomItem>{
+        try {
+            val tokenAuth = datastore.getAuthToken().first()
+            val response = chatRoomApiService.getDetailChatroom(token = tokenAuth, roomId = roomId)
+            if(response.data == null) throw Exception(response.message)
+            return flowOf(response.data)
+        }catch (e: Exception){
+            throw e
+        }
+    }
+
 
     //FCM to handle notification
     suspend fun setFCMToken(id: String? = null, token: String) {

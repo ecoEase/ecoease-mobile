@@ -1,5 +1,6 @@
 package com.bangkit.ecoease.ui.screen.chat
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
@@ -24,18 +25,24 @@ import com.bangkit.ecoease.data.event.MyEvent
 import com.bangkit.ecoease.data.firebase.FireBaseRealtimeDatabase
 import com.bangkit.ecoease.data.firebase.FireBaseRealtimeDatabase.getAllRoomsKey
 import com.bangkit.ecoease.data.model.Chatroom
+import com.bangkit.ecoease.data.remote.responseModel.chatroom.ChatRoomItem
 import com.bangkit.ecoease.helper.generateUUID
+import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.Avatar
+import com.google.gson.GsonBuilder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+
+private val gsonPretty = GsonBuilder().setPrettyPrinting().create()
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun UsersChatsScreen(
     navHostController: NavHostController,
-    onCreateNewChatroom: () -> Unit,
     onLoadChatRooms: () -> Unit,
+    chatroomsUiState: StateFlow<UiState<List<ChatRoomItem>>>,
     onDeleteRoom: (id: String, key: String) -> Unit,
     eventFlow: Flow<MyEvent>,
     modifier: Modifier = Modifier
@@ -102,48 +109,50 @@ fun UsersChatsScreen(
                 .fillMaxSize()
                 .padding(horizontal = 32.dp)
         ) {
-            if (loading) CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-            AnimatedVisibility(
-                visible = !loading, modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-            ) {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(rooms.toList(), key = { it.key ?: generateUUID() }) { room ->
-                        Column {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        room?.let {
-                                            Screen.ChatRoom.setTitle(it.key)
-                                            val roomChatRoute = Screen.ChatRoom.createRoute(it.value ?: "")
-                                            navHostController.navigate(roomChatRoute)
+            chatroomsUiState.collectAsState(initial = UiState.Loading).value.let {uiState ->
+                when(uiState){
+                    is UiState.Loading -> {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+                        onLoadChatRooms()
+                    }
+                    is UiState.Success -> {
+                        Log.d("TAG", "UsersChatsScreen: ${gsonPretty.toJson(uiState)}")
+                        AnimatedVisibility(
+                            visible = !loading, modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                        ) {
+                            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(uiState.data.toList(), key = { it.id ?: generateUUID() }) { room ->
+                                    Column {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clickable {
+                                                    room?.let {
+                                                        Screen.ChatRoom.setTitle("${room.mitra.firstName} ${room.mitra.lastName}")
+                                                        val roomChatRoute =
+                                                            Screen.ChatRoom.createRoute(it.id ?: "")
+                                                        navHostController.navigate(roomChatRoute)
+                                                    }
+                                                },
+                                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                        )
+                                        {
+                                            Avatar(imageUrl = room.mitra.urlPhotoProfile)
+                                            Text(text = "${room.mitra.firstName} ${room.mitra.lastName}")
                                         }
-                                    },
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
-                            )
-                            {
-                                Avatar(imageUrl = "https://images.unsplash.com/photo-1596815064285-45ed8a9c0463?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=366&q=80")
-                                Text(text = room.value ?: "")
-
-                            }
-                            IconButton(onClick = {
-                                onDeleteRoom(room.key, room.value ?: "")
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = "delete"
-                                )
+                                    }
+                                }
                             }
                         }
+                    }
+                    is UiState.Error -> {
+                        Text(uiState.errorMessage)
                     }
                 }
             }
         }
         PullRefreshIndicator(refreshing = refreshing, state = pullRefreshState)
-        FloatingActionButton(onClick = { onCreateNewChatroom() }) {
-            Icon(imageVector = Icons.Default.Chat, contentDescription = "new chatroom")
-        }
     }
 }

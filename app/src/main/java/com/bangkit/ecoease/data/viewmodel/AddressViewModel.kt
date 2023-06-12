@@ -1,5 +1,6 @@
 package com.bangkit.ecoease.data.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bangkit.ecoease.data.event.MyEvent
@@ -82,17 +83,22 @@ class AddressViewModel(private val repository: MainRepository): ViewModel() {
                     _savedAddress.value = UiState.Success(it)
                 }
             }catch (e: Exception){
-                _savedAddress.value = if(e.message.toString().contains("HTTP 404")) UiState.Success(listOf())  else UiState.Error("error: ${e.message}")
+                Log.d("TAG", "loadSavedAddress: ${e.message}")
+                _savedAddress.value = if(e.message.toString().contains("HTTP 404")) UiState.Success(listOf()) else UiState.Error("error: ${e.message}")
             }
         }
     }
     fun loadSelectedAddress(){
         viewModelScope.launch(Dispatchers.IO) {
-            _selectedAddress.value = UiState.Loading
-            repository.getSelectedAddress().catch{
-                _selectedAddress.value = UiState.Error("error: ${it.message}")
-            }.collect{
-                _selectedAddress.value = UiState.Success(it ?: emptyAddress)
+            try {
+                _selectedAddress.value = UiState.Loading
+                repository.getSelectedAddress().catch{
+                    _selectedAddress.value = UiState.Error("error: ${it.message}")
+                }.collect{
+                    _selectedAddress.value = UiState.Success(it ?: emptyAddress)
+                }
+            }catch (e: Exception){
+                _selectedAddress.value = if(e.message.toString().contains("HTTP 404")) UiState.Success(emptyAddress)  else UiState.Error("error: ${e.message}")
             }
         }
     }
@@ -145,11 +151,12 @@ class AddressViewModel(private val repository: MainRepository): ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 repository.deleteAddress(address)
-                if(_selectedAddress.value is UiState.Success && address == (_selectedAddress.value as UiState.Success<Address>).data){
-                    _selectedAddress.value = UiState.Loading
-                }
+//                if(_selectedAddress.value is UiState.Success && address == (_selectedAddress.value as UiState.Success<Address>).data){
+//                    _selectedAddress.value = UiState.Loading
+//                }
                 _savedAddress.value = UiState.Loading//trigger loading so in ui it will call the loadSavedAddress method
             }catch (e: Exception){
+                Log.d("TAG", "deleteAddress: ${e.message}")
                 eventChannel.send(MyEvent.MessageEvent("error: ${e.message}"))
             }
         }

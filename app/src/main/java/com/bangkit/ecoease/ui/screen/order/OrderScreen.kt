@@ -197,24 +197,24 @@ fun OrderScreen(
             }
         )
     }
-    DialogBox(
-        text = if (location == null) "Sepertinya order anda tidak dapat di pin point oleh sistem, apakah anda yakin ingin melanjutkan?" else "Apakah anda sudah yakin?",
-        isOpen = openDialog,
-        onDissmiss = { openDialog = false },
-        onAccept = {
-            onAcceptResetOrder()
-            onMakeOrder(
-                orderState.garbageList.map { it!! },
-                orderState.total,
-                location
-            )
-        })
-    DialogBox(
-        text = "Apakah anda yakin ingin membatalkan order anda",
-        onDissmiss = { openDialogResetOrder = false },
-        onAccept = { onAcceptResetOrder() },
-        isOpen = openDialogResetOrder
-    )
+//    DialogBox(
+//        text = if (location == null) "Sepertinya order anda tidak dapat di pin point oleh sistem, apakah anda yakin ingin melanjutkan?" else "Apakah anda sudah yakin?",
+//        isOpen = openDialog,
+//        onDissmiss = { openDialog = false },
+//        onAccept = {
+//            onAcceptResetOrder()
+//            onMakeOrder(
+//                orderState.garbageList.map { it!! },
+//                orderState.total,
+//                location
+//            )
+//        })
+//    DialogBox(
+//        text = "Apakah anda yakin ingin membatalkan order anda",
+//        onDissmiss = { openDialogResetOrder = false },
+//        onAccept = { onAcceptResetOrder() },
+//        isOpen = openDialogResetOrder
+//    )
 }
 
 @OptIn(ExperimentalFoundationApi::class)
