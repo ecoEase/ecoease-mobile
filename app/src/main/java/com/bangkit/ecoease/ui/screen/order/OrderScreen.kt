@@ -103,6 +103,7 @@ fun OrderScreen(
     }
 
     fun onMakeOrderHandler() {
+        Log.d("TAG", "onMakeOrderHandler: ")
         if (isAddressNull) {
             Toast.makeText(
                 context,
@@ -153,7 +154,6 @@ fun OrderScreen(
                 is UiState.Success -> location = uiState.data
                 is UiState.Loading -> loadLastLocation()
                 is UiState.Error -> Log.d("TAG", "error: ${uiState.errorMessage}")
-//                is UiState.Error -> Toast.makeText(context, "error: ${uiState.errorMessage}", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -197,24 +197,24 @@ fun OrderScreen(
             }
         )
     }
-//    DialogBox(
-//        text = if (location == null) "Sepertinya order anda tidak dapat di pin point oleh sistem, apakah anda yakin ingin melanjutkan?" else "Apakah anda sudah yakin?",
-//        isOpen = openDialog,
-//        onDissmiss = { openDialog = false },
-//        onAccept = {
-//            onAcceptResetOrder()
-//            onMakeOrder(
-//                orderState.garbageList.map { it!! },
-//                orderState.total,
-//                location
-//            )
-//        })
-//    DialogBox(
-//        text = "Apakah anda yakin ingin membatalkan order anda",
-//        onDissmiss = { openDialogResetOrder = false },
-//        onAccept = { onAcceptResetOrder() },
-//        isOpen = openDialogResetOrder
-//    )
+    DialogBox(
+        text = if (location == null) "Sepertinya order anda tidak dapat di pin point oleh sistem, apakah anda yakin ingin melanjutkan?" else "Apakah anda sudah yakin?",
+        isOpen = openDialog,
+        onDissmiss = { openDialog = false },
+        onAccept = {
+            onAcceptResetOrder()
+            onMakeOrder(
+                orderState.garbageList.map { it!! },
+                orderState.total,
+                location
+            )
+        })
+    DialogBox(
+        text = "Apakah anda yakin ingin membatalkan order anda",
+        onDissmiss = { openDialogResetOrder = false },
+        onAccept = { onAcceptResetOrder() },
+        isOpen = openDialogResetOrder
+    )
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -320,7 +320,6 @@ fun OrderScreenContent(
                 val initialGarbageTotalPrice = addedGarbage?.totalPrice
 
 //                val listGarbageSelected = orderState.garbageList.filterNotNull().map { it.garbage }
-
                 listGarbageFlow.collectAsState(initial = UiState.Loading).value.let { uiState ->
                     when (uiState) {
                         is UiState.Loading -> loadListGarbage()

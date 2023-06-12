@@ -71,17 +71,14 @@ class MessageViewModel(private val repository: MainRepository) : ViewModel() {
             }
         }
     }
-
-    fun deleteChatroom(roomKey: String, roomId: String, onSuccess: () -> Unit) {
+    fun deleteChatroom(roomKey: String, roomId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 repository.deleteChatroom(roomKey, roomId).catch { error ->
                     eventChannel.send(MyEvent.MessageEvent("error: ${error.message}"))
                 }.collect {
                     eventChannel.send(MyEvent.MessageEvent("success delete chat room"))
-                    withContext(Dispatchers.IO) {
-                        onSuccess()
-                    }
+                    _chatrooms.value = UiState.Loading
                 }
             } catch (e: Exception) {
                 eventChannel.send(MyEvent.MessageEvent("error: ${e.message}"))
@@ -128,16 +125,5 @@ class MessageViewModel(private val repository: MainRepository) : ViewModel() {
                 eventChannel.send(MyEvent.MessageEvent("error: ${e.message}"))
             }
         }
-    }
-
-    fun sendPickUpNotification(userToken: String) {
-        val body = FCMNotification(
-            to = userToken, notification = Notification(
-                body = "Pesanan anda telah di pickup",
-                subTitle = "Pesanan anda telah di pickup",
-                title = "Pesanan anda telah di pickup"
-            )
-        )
-        sendNotification(body)
     }
 }

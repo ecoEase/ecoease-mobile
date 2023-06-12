@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.StateFlow
 fun DetailOrderScreen(
     orderId: String,
     userStateFlow: StateFlow<User?>,
+    sendNotification: (token: String, message: String) -> Unit,
     onLoadDetailOrder: (String) -> Unit,
     orderDetailStateFlow: StateFlow<UiState<OrderWithDetailTransaction>>,
     onReloadDetailOrder: () -> Unit,
@@ -69,6 +70,7 @@ fun DetailOrderScreen(
                     order = uiState.data.order,
                     address = uiState.data.address,
                     mitra = uiState.data.mitra,
+                    sendNotification = sendNotification,
                     modifier = modifier,
                     myId = userStateFlow.collectAsState().value?.id ?: ""
                 )
@@ -88,6 +90,7 @@ fun OrderDetailContent(
     address: Address,
     mitra: Mitra?,
     myId: String,
+    sendNotification: (token: String, message: String) -> Unit,
     onUpdateOrderStatus: (Order, StatusOrderItem) -> Unit,
     listGarbage: List<GarbageTransactionWithDetail>,
     modifier: Modifier = Modifier,
@@ -102,12 +105,13 @@ fun OrderDetailContent(
             .padding(horizontal = 32.dp)
             .padding(vertical = 32.dp)
     ) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(
-                text = stringResource(R.string.status), style = MaterialTheme.typography.body1.copy(
-                    color = DarkGrey
-                )
+        Text(
+            text = stringResource(R.string.status), style = MaterialTheme.typography.body1.copy(
+                color = DarkGrey
             )
+        )
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            StatusOrder(statusItemHistory = order.status)
             if (order.status == StatusOrderItem.NOT_TAKEN && order.userId == myId) {
                 PillWidget(color = OrangeAccent,
                     textColor = Color.White,
@@ -115,7 +119,6 @@ fun OrderDetailContent(
                     modifier = Modifier.clickable { openDialog = true })
             }
         }
-        StatusOrder(statusItemHistory = order.status)
         Text(
             text = stringResource(R.string.address_info),
             style = MaterialTheme.typography.body1.copy(
@@ -164,6 +167,9 @@ fun OrderDetailContent(
         DialogBox(text = "Apakah anda yakin untuk membatalkan pesanan anda?",
             onDissmiss = { openDialog = false },
             isOpen = openDialog,
-            onAccept = { onUpdateOrderStatus(order, StatusOrderItem.CANCELED) })
+            onAccept = {
+                onUpdateOrderStatus(order, StatusOrderItem.CANCELED)
+                sendNotification(mitra?.fcmToken ?: "", "Pesanan telah dibatalkan oleh user 😢")
+            })
     }
 }

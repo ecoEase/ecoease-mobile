@@ -48,4 +48,5 @@
     <string name="register">registrasi</string>
     <string name="classification_result">Hasil klasifikasi sampah</string>
     <string name="loading_classification_result">Memuat hasil klasifikasi</string>
+    <string name="delete_chatroom_warning">Anda yakin? Chatroom yg sudah terhapus tidak bisa dipulihkan lagi</string>
 </resources>

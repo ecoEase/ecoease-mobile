@@ -3,10 +3,12 @@ package com.bangkit.ecoease
 import android.content.Intent
 import android.content.Intent.ACTION_GET_CONTENT
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
@@ -26,6 +28,8 @@ import com.bangkit.ecoease.CameraActivity.Companion.CAMERA_X_RESULT
 import com.bangkit.ecoease.config.ViewModelFactory
 import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.data.model.ImageCaptured
+import com.bangkit.ecoease.data.model.request.FCMNotification
+import com.bangkit.ecoease.data.model.request.Notification
 import com.bangkit.ecoease.data.viewmodel.*
 import com.bangkit.ecoease.di.Injection
 import com.bangkit.ecoease.ui.component.*
@@ -63,6 +67,7 @@ class MainActivity : ComponentActivity() {
 
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashViewModel = ViewModelFactory(Injection.provideInjection(this)).create(SplashViewModel::class.java)
         super.onCreate(savedInstanceState)
@@ -316,7 +321,10 @@ class MainActivity : ComponentActivity() {
                                             }
                                         }
                                     }) },
-                                    eventFlow = orderViewModel.eventFlow
+                                    eventFlow = orderViewModel.eventFlow,
+                                    sendNotification = { userFcmToken, message -> messageViewModel.sendNotification(
+                                        FCMNotification(to = userFcmToken, notification = Notification(body = message, title = message, subTitle = message))
+                                    ) },
                                 )
                             }
                             composable(Screen.UsersChats.route){
@@ -325,9 +333,7 @@ class MainActivity : ComponentActivity() {
                                     onLoadChatRooms = {messageViewModel.getChatrooms()},
                                     chatroomsUiState = messageViewModel.chatrooms,
                                     eventFlow = messageViewModel.eventFlow,
-                                    onDeleteRoom = { roomKey, roomId -> messageViewModel.deleteChatroom(roomKey, roomId, onSuccess = {
-                                        // TODO: add onsuccess
-                                    }) },
+                                    onDeleteRoom = { roomKey, roomId -> messageViewModel.deleteChatroom(roomKey, roomId) },
                                 )
                             }
                             composable(
