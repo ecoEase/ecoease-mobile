@@ -1,8 +1,12 @@
 package com.bangkit.ecoease.ui.screen.map
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,6 +27,7 @@ import androidx.navigation.NavHostController
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.data.room.model.OrderWithDetailTransaction
+import com.bangkit.ecoease.helper.formatDate
 import com.bangkit.ecoease.helper.getLastLocation
 import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.RoundedButton
@@ -34,12 +39,14 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionsRequired
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun MapScreen(
@@ -110,7 +117,7 @@ fun MapScreen(
                 detailAddress = it.address.detail
                 district = it.address.district
                 city = it.address.city
-                date = it.order.created
+                date = formatDate(it.order.created)
                 garbageNames = it.items.map { it.garbage.type }.joinToString(", ")
             }
             bottomSheetScaffoldState.bottomSheetState.isExpanded
@@ -156,6 +163,9 @@ fun MapScreen(
                     modifier = Modifier.fillMaxSize(),
                     cameraPositionState = cameraPositionState
                 ) {
+                    val customMarkerIcon = BitmapDescriptorFactory.fromBitmap(
+                        resizeMapIcons(context, 80, 84, R.drawable.garbage_order_icon)
+                    )
                     availableOrderStateFlow.collectAsState(initial = UiState.Loading).value.let { uiState ->
                         when (uiState) {
                             is UiState.Loading -> loadAvailableOrders()
@@ -176,6 +186,7 @@ fun MapScreen(
                                                 poiClickHandler(it)
                                                 false
                                             },
+                                            icon = customMarkerIcon,
                                             title = "${it.address.district}, ${it.address.city}",
                                             snippet = it.address.detail
                                         )
@@ -267,6 +278,10 @@ private fun DetailOrder(
                 onClick = { openDetailOrder(id) })
         }
     }
+}
+fun resizeMapIcons(context: Context, width: Int, height: Int, id: Int): Bitmap {
+    val imageBitmap = BitmapFactory.decodeResource(context.resources, id)
+    return Bitmap.createScaledBitmap(imageBitmap, width, height, false)
 }
 
 @Preview(showBackground = true)

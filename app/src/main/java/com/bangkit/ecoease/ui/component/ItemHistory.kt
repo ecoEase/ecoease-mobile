@@ -1,5 +1,7 @@
 package com.bangkit.ecoease.ui.component
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
@@ -23,7 +25,9 @@ import com.bangkit.ecoease.ui.theme.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import com.bangkit.ecoease.data.room.model.StatusOrderItem
+import com.bangkit.ecoease.helper.formatDate
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ItemHistory(
     items: List<String>,
@@ -53,7 +57,7 @@ fun ItemHistory(
                 Text(text = items.joinToString(", "), modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Box(modifier = Modifier.width(16.dp))
                 Text(
-                    text = date,
+                    text = formatDate(date),
                     style = MaterialTheme.typography.caption.copy(
                         color = DarkGrey
                     )
