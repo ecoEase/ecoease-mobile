@@ -164,6 +164,7 @@ class MainActivity : ComponentActivity() {
                                     classifyImage = { file -> cameraViewModel.classify(file) },
                                     imageCapturedState = cameraViewModel.uiStateImageCaptured,
                                     onLoadingImageState = { cameraViewModel.getImageUri() },
+                                    resetImageAndPredictionState = { cameraViewModel.resetImageAndPredictedResult() },
                                     openCamera = {
                                         val intent = Intent(this@MainActivity, CameraActivity::class.java)
                                         launcherIntentCameraX.launch(intent)

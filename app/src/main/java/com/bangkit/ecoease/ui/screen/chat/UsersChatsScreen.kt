@@ -185,6 +185,7 @@ fun UsersChatsScreen(
                 }
             }
         }
-        PullRefreshIndicator(refreshing = refreshing, state = pullRefreshState)
+        PullRefreshIndicator(refreshing = refreshing, state = pullRefreshState, modifier = Modifier.align(
+            Alignment.Center))
     }
 }

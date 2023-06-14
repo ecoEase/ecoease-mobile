@@ -15,26 +15,33 @@ EcoEase is project focus on garbage management. Garbage management is rooting pr
 
 ## Preview 👏
 
-dashboard
+<center>
 
-change address
+![dashboard screen](https://i.imgur.com/BLxjO43.gif) ![profile screen](https://i.imgur.com/DZu5TNa.gif)
 
-adding new address
+### Dashboard and Profil Screen
 
-making order
+![change address screen](https://i.imgur.com/LtZ8Rio.gif) ![success create order](https://i.imgur.com/E9cLyyi.gif)
 
-order history
+### Change Address and Making Orde
 
-order detail
+![order history screen](https://i.imgur.com/YMAT4i5.gif) ![order detail screen](https://i.imgur.com/VFmIN1A.gif)
 
-map
+### Order History And Detail
 
+![map screen](https://i.imgur.com/xXOqSiB.gif)
 
-chats
+### Map
 
-chatroom
+![chatroom and chats screen](https://i.imgur.com/a2mwJ1l.gif)
 
-profile
+### Chatroom and Chats Screen
+
+![scan garbage](https://i.imgur.com/SBbcAvr.gif)
+
+### Scan Garbage
+
+</center>
 
 ## Mobile Tech Stack 😎
 

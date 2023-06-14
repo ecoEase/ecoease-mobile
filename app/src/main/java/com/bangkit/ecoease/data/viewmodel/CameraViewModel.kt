@@ -33,6 +33,10 @@ class CameraViewModel(private val repository: MainRepository) : ViewModel() {
         repository.setCapturedImage(imageCaptured)
     }
 
+    fun resetImageAndPredictedResult(){
+        _uiStateImageCaptured.value = UiState.Error("reseting image")
+    }
+
     fun getImageUri() {
         viewModelScope.launch {
             try {
@@ -52,6 +56,7 @@ class CameraViewModel(private val repository: MainRepository) : ViewModel() {
         }
     }
     fun classify(photoProfileFile: File) {
+        _predictResultUiState.value = UiState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val fileRequestBody =
@@ -62,9 +67,7 @@ class CameraViewModel(private val repository: MainRepository) : ViewModel() {
                     photoProfileFile.name,
                     fileRequestBody
                 )
-                val file = filePart
-
-                repository.classify(image = file).catch { error ->
+                repository.classify(image = filePart).catch { error ->
                     _predictResultUiState.value = UiState.Error("error: ${error.message}")
                     eventChannel.send(MyEvent.MessageEvent("error: ${error.message}"))
                 }.collect { result ->

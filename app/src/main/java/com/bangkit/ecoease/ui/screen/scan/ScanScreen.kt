@@ -54,6 +54,7 @@ fun ScanScreen(
     modifier: Modifier = Modifier,
     classifyImage: (imageFile: File) -> Unit,
     imagePredictState: StateFlow<UiState<String>>,
+    resetImageAndPredictionState: () -> Unit,
     navController: NavHostController,
     imageCapturedState: StateFlow<UiState<ImageCaptured>>,
     onLoadingImageState: () -> Unit,
@@ -66,13 +67,19 @@ fun ScanScreen(
     var scanMessage: String by rememberSaveable { mutableStateOf(defaultScanMessage) }
     var loadingPrediction by rememberSaveable { mutableStateOf(false) }
 
+    LaunchedEffect(Unit) {
+        resetImageAndPredictionState()
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 32.dp, vertical = 16.dp)
     ) {
         Column(
-            modifier = modifier.fillMaxSize().offset(y = (-64).dp),
+            modifier = modifier
+                .fillMaxSize()
+                .offset(y = (-64).dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -151,16 +158,18 @@ fun ScanScreen(
             ) {
                 when (uiState) {
                     is UiState.Success -> {
-                        Text(text = stringResource(R.string.classification_result))
-                        Text(text = uiState.data)
-                        Spacer(modifier = Modifier.height(32.dp))
-                        RoundedButton(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = stringResource(id = R.string.make_report_btn),
-                            onClick = { navController.navigate(Screen.Order.route) })
+                        if (predictedImgUri != null) {
+                            Text(text = stringResource(R.string.classification_result))
+                            Text(text = uiState.data)
+                            Spacer(modifier = Modifier.height(32.dp))
+                            RoundedButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                text = stringResource(id = R.string.make_report_btn),
+                                onClick = { navController.navigate(Screen.Order.route) })
+                        }
                     }
                     is UiState.Loading -> {
-                        if(!loadingPrediction && predictedImgUri != null) Row {
+                        if (!loadingPrediction && predictedImgUri != null) Row {
                             Text(text = stringResource(R.string.loading_classification_result))
                             CircularProgressIndicator(modifier = Modifier.size(24.dp))
                         }
@@ -213,38 +222,13 @@ suspend fun handleClassify(
     return@withContext imageUri
 }
 
-suspend fun getImageUriPrediction(context: Context, uri: Uri, isBackCam: Boolean): Uri =
-    withContext(Dispatchers.IO) {
-        // TODO: fix image prediction result, not rotated 
-        try {
-            val inputStream = context.contentResolver.openInputStream(uri)
-            var bitmap = BitmapFactory.decodeStream(inputStream)
-
-            val resultBitmap = ObjectDetection.run(context, bitmap, isBackCam)
-            //SAVE TO GALLERY
-//        return@withContext getImageUriFromBitmap(
-//            context = context,
-//            bitmap = resultBitmap
-//        )
-            //SAVE TO TEMPORARY FILE
-            return@withContext getImageUriFromTempBitmap(
-                context = context,
-                bitmap = resultBitmap,
-//            rotate = if (isBackCam) 90f else -90f
-                rotate = 0f
-            )
-        } catch (e: Exception) {
-            Log.d("TAG", "TempScreen: $e")
-            throw e
-        }
-    }
-
 @Preview(showBackground = true, device = Devices.PIXEL_4)
 @Composable
 fun PreviewScreen() {
     EcoEaseTheme {
         ScanScreen(
             navController = rememberNavController(),
+            resetImageAndPredictionState = {},
             classifyImage = {},
             imagePredictState = MutableStateFlow(UiState.Loading),
             openCamera = {},
