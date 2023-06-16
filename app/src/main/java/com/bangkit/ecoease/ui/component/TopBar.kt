@@ -33,7 +33,7 @@ fun TopBar(
     userStateFlow.collectAsState().value.let { uiState ->
         when(uiState){
             is UiState.Loading -> loadUser()
-            is UiState.Success -> avatarUrl = uiState.data.urlPhotoProfile
+            is UiState.Success -> avatarUrl = ""
             is UiState.Error -> Log.d("TAG", "TopBar: cant load user data")
         }
     }

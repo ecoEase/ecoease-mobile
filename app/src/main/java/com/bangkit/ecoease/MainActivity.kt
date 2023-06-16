@@ -65,8 +65,6 @@ class MainActivity : ComponentActivity() {
     private lateinit var cameraViewModel: CameraViewModel
     private lateinit var registerViewModel: RegisterViewModel
 
-
-
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashViewModel = ViewModelFactory(Injection.provideInjection(this)).create(SplashViewModel::class.java)

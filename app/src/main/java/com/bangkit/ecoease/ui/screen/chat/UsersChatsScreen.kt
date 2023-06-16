@@ -145,6 +145,9 @@ fun UsersChatsScreen(
                                 .weight(1f)
                                 .fillMaxWidth()
                         ) {
+                            if(uiState.data.isEmpty()) Text("Chatroom masih kosong", style = MaterialTheme.typography.caption.copy(
+                                color = DarkGrey
+                            ), modifier = Modifier.align(Alignment.CenterHorizontally))
                             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 itemsIndexed(uiState.data.toList()) { index, room ->
                                     Column {
