@@ -1,6 +1,8 @@
 package com.bangkit.ecoease.ui.screen
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,6 +19,7 @@ import androidx.navigation.NavHostController
 import com.bangkit.ecoease.R
 import com.bangkit.ecoease.data.Screen
 import com.bangkit.ecoease.data.room.model.Garbage
+import com.bangkit.ecoease.helper.greeting
 import com.bangkit.ecoease.helper.toCurrency
 import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.Banner
@@ -108,13 +111,14 @@ fun DashboardScreenLandscapeContent(
 }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Header(
     navHostController: NavHostController,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier) {
-        Text(text = stringResource(R.string.good_morning), style = MaterialTheme.typography.h4)
+        Text(text = greeting(), style = MaterialTheme.typography.h4)
         Spacer(modifier = Modifier.height(42.dp))
         Banner(bannerAction = { navHostController.navigate(Screen.Order.route) })
         Spacer(modifier = Modifier.height(42.dp))

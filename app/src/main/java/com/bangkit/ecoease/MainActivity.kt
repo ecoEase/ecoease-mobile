@@ -250,7 +250,8 @@ class MainActivity : ComponentActivity() {
                                         }
                                         val chooser = Intent.createChooser(intent, "Choose a picture")
                                         launcherIntentGalleryRegister.launch(chooser)
-                                    }
+                                    },
+                                    isButtonEnabled = registerViewModel.isEnabledButton,
                                 )
                             }
                             composable(Screen.Order.route){

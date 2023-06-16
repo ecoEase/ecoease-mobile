@@ -138,13 +138,13 @@ fun CameraScreen(
     PermissionsRequired(
         multiplePermissionsState = permissionsState,
         permissionsNotGrantedContent = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                 Text(text = "To run this feature, this app require those permission.")
                 RoundedButton(text = "re-request permission", trailIcon = Icons.Default.Replay, onClick = { permissionsState.launchMultiplePermissionRequest() })
             }
         },
         permissionsNotAvailableContent = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                 Text(text = "Required permission is not available in your device 😢")
             }
         }) {

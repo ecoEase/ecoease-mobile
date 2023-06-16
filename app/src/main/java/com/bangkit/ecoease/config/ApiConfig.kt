@@ -19,7 +19,7 @@ class ApiConfig {
             .build()
 
         private val retrofit = Retrofit.Builder().apply {
-            baseUrl("https://test-ecoaes.et.r.appspot.com/api/v1/")
+            baseUrl("https://20230615t144626-dot-ecoease-389914.appspot.com/api/v1/")
             addConverterFactory(GsonConverterFactory.create())
             client(client)
         }.build()
@@ -32,7 +32,7 @@ class ApiConfig {
 
 
         private val mlRetrofit = Retrofit.Builder().apply {
-            baseUrl("https://eco-jushlewoya-uc.a.run.app/")
+            baseUrl("https://ecoease-ergfgwm7za-uc.a.run.app/")
             addConverterFactory(GsonConverterFactory.create())
             client(client)
         }.build()

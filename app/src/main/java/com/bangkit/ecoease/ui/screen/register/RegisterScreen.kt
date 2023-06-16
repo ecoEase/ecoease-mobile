@@ -31,6 +31,7 @@ import com.bangkit.ecoease.ui.common.UiState
 import com.bangkit.ecoease.ui.component.PillWidget
 import com.bangkit.ecoease.ui.component.RoundedButton
 import com.bangkit.ecoease.ui.component.TextInput
+import com.bangkit.ecoease.ui.theme.DarkGrey
 import com.bangkit.ecoease.ui.theme.GreenPrimary
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -54,6 +55,7 @@ fun RegisterScreen(
     errorEvent: Flow<MyEvent>,
     onRegister: (photoFile: File, onSuccess: () -> Unit) -> Unit,
     openGallery: () -> Unit,
+    isButtonEnabled: StateFlow<UiState<Boolean>>,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -66,6 +68,7 @@ fun RegisterScreen(
             is UiState.Loading -> loadImageProfile()
         }
     }
+
     LaunchedEffect(Unit){
         errorEvent.collect { event ->
             when(event) {
@@ -114,7 +117,7 @@ fun RegisterScreen(
             validate = validateLastnameInput,
             imeAction = ImeAction.Next
         )
-        PickPhotoProfileImage(openGallery = openGallery)
+        PickPhotoProfileImage(openGallery = openGallery, uiStateProfileImage = imageProfile)
         TextInput(
             label = "Email",
             onValueChange = { emailValidation.updateInputValue(it) },
@@ -149,7 +152,12 @@ fun RegisterScreen(
             onRegister(imageUri!!.toFile(context)){
                 navHostController.navigate(Screen.Auth.route)
             }
-        }, enabled = imageUri != null)
+        }, enabled = isButtonEnabled.collectAsState().value.let { uiState ->
+            when (uiState) {
+                is UiState.Loading -> false
+                else -> true
+            }
+        })
         Row {
             Text("atau ")
             Text(
@@ -166,13 +174,27 @@ fun RegisterScreen(
 @Composable
 private fun PickPhotoProfileImage(
     openGallery: () -> Unit,
+    uiStateProfileImage: StateFlow<UiState<ImageCaptured>>,
     modifier: Modifier = Modifier,
 ){
     Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = modifier) {
         Text(text = "Foto profil")
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             PillWidget(color = GreenPrimary, textColor = Color.White, text = "pilih gambar", modifier = Modifier.clickable { openGallery() })
-            Text("file name here.jpg")
+            uiStateProfileImage.collectAsState(initial = UiState.Loading).value.let { uiState ->
+                when {
+                    uiState is UiState.Success -> Text(
+                        uiState.data.uri.toString(),
+                        style = MaterialTheme.typography.caption
+                    )
+                    else -> Text(
+                        "klik tombol disamping untuk pilih foto dari gallery",
+                        style = MaterialTheme.typography.caption.copy(
+                            color = DarkGrey
+                        )
+                    )
+                }
+            }
         }
     }
 }
