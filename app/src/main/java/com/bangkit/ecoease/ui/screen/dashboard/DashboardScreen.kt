@@ -86,6 +86,7 @@ fun DashboardScreenPotraitContent(
 }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DashboardScreenLandscapeContent(
     garbageStateFlow: StateFlow<UiState<List<Garbage>>>,
