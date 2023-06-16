@@ -7,15 +7,13 @@ EcoEase is project focus on garbage management. Garbage management is rooting pr
 ## Getting Started 📱
 
 1. Make sure your phone's android version is above 8.0 version (Android Oreo).
-2. Download from .apk file from this repository, or using this link.
+2. Download from .apk file from this repository release section, or using this [link](https://github.com/ecoEase/ecoease-mobile/releases/tag/v1.0.0).
 3. In order to use feature like make order, you need to give location permission so our app can pin point your location and show the orders in map screen.
 4. In order to use scan garbage type feature, you need to give camera permission so our app can get image using your phone camera.
 5. Beside using camera, you can also pick garbage picture from your phone gallery.
 6. Don't forget to have proper internet connection so you don't have problem while making garbage order or taking garbage order.
 
 ## Preview 👏
-
-<center>
 
 ![dashboard screen](https://i.imgur.com/BLxjO43.gif) ![profile screen](https://i.imgur.com/DZu5TNa.gif)
 
@@ -40,8 +38,6 @@ EcoEase is project focus on garbage management. Garbage management is rooting pr
 ![scan garbage](https://i.imgur.com/SBbcAvr.gif)
 
 ### Scan Garbage
-
-</center>
 
 ## Mobile Tech Stack 😎
 
